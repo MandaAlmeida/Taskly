@@ -5,17 +5,40 @@ import { styles } from "./styles"
 
 import { Feather } from '@expo/vector-icons';
 
-import { Task } from "@/components/task";
 import { useTask } from "@/hooks/useTask";
+import DateTimePicker from "@react-native-community/datetimepicker"
 
 import { useNavigation } from "@react-navigation/native";
 import { Category } from "@/components/category";
+import { FlatListTaks } from "@/components/flatListTasks";
 
 export function Tasks() {
     const [isFocusedCategory, setIsFocusedCategory] = useState("Todas");
     const [isFocused, setIsFocused] = useState(false);
     const { navigate } = useNavigation();
-    const { tasksCategory, category, taskConcluid, taskName, handleTaskSeek, setTaskName, handleTaskRemove, handleTaskToggle, fetchTaskByCategory } = useTask();
+    const { tasksCategory, category, taskConcluid, taskName, handleTaskSeek, setTaskName, fetchTaskByCategory } = useTask();
+    const [date, setDate] = useState(new Date());
+    const [showPicker, setShowPicker] = useState(false)
+
+
+    const formatDate = (date: Date) => {
+        return new Intl.DateTimeFormat("pt-BR", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+        }).format(date);
+    };
+
+
+    const changeDate = (type: "day" | "month" | "year", value: number) => {
+        setDate((prevDate) => {
+            const newDate = new Date(prevDate);
+            if (type === "day") newDate.setDate(newDate.getDate() + value);
+            if (type === "month") newDate.setMonth(newDate.getMonth() + value);
+            if (type === "year") newDate.setFullYear(newDate.getFullYear() + value);
+            return newDate;
+        });
+    };
 
     function handleAddTask() {
         navigate("addTask");
@@ -28,6 +51,15 @@ export function Tasks() {
 
     function handleActivePriority(selectedPriority: string) {
         setIsFocusedCategory(selectedPriority);
+    }
+
+    const onChange = ({ type }: any, selectedDate: any) => {
+        if (type == "set") {
+            const currentDate = selectedDate;
+            setDate(currentDate);
+        } else {
+            setShowPicker(!showPicker)
+        }
     }
 
     useEffect(() => {
@@ -53,11 +85,20 @@ export function Tasks() {
                     </TouchableOpacity>
                 </View>
                 <View style={styles.month}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => changeDate("day", -1)}>
                         <Feather name="arrow-left" size={24} color="#fdfcfe" />
                     </TouchableOpacity>
-                    <Text style={styles.text}>03 de Fevereiro</Text>
-                    <TouchableOpacity>
+
+                    <View>
+                        <TouchableOpacity onPress={() => setShowPicker(!showPicker)}>
+                            <Text style={styles.text}>{formatDate(date)}</Text>
+                        </TouchableOpacity>
+                        {showPicker && (
+                            <DateTimePicker mode="date" display="spinner" value={date} onChange={onChange} />
+                        )}
+                    </View>
+
+                    <TouchableOpacity onPress={() => changeDate("day", 1)}>
                         <Feather name="arrow-right" size={24} color="#fdfcfe" />
                     </TouchableOpacity>
                 </View>
@@ -88,31 +129,8 @@ export function Tasks() {
                         <Text style={styles.textCount}>{taskConcluid ? taskConcluid.length : 0}</Text>
                     </View>
                 </View>
-                <FlatList
-                    data={tasksCategory}
-                    keyExtractor={item => item.id}
-                    renderItem={({ item }) => (
-                        <Task
-                            id={item.id}
-                            key={item.id}
-                            name={item.name}
-                            onRemove={() => handleTaskRemove(item.name, item.category)}
-                            handleTaskConclue={() => handleTaskToggle(item.id)}
-                            active={item.active}
-                            priority={item.priority}
-                            category={item.category} />
-                    )}
-                    showsVerticalScrollIndicator={false}
-                    ListEmptyComponent={() => (
-                        <View style={styles.containerListEmpty}>
-                            <View style={styles.afterElement} />
-                            <Feather name="clipboard" size={56} color="#333333" />
-                            <Text style={styles.textBoldListEmpty}>Você ainda não tem tarefas cadastradas</Text>
-                            <Text style={styles.textListEmpty}>Crie tarefas e organize seus itens a fazer</Text>
-                        </View>
-                    )}
-                />
 
+                <FlatListTaks />
             </View>
             <TouchableOpacity style={styles.buttonTask} onPress={handleAddTask}>
                 <Feather name="plus" size={16} color="#fdfcfe" />

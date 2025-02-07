@@ -6,6 +6,7 @@ export declare global {
             signIn: undefined;
             signUp: undefined;
             addCategory: undefined;
+            calendar: undefined;
         }
     }
 }

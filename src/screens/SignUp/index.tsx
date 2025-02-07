@@ -108,7 +108,7 @@ export function SignUp() {
                     error={errors.passwordConfirmation?.message}
                 />
 
-                <Button text="Criar conta" onPress={handleSubmit(handleNextStep)} style={{ width: "100%", backgroundColor: "#4EA8DE" }} />
+                <Button text="Criar conta" onPress={handleSubmit(handleNextStep)} style={{ minWidth: "100%", backgroundColor: "#4EA8DE" }} />
                 <View style={styles.register}>
                     <Text style={styles.text}>Você ja possui uma conta?</Text>
                     <TouchableOpacity>

@@ -5,11 +5,13 @@ import { Feather } from '@expo/vector-icons';
 import { Tasks } from "@/screens/Tasks";
 import { AddTask } from "@/screens/AddTask";
 import { AddCategory } from "@/screens/AddCategory";
+import { Calendars } from "@/screens/Calendars";
 
 type AppRoutes = {
     tasks: undefined;
     addTask: undefined;
     addCategory: undefined;
+    calendar: undefined;
 };
 
 
@@ -51,6 +53,13 @@ export function AppRoutes() {
                     component={StackNavigator}
                     options={{
                         tabBarIcon: () => <Feather name="list" size={26} color="#fdfcfe" />,
+                    }}
+                />
+                <Tab.Screen
+                    name="calendar"
+                    component={Calendars}
+                    options={{
+                        tabBarIcon: () => <Feather name="calendar" size={26} color="#fdfcfe" />,
                     }}
                 />
             </Tab.Navigator>
