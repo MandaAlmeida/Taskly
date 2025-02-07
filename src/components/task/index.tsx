@@ -10,9 +10,10 @@ type ParticipantProps = {
     handleTaskConclue: () => void;
     active: boolean;
     priority: string;
+    category: string;
 }
 
-export function Task({ name, onRemove, id, handleTaskConclue, active, priority }: ParticipantProps) {
+export function Task({ name, onRemove, id, handleTaskConclue, active, priority, category }: ParticipantProps) {
 
     return (
         <View style={[styles.container, {
@@ -36,7 +37,11 @@ export function Task({ name, onRemove, id, handleTaskConclue, active, priority }
                                     ? "#ff9500"
                                     : "#34C759"
                         }]} name="check" size={12} color="#F2F2F2" />
-                        <Text id={id} style={styles.nameCheck}>{name}</Text>
+                        <View>
+                            <Text id={id} style={styles.nameCheck}>{name}</Text>
+                            <Text id={id} style={styles.categoryCheck}>{category}</Text>
+                        </View>
+
                     </View>
 
                 ) : (
@@ -48,7 +53,10 @@ export function Task({ name, onRemove, id, handleTaskConclue, active, priority }
                                     ? "#ff9500"
                                     : "#34C759"
                         }]}></Text>
-                        <Text style={styles.name}>{name}</Text>
+                        <View>
+                            <Text id={id} style={styles.name}>{name}</Text>
+                            <Text id={id} style={styles.category}>{category}</Text>
+                        </View>
                     </View>
                 )}
 

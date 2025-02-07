@@ -16,12 +16,20 @@ export const styles = StyleSheet.create({
         fontSize: 16,
         color: "#808080",
     },
-    priority: {
-        gap: 10,
+    category: {
+        flexDirection: 'row',
         borderColor: "#333333",
         borderWidth: 1,
         borderStyle: "solid",
         borderRadius: 6,
-        padding: 10
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 20,
+        color: "#F4F4F4",
+    },
+    text: {
+        fontSize: 16,
+        color: "#F4F4F4",
     }
 })

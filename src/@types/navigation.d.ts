@@ -5,6 +5,7 @@ export declare global {
             tasks: undefined;
             signIn: undefined;
             signUp: undefined;
+            addCategory: undefined;
         }
     }
 }

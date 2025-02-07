@@ -4,10 +4,12 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Feather } from '@expo/vector-icons';
 import { Tasks } from "@/screens/Tasks";
 import { AddTask } from "@/screens/AddTask";
+import { AddCategory } from "@/screens/AddCategory";
 
 type AppRoutes = {
     tasks: undefined;
     addTask: undefined;
+    addCategory: undefined;
 };
 
 
@@ -19,6 +21,7 @@ function StackNavigator() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="tasks" component={Tasks} />
             <Stack.Screen name="addTask" component={AddTask} />
+            <Stack.Screen name="addCategory" component={AddCategory} />
         </Stack.Navigator>
     );
 }

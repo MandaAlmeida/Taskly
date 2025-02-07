@@ -8,12 +8,13 @@ import { useForm } from "react-hook-form";
 import { TaskProps } from "@/@types/task";
 import { useTask } from "@/hooks/useTask";
 import { useNavigation } from "@react-navigation/native";
+import { Button } from "@/components/button";
 
 
 
 export function AddTask() {
     const { navigate } = useNavigation();
-    const { setTasks } = useTask();
+    const { setTasks, handleAddTask } = useTask();
     const [text, setText] = useState("Alta");
     const {
         control,
@@ -41,8 +42,9 @@ export function AddTask() {
 
         }
 
-        setTasks((prevTasks) => [...prevTasks, Task])
-        handleBackToTask()
+        setTasks((prevTasks) => [...prevTasks, Task]);
+        handleAddTask(Task);
+        handleBackToTask();
     }
 
 
@@ -100,9 +102,7 @@ export function AddTask() {
                 </View>
             </View>
 
-            <TouchableOpacity style={styles.button} onPress={handleSubmit(HandleAddTask)}>
-                <Text style={styles.text}>Adicionar tarefa</Text>
-            </TouchableOpacity>
+            <Button text="Adicionar tarefa" onPress={handleSubmit(HandleAddTask)} style={{ width: "100%" }} />
         </View>
     );
 }

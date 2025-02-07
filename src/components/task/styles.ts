@@ -40,6 +40,15 @@ export const styles = StyleSheet.create({
         textDecorationLine: "line-through",
 
     },
+    category: {
+        fontSize: 12,
+        color: "#B5B5B5",
+    },
+    categoryCheck: {
+        fontSize: 12,
+        color: "#808080",
+        textDecorationLine: "line-through",
+    },
     button: {
         alignItems: "center",
         justifyContent: "center",

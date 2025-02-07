@@ -1,6 +1,5 @@
 import { TouchableOpacity, Text } from "react-native";
 import { styles } from "./styles";
-import { useState } from "react";
 
 type Props = {
     text: string,

@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
         height: 42,
         backgroundColor: "#21506C",
         borderRadius: 6,
-        alignItems: "center"
+
     },
     buttonCategory: {
         height: "100%",

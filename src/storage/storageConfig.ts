@@ -1,0 +1,4 @@
+const CATEGORY_COLLECTION = "@ToDoList:category";
+const TASKS_COLLECTION = "@ToDoList:task";
+
+export { CATEGORY_COLLECTION, TASKS_COLLECTION }

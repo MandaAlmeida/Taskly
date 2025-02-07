@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from "react-native"
 
 import { styles } from "./styles"
@@ -9,15 +9,30 @@ import { Task } from "@/components/task";
 import { useTask } from "@/hooks/useTask";
 
 import { useNavigation } from "@react-navigation/native";
+import { Category } from "@/components/category";
 
 export function Tasks() {
-    const { navigate } = useNavigation();
-    const { tasksCategory, category, taskConcluid, taskName, handleTaskSeek, setTaskName, handleTaskRemove, handleTaskToggle, handleFilterCategory } = useTask();
+    const [isFocusedCategory, setIsFocusedCategory] = useState("Todas");
     const [isFocused, setIsFocused] = useState(false);
+    const { navigate } = useNavigation();
+    const { tasksCategory, category, taskConcluid, taskName, handleTaskSeek, setTaskName, handleTaskRemove, handleTaskToggle, fetchTaskByCategory } = useTask();
 
     function handleAddTask() {
-        navigate("addTask")
+        navigate("addTask");
     }
+
+    function handleAddCategory() {
+        console.log("Ativado")
+        navigate("addCategory");
+    }
+
+    function handleActivePriority(selectedPriority: string) {
+        setIsFocusedCategory(selectedPriority);
+    }
+
+    useEffect(() => {
+        fetchTaskByCategory(isFocusedCategory);
+    }, [isFocusedCategory])
 
     return (
         <View style={styles.container}>
@@ -49,14 +64,12 @@ export function Tasks() {
                 <View style={styles.category}>
                     <FlatList
                         data={category}
-                        keyExtractor={item => item.length.toString()}
+                        keyExtractor={(index) => index.toString()}
                         renderItem={({ item }) => (
-                            <TouchableOpacity style={styles.buttonCategory} onPress={() => handleFilterCategory(item)}>
-                                <Text style={styles.text}>{item}</Text>
-                            </TouchableOpacity>
+                            <Category text={item} isFocus={isFocusedCategory === item} Focused={() => handleActivePriority(item)} />
                         )}
                         ListFooterComponent={
-                            <TouchableOpacity style={styles.buttonCategory}>
+                            <TouchableOpacity style={styles.buttonCategory} onPress={handleAddCategory}>
                                 <Feather name="plus" size={24} color="#fdfcfe" />
                             </TouchableOpacity>
                         }
@@ -83,11 +96,11 @@ export function Tasks() {
                             id={item.id}
                             key={item.id}
                             name={item.name}
-                            onRemove={() => handleTaskRemove(item.name)}
+                            onRemove={() => handleTaskRemove(item.name, item.category)}
                             handleTaskConclue={() => handleTaskToggle(item.id)}
                             active={item.active}
                             priority={item.priority}
-                        />
+                            category={item.category} />
                     )}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={() => (
@@ -99,6 +112,7 @@ export function Tasks() {
                         </View>
                     )}
                 />
+
             </View>
             <TouchableOpacity style={styles.buttonTask} onPress={handleAddTask}>
                 <Feather name="plus" size={16} color="#fdfcfe" />
