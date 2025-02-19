@@ -3,6 +3,8 @@ import { TextInput, TextInputProps, View, Text } from "react-native";
 import { Controller, UseControllerProps } from "react-hook-form";
 import { forwardRef } from "react";
 import { styles } from "./styles";
+import { theme } from '@/styles/theme';
+
 import { TaskProps } from "@/@types/task";
 
 type Props = {
@@ -20,7 +22,7 @@ const Input = forwardRef<TextInput, Props>(({ formProps, inputProps, error = "" 
                 <View>
                     <TextInput
                         style={[styles.input, isFocused && styles.inputFocused]}
-                        placeholderTextColor={"#808080"}
+                        placeholderTextColor={theme.gray2}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         ref={ref}

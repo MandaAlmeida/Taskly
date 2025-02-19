@@ -1,9 +1,10 @@
 import { StyleSheet } from "react-native";
+import { theme } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#131016",
+        backgroundColor: theme.white,
         alignItems: "center",
         padding: 24,
     },
@@ -15,16 +16,16 @@ export const styles = StyleSheet.create({
         gap: 30,
     },
     title: {
-        color: "#F4F4F4",
+        color: theme.blue1,
         fontSize: 24,
     },
     text: {
         fontSize: 16,
-        color: "#7C7C8A"
+        color: theme.gray2
     },
     link: {
         fontSize: 16,
-        color: "#4EA8DE",
+        color: theme.blue1,
         fontWeight: "700",
         textDecorationLine: "underline",
     },

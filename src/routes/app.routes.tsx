@@ -6,6 +6,7 @@ import { Tasks } from "@/screens/Tasks";
 import { AddTask } from "@/screens/AddTask";
 import { AddCategory } from "@/screens/AddCategory";
 import { Calendars } from "@/screens/Calendars";
+import { theme } from '@/styles/theme';
 
 type AppRoutes = {
     tasks: undefined;
@@ -38,7 +39,7 @@ export function AppRoutes() {
                     tabBarHideOnKeyboard: true,
                     animation: "fade",
                     tabBarStyle: {
-                        backgroundColor: "#4EA8DE",
+                        backgroundColor: theme.blue1,
                         borderTopWidth: 0,
                         paddingBottom: 10,
                         paddingTop: 5,
@@ -52,14 +53,14 @@ export function AppRoutes() {
                     name="tasks"
                     component={StackNavigator}
                     options={{
-                        tabBarIcon: () => <Feather name="list" size={26} color="#fdfcfe" />,
+                        tabBarIcon: () => <Feather name="list" size={26} color={theme.white} />,
                     }}
                 />
                 <Tab.Screen
                     name="calendar"
                     component={Calendars}
                     options={{
-                        tabBarIcon: () => <Feather name="calendar" size={26} color="#fdfcfe" />,
+                        tabBarIcon: () => <Feather name="calendar" size={26} color={theme.white} />,
                     }}
                 />
             </Tab.Navigator>

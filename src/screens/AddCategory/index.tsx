@@ -6,6 +6,8 @@ import React, { useState } from "react";
 import { Button } from "@/components/button";
 import { useNavigation } from "@react-navigation/native";
 
+import { theme } from '@/styles/theme';
+
 export function AddCategory() {
     const [addCategory, setAddCategory] = useState("");
     const { navigate } = useNavigation();
@@ -24,7 +26,7 @@ export function AddCategory() {
             <View style={styles.header}>
                 <Text style={styles.title}>Adicionar ou remover categoria</Text>
                 <TouchableOpacity onPress={handleBackToTask}>
-                    <Feather name="x" size={24} color="#F4F4F4" />
+                    <Feather name="x" size={24} color={theme.gray2} />
                 </TouchableOpacity>
             </View>
             <FlatList
@@ -39,7 +41,7 @@ export function AddCategory() {
                     <View style={[styles.category, { paddingHorizontal: 10 }]}>
                         <Text style={styles.text}>{item}</Text>
                         <TouchableOpacity onPress={() => removeCategory(item)}>
-                            <Feather name="trash-2" color="#808080" />
+                            <Feather name="trash-2" color={theme.gray2} />
                         </TouchableOpacity>
                     </View>
                 )}
@@ -48,7 +50,7 @@ export function AddCategory() {
                     <View style={[styles.category, { paddingLeft: 10 }]}>
                         <TextInput
                             style={styles.text}
-                            placeholderTextColor={"#808080"}
+                            placeholderTextColor={theme.gray2}
                             placeholder="Adicionar categoria"
                             value={addCategory}
                             onChangeText={setAddCategory}

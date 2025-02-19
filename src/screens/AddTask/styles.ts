@@ -1,11 +1,12 @@
 import { StyleSheet } from 'react-native';
+import { theme } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 24,
         gap: 50,
-        backgroundColor: "#131016",
+        backgroundColor: theme.white,
     },
     header: {
         flexDirection: 'row',
@@ -14,11 +15,15 @@ export const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        color: "#808080",
+        color: theme.blue1,
+    },
+    text: {
+        fontSize: 16,
+        color: theme.gray2,
     },
     priority: {
         gap: 10,
-        borderColor: "#333333",
+        borderColor: theme.blue1,
         borderWidth: 1,
         borderStyle: "solid",
         borderRadius: 6,

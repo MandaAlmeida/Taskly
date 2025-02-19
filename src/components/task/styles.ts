@@ -52,6 +52,6 @@ export const styles = StyleSheet.create({
     button: {
         alignItems: "center",
         justifyContent: "center",
-    },
+    }
 
 })

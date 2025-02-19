@@ -4,6 +4,7 @@ import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from "react-
 import { styles } from "./styles"
 
 import { Feather } from '@expo/vector-icons';
+import Logo from "@/assets/logo.png"
 
 import { useTask } from "@/hooks/useTask";
 import DateTimePicker from "@react-native-community/datetimepicker"
@@ -11,6 +12,7 @@ import DateTimePicker from "@react-native-community/datetimepicker"
 import { useNavigation } from "@react-navigation/native";
 import { Category } from "@/components/category";
 import { FlatListTaks } from "@/components/flatListTasks";
+import { theme } from "@/styles/theme";
 
 export function Tasks() {
     const [isFocusedCategory, setIsFocusedCategory] = useState("Todas");
@@ -69,24 +71,24 @@ export function Tasks() {
     return (
         <View style={styles.container}>
             <View style={styles.containerHeader}>
-                <Image source={require('../../assets/logo.png')} />
+                <Image source={Logo} />
                 <View style={styles.form}>
                     <TextInput
                         style={[styles.input, isFocused && styles.inputFocused]}
                         placeholder='Pesquisar tarefa'
-                        placeholderTextColor={"#6B6B6B"}
+                        placeholderTextColor={theme.gray2}
                         onChangeText={setTaskName}
                         value={taskName}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                     />
                     <TouchableOpacity style={styles.button} onPress={handleTaskSeek}>
-                        <Feather name="search" size={18} color="#fdfcfe" />
+                        <Feather name="search" size={18} color={theme.white} />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.month}>
                     <TouchableOpacity onPress={() => changeDate("day", -1)}>
-                        <Feather name="arrow-left" size={24} color="#fdfcfe" />
+                        <Feather name="arrow-left" size={24} color={theme.blue1} />
                     </TouchableOpacity>
 
                     <View>
@@ -99,7 +101,7 @@ export function Tasks() {
                     </View>
 
                     <TouchableOpacity onPress={() => changeDate("day", 1)}>
-                        <Feather name="arrow-right" size={24} color="#fdfcfe" />
+                        <Feather name="arrow-right" size={24} color={theme.blue1} />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.category}>
@@ -111,7 +113,7 @@ export function Tasks() {
                         )}
                         ListFooterComponent={
                             <TouchableOpacity style={styles.buttonCategory} onPress={handleAddCategory}>
-                                <Feather name="plus" size={24} color="#fdfcfe" />
+                                <Feather name="plus" size={24} color={theme.white} />
                             </TouchableOpacity>
                         }
                         horizontal
@@ -123,17 +125,17 @@ export function Tasks() {
                 <View style={styles.list}>
                     <View style={styles.listContent}>
                         <Text style={styles.textCreate}>Criadas </Text>
-                        <Text style={styles.textCount}>{tasksCategory ? tasksCategory.length : 0}</Text></View>
+                        <Text style={[styles.textCount, { backgroundColor: theme.blue1 }]}>{tasksCategory ? tasksCategory.length : 0}</Text></View>
                     <View style={styles.listContent}>
                         <Text style={styles.textConclude}>Concluídas</Text>
-                        <Text style={styles.textCount}>{taskConcluid ? taskConcluid.length : 0}</Text>
+                        <Text style={[styles.textCount, { backgroundColor: theme.green1 }]}>{taskConcluid ? taskConcluid.length : 0}</Text>
                     </View>
                 </View>
 
                 <FlatListTaks />
             </View>
             <TouchableOpacity style={styles.buttonTask} onPress={handleAddTask}>
-                <Feather name="plus" size={16} color="#fdfcfe" />
+                <Feather name="plus" size={16} color={theme.white} />
             </TouchableOpacity>
         </View>
     )

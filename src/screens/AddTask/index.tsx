@@ -9,6 +9,7 @@ import { TaskProps } from "@/@types/task";
 import { useTask } from "@/hooks/useTask";
 import { useNavigation } from "@react-navigation/native";
 import { Button } from "@/components/button";
+import { theme } from "@/styles/theme";
 
 
 
@@ -53,7 +54,7 @@ export function AddTask() {
             <View style={styles.header}>
                 <Text style={styles.title}>Adicione uma nova tarefa</Text>
                 <TouchableOpacity onPress={handleBackToTask}>
-                    <Feather name="x" size={24} color="#F4F4F4" />
+                    <Feather name="x" size={24} color={theme.gray2} />
                 </TouchableOpacity>
             </View>
 
@@ -83,7 +84,7 @@ export function AddTask() {
                     error={errors.category?.message} />
 
                 <View style={styles.priority}>
-                    <Text style={styles.title}>Prioridade</Text>
+                    <Text style={styles.text}>Prioridade</Text>
                     <Priority
                         text="Alta"
                         isFocus={text === "Alta"}

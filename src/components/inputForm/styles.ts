@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { theme } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
     container: {
@@ -26,11 +27,11 @@ export const styles = StyleSheet.create({
         flex: 1,
         paddingLeft: 16,
         fontSize: 16,
-        color: "#F4F4F4"
+        color: theme.gray4
     },
     error: {
         fontSize: 14,
         marginTop: 5,
-        color: "#DC1637",
+        color: theme.red,
     }
 })

@@ -1,13 +1,13 @@
 import { StyleSheet } from 'react-native';
+import { theme } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#131016",
+        backgroundColor: theme.white,
     },
     containerHeader: {
         width: "100%",
-        backgroundColor: "#0D0D0D",
         padding: 24,
         alignItems: "center",
         gap: 30,
@@ -15,15 +15,15 @@ export const styles = StyleSheet.create({
     input: {
         flex: 1,
         height: 42,
-        backgroundColor: "#1F1E25",
+        borderWidth: 1,
+        borderColor: theme.blue1,
         borderRadius: 5,
         padding: 10,
-        color: "#fdfcfe",
+        color: theme.gray4,
         fontSize: 16,
     },
     inputFocused: {
-        borderColor: '#5E60CE',
-        borderWidth: 1,
+        borderColor: theme.blue2
     },
     form: {
         width: "100%",
@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
         width: 42,
         height: 42,
         borderRadius: 5,
-        backgroundColor: "#1E6F9F",
+        backgroundColor: theme.blue1,
         alignItems: "center",
         justifyContent: "center",
     },
@@ -46,13 +46,13 @@ export const styles = StyleSheet.create({
 
     },
     text: {
-        color: "#fdfcfe",
+        color: theme.blue1,
         fontSize: 16,
     },
     category: {
         width: "100%",
         height: 42,
-        backgroundColor: "#21506C",
+        backgroundColor: theme.blue2,
         borderRadius: 6,
 
     },
@@ -75,20 +75,19 @@ export const styles = StyleSheet.create({
         gap: 8,
     },
     textCreate: {
-        color: "#4EA8DE",
+        color: theme.blue1,
         fontSize: 14,
         fontWeight: "bold",
     },
     textConclude: {
-        color: "#8284FA",
+        color: theme.green1,
         fontSize: 14,
         fontWeight: "bold",
     },
     textCount: {
-        backgroundColor: "#333333",
         width: 25,
         textAlign: 'center',
-        color: "#D9D9D9",
+        color: theme.white,
         fontSize: 12,
         fontWeight: "bold",
         borderRadius: 100,
@@ -97,7 +96,7 @@ export const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 30,
         right: 20,
-        backgroundColor: "#4EA8DE",
+        backgroundColor: theme.blue1,
         width: 40,
         height: 40,
         borderRadius: 6,

@@ -41,9 +41,7 @@ export function Task({ name, onRemove, id, handleTaskConclue, active, priority, 
                             <Text id={id} style={styles.nameCheck}>{name}</Text>
                             <Text id={id} style={styles.categoryCheck}>{category}</Text>
                         </View>
-
                     </View>
-
                 ) : (
                     <View style={styles.containerCheck}>
                         <Text style={[styles.circle, {

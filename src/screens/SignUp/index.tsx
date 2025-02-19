@@ -1,4 +1,5 @@
 import { Text, View, Image, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 import { InputForm } from "@/components/inputForm";
 import { useRef } from "react";
@@ -6,12 +7,19 @@ import { useRef } from "react";
 import { AccountProps } from "@/@types/account";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/button";
+
 import { styles } from "./styles";
+import { theme } from '@/styles/theme';
 
 export function SignUp() {
     const { control, handleSubmit, formState: { errors }, getValues } = useForm<AccountProps>();
     const emailRef = useRef<TextInput>(null);
     const passwordConfirmationRef = useRef<TextInput>(null);
+    const { navigate } = useNavigation();
+
+    function handleLogin() {
+        navigate("signIn");
+    }
 
     function handleNextStep(data: AccountProps) {
         console.log(data)
@@ -40,7 +48,7 @@ export function SignUp() {
                     }}
                     inputProps={{
                         placeholder: "Nome",
-                        placeholderTextColor: "#7C7C8A",
+                        placeholderTextColor: theme.gray2,
                         onSubmitEditing: () => emailRef.current?.focus(),
                         returnKeyType: "next",
                     }}
@@ -62,7 +70,7 @@ export function SignUp() {
                     }}
                     inputProps={{
                         placeholder: "E-mail",
-                        placeholderTextColor: "#7C7C8A",
+                        placeholderTextColor: theme.gray2,
                     }}
                     error={errors.email?.message}
                 />
@@ -81,7 +89,7 @@ export function SignUp() {
                     }}
                     inputProps={{
                         placeholder: "Senha",
-                        placeholderTextColor: "#7C7C8A",
+                        placeholderTextColor: theme.gray2,
                         onSubmitEditing: () => passwordConfirmationRef.current?.focus(),
                         returnKeyType: "next",
                         secureTextEntry: true
@@ -101,17 +109,17 @@ export function SignUp() {
                     }}
                     inputProps={{
                         placeholder: "Confirme sua senha",
-                        placeholderTextColor: "#7C7C8A",
+                        placeholderTextColor: theme.gray2,
                         onSubmitEditing: handleSubmit(handleNextStep),
                         secureTextEntry: true
                     }}
                     error={errors.passwordConfirmation?.message}
                 />
 
-                <Button text="Criar conta" onPress={handleSubmit(handleNextStep)} style={{ minWidth: "100%", backgroundColor: "#4EA8DE" }} />
+                <Button text="Criar conta" onPress={handleSubmit(handleNextStep)} style={{ minWidth: "100%", backgroundColor: theme.blue1 }} />
                 <View style={styles.register}>
                     <Text style={styles.text}>Você ja possui uma conta?</Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={handleLogin}>
                         <Text style={styles.link}>Entrar na conta</Text>
                     </TouchableOpacity>
                 </View>

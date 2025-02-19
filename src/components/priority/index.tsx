@@ -21,7 +21,13 @@ export function Priority({ text, Focused, isFocus }: Props) {
                     'rgba(52, 199, 89, 0.2)'
                 : 'transparent'
         }]}>
-            <Text style={styles.text}>{text}</Text>
+            <Text style={[styles.text, {
+                color: text === "Alta"
+                    ? "#FF3B30"
+                    : text === "Media"
+                        ? "#ff9500"
+                        : "#34C759",
+            }]}>{text}</Text>
         </TouchableOpacity>
     )
 }

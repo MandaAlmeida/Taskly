@@ -4,6 +4,7 @@ import { styles } from "./styles";
 import { Controller, UseControllerProps } from "react-hook-form"
 import { forwardRef } from "react";
 import clsx from "clsx";
+import { theme } from '@/styles/theme';
 
 type InputProps = {
     icon: keyof typeof Feather.glyphMap;
@@ -17,22 +18,22 @@ const InputForm = forwardRef<TextInput, InputProps>(({ icon, formProps, inputPro
         <Controller render={({ field }) => (
             <View style={styles.container}>
                 <View style={[styles.group, {
-                    borderColor: error.length > 0 ? "#DC1637" : error.length === 0 && field.value ?
-                        "#4EA8DE" :
-                        "#7C7C8A"
+                    borderColor: error.length > 0 ? theme.red : error.length === 0 && field.value ?
+                        theme.blue1 :
+                        theme.gray2
                 }]}>
                     <View style={[styles.icon, {
-                        borderRightColor: error.length > 0 ? "#DC1637" : error.length === 0 && field.value ?
-                            "#4EA8DE" :
-                            "#7C7C8A"
+                        borderRightColor: error.length > 0 ? theme.red : error.length === 0 && field.value ?
+                            theme.blue1 :
+                            theme.gray2
                     }]}>
                         <Feather
                             name={icon}
                             size={20}
                             color={clsx({
-                                ["#DC1637"]: error.length > 0,
-                                ["#4EA8DE"]: (error.length === 0 && field.value),
-                                ["#7C7C8A"]: (!field.value && error.length === 0)
+                                [theme.red]: error.length > 0,
+                                [theme.blue1]: (error.length === 0 && field.value),
+                                [theme.gray2]: (!field.value && error.length === 0)
                             })} />
                     </View>
                     <TextInput
