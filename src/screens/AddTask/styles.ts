@@ -28,5 +28,15 @@ export const styles = StyleSheet.create({
         borderStyle: "solid",
         borderRadius: 6,
         padding: 10
-    }
+    },
+    button: {
+        position: 'relative',
+        height: 50,
+        borderColor: theme.blue1,
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        justifyContent: "center",
+    },
 })

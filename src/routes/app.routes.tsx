@@ -7,8 +7,10 @@ import { AddTask } from "@/screens/AddTask";
 import { AddCategory } from "@/screens/AddCategory";
 import { Calendars } from "@/screens/Calendars";
 import { theme } from '@/styles/theme';
+import { Home } from "@/screens/Home";
 
 type AppRoutes = {
+    home: undefined;
     tasks: undefined;
     addTask: undefined;
     addCategory: undefined;
@@ -49,6 +51,13 @@ export function AppRoutes() {
                     },
                 }}
             >
+                <Tab.Screen
+                    name="home"
+                    component={Home}
+                    options={{
+                        tabBarIcon: () => <Feather name="home" size={26} color={theme.white} />,
+                    }}
+                />
                 <Tab.Screen
                     name="tasks"
                     component={StackNavigator}

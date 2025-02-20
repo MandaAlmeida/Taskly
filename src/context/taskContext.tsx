@@ -15,9 +15,11 @@ interface TaskContextProps {
     category: string[];
     taskName: string;
     taskConcluid: string[];
+    isDropdownOpen: boolean;
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
     setTaskName: React.Dispatch<React.SetStateAction<string>>;
+    setIsDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
     handleTaskRemove: (name: string, category: string) => void;
     handleTaskToggle: (id: string) => void;
@@ -40,6 +42,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [taskName, setTaskName] = useState('');
     const [taskConcluid, setTasksConcluid] = useState<string[]>([]);
     const [category, setCategory] = useState([""]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     async function handleTaskRemove(name: string, category: string) {
         try {
@@ -181,7 +184,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     }, [tasksCategory]);
 
     return (
-        <TaskContext.Provider value={{ tasks, category, taskConcluid, taskName, tasksCategory, setTasks, setTaskName, handleTaskToggle, handleTaskSeek, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, fetchTaskByCategory }}>
+        <TaskContext.Provider value={{ tasks, category, taskConcluid, taskName, tasksCategory, isDropdownOpen, setTasks, setTaskName, setIsDropdownOpen, handleTaskToggle, handleTaskSeek, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, fetchTaskByCategory }}>
             {children}
         </TaskContext.Provider>
     )

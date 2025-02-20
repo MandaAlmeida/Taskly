@@ -1,4 +1,4 @@
-import { View, Image } from "react-native";
+import { View } from "react-native";
 import { Calendar, CalendarUtils, DateData, LocaleConfig } from 'react-native-calendars';
 import { useState } from "react";
 
@@ -9,6 +9,7 @@ import { FlatListTaks } from "@/components/flatListTasks";
 
 import { styles } from "./styles";
 import { theme } from "@/styles/theme";
+import { Header } from "@/components/header";
 
 
 LocaleConfig.locales["pt-br"] = ptBR
@@ -19,9 +20,7 @@ export function Calendars() {
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
     return (
         <View style={styles.container}>
-            <View style={{ width: "100%", alignItems: "center" }}>
-                <Image source={require('../../assets/logo.png')} />
-            </View>
+            <Header />
             <Calendar
                 current={INITIAL_DATE}
                 style={styles.calendar}

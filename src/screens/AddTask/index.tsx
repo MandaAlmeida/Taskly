@@ -10,12 +10,14 @@ import { useTask } from "@/hooks/useTask";
 import { useNavigation } from "@react-navigation/native";
 import { Button } from "@/components/button";
 import { theme } from "@/styles/theme";
+import { SelectCategory } from "@/components/selectCategory";
 
 
 
 export function AddTask() {
+    const [selectedCategory, setSelectedCategory] = useState("Pessoal");
     const { navigate } = useNavigation();
-    const { setTasks, handleAddTask } = useTask();
+    const { isDropdownOpen, setIsDropdownOpen, setTasks, handleAddTask } = useTask();
     const [text, setText] = useState("Alta");
     const {
         control,
@@ -37,7 +39,7 @@ export function AddTask() {
             id: Date.now().toString(),
             name: data.name,
             priority: text,
-            category: data.category,
+            category: selectedCategory,
             active: false,
             date: new Date().toString(),
 
@@ -45,6 +47,7 @@ export function AddTask() {
 
         setTasks((prevTasks) => [...prevTasks, Task]);
         handleAddTask(Task);
+        setSelectedCategory("Todas");
         handleBackToTask();
     }
 
@@ -71,18 +74,17 @@ export function AddTask() {
                     }}
                     error={errors.name?.message} />
 
-                <Input formProps={{
-                    name: "category",
-                    control,
-                    rules: {
-                        required: "Categoria é obrigatória"
-                    }
-                }}
-                    inputProps={{
-                        placeholder: "Categoria",
-                    }}
-                    error={errors.category?.message} />
-
+                <View style={{ position: "relative" }}>
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                    >
+                        <Text style={styles.text}>Categoria: {selectedCategory}</Text>
+                    </TouchableOpacity>
+                    {isDropdownOpen && (
+                        <SelectCategory selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} isAddTask />
+                    )}
+                </View>
                 <View style={styles.priority}>
                     <Text style={styles.text}>Prioridade</Text>
                     <Priority

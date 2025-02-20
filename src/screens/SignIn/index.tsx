@@ -1,4 +1,4 @@
-import { Text, View, Image, TextInput, TouchableOpacity } from "react-native";
+import { Text, View, TextInput, TouchableOpacity } from "react-native";
 import { styles } from "./styles";
 import { InputForm } from "@/components/inputForm";
 import { useRef } from "react";
@@ -9,6 +9,7 @@ import { Button } from "@/components/button";
 
 import { theme } from '@/styles/theme';
 import { useNavigation } from "@react-navigation/native";
+import { Header } from "@/components/header";
 
 
 export function SignIn() {
@@ -26,7 +27,7 @@ export function SignIn() {
 
     return (
         <View style={styles.container}>
-            <Image source={require('../../assets/logo.png')} />
+            <Header />
             <View style={styles.form}>
                 <Text style={styles.title}>Acesse sua conta</Text>
                 <InputForm

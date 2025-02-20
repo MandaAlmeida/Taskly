@@ -1,4 +1,6 @@
 import { StyleSheet } from 'react-native';
+import { theme } from "@/styles/theme";
+
 export const styles = StyleSheet.create({
     container: {
         width: "100%",
@@ -33,20 +35,20 @@ export const styles = StyleSheet.create({
     },
     name: {
         fontSize: 14,
-        color: "#fdfcfe",
-    },
-    nameCheck: {
-        color: "#808080",
-        textDecorationLine: "line-through",
-
+        color: theme.gray3,
     },
     category: {
         fontSize: 12,
-        color: "#B5B5B5",
+        color: theme.gray2,
+    },
+    nameCheck: {
+        color: theme.gray2,
+        textDecorationLine: "line-through",
+
     },
     categoryCheck: {
         fontSize: 12,
-        color: "#808080",
+        color: theme.gray2,
         textDecorationLine: "line-through",
     },
     button: {

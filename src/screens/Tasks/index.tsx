@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react"
-import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native"
 
 import { styles } from "./styles"
 
-import { Feather } from '@expo/vector-icons';
-import Logo from "@/assets/logo.png"
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 
 import { useTask } from "@/hooks/useTask";
 import DateTimePicker from "@react-native-community/datetimepicker"
@@ -13,6 +12,8 @@ import { useNavigation } from "@react-navigation/native";
 import { Category } from "@/components/category";
 import { FlatListTaks } from "@/components/flatListTasks";
 import { theme } from "@/styles/theme";
+import { Header } from "@/components/header";
+
 
 export function Tasks() {
     const [isFocusedCategory, setIsFocusedCategory] = useState("Todas");
@@ -71,7 +72,7 @@ export function Tasks() {
     return (
         <View style={styles.container}>
             <View style={styles.containerHeader}>
-                <Image source={Logo} />
+                <Header />
                 <View style={styles.form}>
                     <TextInput
                         style={[styles.input, isFocused && styles.inputFocused]}
@@ -88,7 +89,7 @@ export function Tasks() {
                 </View>
                 <View style={styles.month}>
                     <TouchableOpacity onPress={() => changeDate("day", -1)}>
-                        <Feather name="arrow-left" size={24} color={theme.blue1} />
+                        <MaterialIcons name="arrow-back-ios" size={24} color={theme.blue1} />
                     </TouchableOpacity>
 
                     <View>
@@ -101,7 +102,7 @@ export function Tasks() {
                     </View>
 
                     <TouchableOpacity onPress={() => changeDate("day", 1)}>
-                        <Feather name="arrow-right" size={24} color={theme.blue1} />
+                        <MaterialIcons name="arrow-forward-ios" size={24} color={theme.blue1} />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.category}>

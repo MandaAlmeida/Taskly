@@ -10,6 +10,7 @@ import { Button } from "@/components/button";
 
 import { styles } from "./styles";
 import { theme } from '@/styles/theme';
+import { Header } from "@/components/header";
 
 export function SignUp() {
     const { control, handleSubmit, formState: { errors }, getValues } = useForm<AccountProps>();
@@ -33,7 +34,7 @@ export function SignUp() {
 
     return (
         <View style={styles.container}>
-            <Image source={require('../../assets/logo.png')} />
+            <Header />
             <ScrollView contentContainerStyle={styles.form}>
                 <Text style={styles.title}>Acesse sua conta</Text>
 
