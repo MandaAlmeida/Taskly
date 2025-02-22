@@ -3,10 +3,9 @@ import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native"
 
 import { styles } from "./styles"
 
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 
 import { useTask } from "@/hooks/useTask";
-import DateTimePicker from "@react-native-community/datetimepicker"
 
 import { useNavigation } from "@react-navigation/native";
 import { Category } from "@/components/category";
@@ -16,32 +15,9 @@ import { Header } from "@/components/header";
 
 
 export function Tasks() {
-    const [isFocusedCategory, setIsFocusedCategory] = useState("Todas");
     const [isFocused, setIsFocused] = useState(false);
     const { navigate } = useNavigation();
-    const { tasksCategory, category, taskConcluid, taskName, handleTaskSeek, setTaskName, fetchTaskByCategory } = useTask();
-    const [date, setDate] = useState(new Date());
-    const [showPicker, setShowPicker] = useState(false)
-
-
-    const formatDate = (date: Date) => {
-        return new Intl.DateTimeFormat("pt-BR", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-        }).format(date);
-    };
-
-
-    const changeDate = (type: "day" | "month" | "year", value: number) => {
-        setDate((prevDate) => {
-            const newDate = new Date(prevDate);
-            if (type === "day") newDate.setDate(newDate.getDate() + value);
-            if (type === "month") newDate.setMonth(newDate.getMonth() + value);
-            if (type === "year") newDate.setFullYear(newDate.getFullYear() + value);
-            return newDate;
-        });
-    };
+    const { tasksCategory, selectedCategory, category, taskConcluid, taskName, handleTaskSeek, setTaskName, setSelectedCategory, fetchTaskByCategory } = useTask();
 
     function handleAddTask() {
         navigate("addTask");
@@ -53,21 +29,12 @@ export function Tasks() {
     }
 
     function handleActivePriority(selectedPriority: string) {
-        setIsFocusedCategory(selectedPriority);
-    }
-
-    const onChange = ({ type }: any, selectedDate: any) => {
-        if (type == "set") {
-            const currentDate = selectedDate;
-            setDate(currentDate);
-        } else {
-            setShowPicker(!showPicker)
-        }
+        setSelectedCategory(selectedPriority);
     }
 
     useEffect(() => {
-        fetchTaskByCategory(isFocusedCategory);
-    }, [isFocusedCategory])
+        fetchTaskByCategory(selectedCategory);
+    }, [selectedCategory])
 
     return (
         <View style={styles.container}>
@@ -87,30 +54,12 @@ export function Tasks() {
                         <Feather name="search" size={18} color={theme.white} />
                     </TouchableOpacity>
                 </View>
-                <View style={styles.month}>
-                    <TouchableOpacity onPress={() => changeDate("day", -1)}>
-                        <MaterialIcons name="arrow-back-ios" size={24} color={theme.blue1} />
-                    </TouchableOpacity>
-
-                    <View>
-                        <TouchableOpacity onPress={() => setShowPicker(!showPicker)}>
-                            <Text style={styles.text}>{formatDate(date)}</Text>
-                        </TouchableOpacity>
-                        {showPicker && (
-                            <DateTimePicker mode="date" display="spinner" value={date} onChange={onChange} />
-                        )}
-                    </View>
-
-                    <TouchableOpacity onPress={() => changeDate("day", 1)}>
-                        <MaterialIcons name="arrow-forward-ios" size={24} color={theme.blue1} />
-                    </TouchableOpacity>
-                </View>
                 <View style={styles.category}>
                     <FlatList
                         data={category}
                         keyExtractor={(index) => index.toString()}
                         renderItem={({ item }) => (
-                            <Category text={item} isFocus={isFocusedCategory === item} Focused={() => handleActivePriority(item)} />
+                            <Category text={item} isFocus={selectedCategory === item} Focused={() => handleActivePriority(item)} />
                         )}
                         ListFooterComponent={
                             <TouchableOpacity style={styles.buttonCategory} onPress={handleAddCategory}>

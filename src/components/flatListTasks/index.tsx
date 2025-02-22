@@ -17,11 +17,13 @@ export function FlatListTaks() {
                     id={item.id}
                     key={item.id}
                     name={item.name}
-                    onRemove={() => handleTaskRemove(item.name, item.category)}
+                    onRemove={() => handleTaskRemove(item.id, item.name)}
                     handleTaskConclue={() => handleTaskToggle(item.id)}
                     active={item.active}
                     priority={item.priority}
-                    category={item.category} />
+                    category={item.category}
+                    date={item.date}
+                />
             )}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={() => (

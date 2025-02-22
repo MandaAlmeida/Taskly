@@ -1,23 +1,30 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppError } from "@/utils/AppError";
 import { TASKS_COLLECTION } from "../storageConfig";
-
 import { tasksGetByCategory } from "./tasksGetByCategory";
 import { TaskProps } from "@/@types/task";
 
 export async function taskAddByCategory(newTask: TaskProps, category: string) {
     try {
-        const storedTask = await tasksGetByCategory();
-        const taskAlreadyExists = storedTask.filter(task => task.name === newTask.name && task.category === category);
+        // Obtém todas as tarefas da categoria informada
+        const storedTasks = await tasksGetByCategory();
 
-        if (taskAlreadyExists.length > 0) {
+        // Verifica se a tarefa já existe no mesmo dia e categoria
+        const taskAlreadyExists = storedTasks.some(
+            task => task.name === newTask.name &&
+                task.category === category &&
+                new Date(task.date).getTime() === new Date(newTask.date).getTime()
+        );
+
+        if (taskAlreadyExists) {
             throw new AppError('Essa tarefa já está adicionada neste dia e categoria');
         }
 
-        const storage = JSON.stringify([...storedTask, newTask]);
+        // Adiciona a nova tarefa
+        const updatedTasks = [...storedTasks, newTask];
+        await AsyncStorage.setItem(TASKS_COLLECTION, JSON.stringify(updatedTasks));
 
-        await AsyncStorage.setItem(TASKS_COLLECTION, storage)
     } catch (error) {
-        throw (error)
+        throw error;
     }
 }

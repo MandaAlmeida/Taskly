@@ -11,14 +11,23 @@ import { useNavigation } from "@react-navigation/native";
 import { Button } from "@/components/button";
 import { theme } from "@/styles/theme";
 import { SelectCategory } from "@/components/selectCategory";
-
-
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export function AddTask() {
     const [selectedCategory, setSelectedCategory] = useState("Pessoal");
     const { navigate } = useNavigation();
     const { isDropdownOpen, setIsDropdownOpen, setTasks, handleAddTask } = useTask();
     const [text, setText] = useState("Alta");
+    const [date, setDate] = useState<Date>(new Date()); // Mantém a data como objeto Date
+    const [showPicker, setShowPicker] = useState(false);
+
+    const handleChange = (event: any, selectedDate?: Date) => {
+        setShowPicker(false);
+        if (selectedDate) {
+            setDate(selectedDate); // Mantém a data como Date
+        }
+    };
+
     const {
         control,
         handleSubmit,
@@ -28,7 +37,6 @@ export function AddTask() {
     function handleBackToTask() {
         navigate("tasks")
     }
-
 
     function handleActivePriority(selectedPriority: string) {
         setText(selectedPriority);
@@ -41,8 +49,7 @@ export function AddTask() {
             priority: text,
             category: selectedCategory,
             active: false,
-            date: new Date().toString(),
-
+            date: date.toLocaleDateString("pt-BR"),
         }
 
         setTasks((prevTasks) => [...prevTasks, Task]);
@@ -50,7 +57,6 @@ export function AddTask() {
         setSelectedCategory("Todas");
         handleBackToTask();
     }
-
 
     return (
         <View style={styles.container}>
@@ -83,6 +89,32 @@ export function AddTask() {
                     </TouchableOpacity>
                     {isDropdownOpen && (
                         <SelectCategory selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} isAddTask />
+                    )}
+                </View>
+                <View style={{ alignItems: "center", padding: 20 }}>
+                    <Text style={{ fontSize: 16, marginBottom: 10 }}>Selecione a Data:</Text>
+
+                    <TouchableOpacity
+                        onPress={() => setShowPicker(true)}
+                        style={{
+                            backgroundColor: "#6495ED",
+                            padding: 10,
+                            borderRadius: 5,
+                            alignItems: "center",
+                        }}
+                    >
+                        <Text style={{ color: "#FFF", fontSize: 16 }}>
+                            {date.toLocaleDateString("pt-BR")}
+                        </Text>
+                    </TouchableOpacity>
+
+                    {showPicker && (
+                        <DateTimePicker
+                            value={date}
+                            mode="date"
+                            display="default"
+                            onChange={handleChange}
+                        />
                     )}
                 </View>
                 <View style={styles.priority}>

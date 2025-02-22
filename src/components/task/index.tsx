@@ -5,6 +5,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 
 type ParticipantProps = {
     name: string;
+    date: string;
     onRemove: () => void;
     id: string;
     handleTaskConclue: () => void;
@@ -13,7 +14,7 @@ type ParticipantProps = {
     category: string;
 }
 
-export function Task({ name, onRemove, id, handleTaskConclue, active, priority, category }: ParticipantProps) {
+export function Task({ name, onRemove, id, handleTaskConclue, active, priority, category, date }: ParticipantProps) {
 
     return (
         <View style={[styles.container, {
@@ -39,7 +40,12 @@ export function Task({ name, onRemove, id, handleTaskConclue, active, priority, 
                         }]} name="check" size={12} color="#F2F2F2" />
                         <View>
                             <Text id={id} style={styles.nameCheck}>{name}</Text>
-                            <Text id={id} style={styles.categoryCheck}>{category}</Text>
+                            <View style={styles.containerCategory}>
+                                <Text id={id} style={styles.textCheck}>{category}</Text>
+                                <Text style={styles.textCheck}> - </Text>
+                                <Text style={styles.textCheck}>{date}</Text>
+                            </View>
+
                         </View>
                     </View>
                 ) : (
@@ -53,7 +59,11 @@ export function Task({ name, onRemove, id, handleTaskConclue, active, priority, 
                         }]}></Text>
                         <View>
                             <Text id={id} style={styles.name}>{name}</Text>
-                            <Text id={id} style={styles.category}>{category}</Text>
+                            <View style={styles.containerCategory}>
+                                <Text id={id} style={styles.text}>{category}</Text>
+                                <Text style={styles.text}> - </Text>
+                                <Text style={styles.text}>{date}</Text>
+                            </View>
                         </View>
                     </View>
                 )}

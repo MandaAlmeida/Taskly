@@ -8,6 +8,7 @@ import { categoryRemoveByName } from "@/storage/category/categoryRemoveByName";
 import { taskAddByCategory } from "@/storage/task/taskAddByCategory";
 import { taskRemoveByCategory } from "@/storage/task/taskRemoveByCategory";
 import { tasksGetByCategory } from "@/storage/task/tasksGetByCategory";
+import { taskToggleActive } from "@/storage/task/taskToggleActive";
 
 interface TaskContextProps {
     tasks: TaskProps[];
@@ -16,12 +17,17 @@ interface TaskContextProps {
     taskName: string;
     taskConcluid: string[];
     isDropdownOpen: boolean;
+    selectedCategory: string;
+    pendingTasks: number[];
+    completedTasks: number[];
+    dateGraph: string[];
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
     setTaskName: React.Dispatch<React.SetStateAction<string>>;
     setIsDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setSelectedCategory: React.Dispatch<React.SetStateAction<string>>;
 
-    handleTaskRemove: (name: string, category: string) => void;
+    handleTaskRemove: (id: string, name: string) => void;
     handleTaskToggle: (id: string) => void;
     handleTaskSeek: () => void;
     handleAddCategory: (name: string) => void;
@@ -43,8 +49,13 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [taskConcluid, setTasksConcluid] = useState<string[]>([]);
     const [category, setCategory] = useState([""]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState("Todas");
+    const [pendingTasks, setPendingTasks] = useState<number[]>([0])
+    const [completedTasks, setCompletedTasks] = useState<number[]>([0]);
+    const [dateGraph, setDateGraph] = useState<string[]>([""])
 
-    async function handleTaskRemove(name: string, category: string) {
+
+    async function handleTaskRemove(id: string, name: string) {
         try {
 
             Alert.alert("Remover", `Remover a tarefa ${name}?`, [
@@ -55,9 +66,9 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 {
                     text: 'Sim',
                     onPress: () => {
-                        setTasks(prevState => prevState.filter(task => task.name !== name));
-                        setTasksCategory(prevState => prevState.filter(task => task.name !== name));
-                        taskRemoveByCategory(name, category);
+                        setTasks(prevState => prevState.filter(task => task.id !== id));
+                        setTasksCategory(prevState => prevState.filter(task => task.id !== id));
+                        taskRemoveByCategory(id);
                     }
                 },
 
@@ -68,12 +79,19 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    function handleTaskToggle(id: string) {
-        setTasksCategory(prevTasks =>
-            prevTasks.map(task =>
-                task.id === id ? { ...task, active: !task.active } : task
-            )
-        );
+    async function handleTaskToggle(id: string) {
+        try {
+            await taskToggleActive(id);
+            console.log("Task atualizada com sucesso!");
+            setTasksCategory(prevTasks =>
+                prevTasks.map(task =>
+                    task.id === id ? { ...task, active: !task.active } : task
+                )
+            );
+        } catch (error) {
+            console.error("Erro ao atualizar a task:", error);
+        }
+
     }
 
     function handleTaskSeek() {
@@ -174,6 +192,37 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+    async function groupTasksByDate(tasks: TaskProps[]) {
+        const groupedData = tasks.reduce((acc, task) => {
+            const [day, month, year] = task.date.split('/');
+            const formattedDate = `${year}-${month}-${day}`; // Formato: yyyy-mm-dd
+
+            const dateKey = new Date(formattedDate).toISOString().split("T")[0];
+
+            if (!acc[dateKey]) {
+                acc[dateKey] = { pending: 0, completed: 0 };
+            }
+
+            if (!task.active) {
+                acc[dateKey].pending += 1;
+            } else {
+                acc[dateKey].completed += 1;
+            }
+
+            return acc;
+        }, {} as Record<string, { pending: number; completed: number }>);
+
+        const dates = Object.keys(groupedData); // As datas
+        const pendingTasks = dates.map(date => groupedData[date].pending); // Tarefas pendentes
+        const completedTasks = dates.map(date => groupedData[date].completed); // Tarefas concluídas
+        setPendingTasks(pendingTasks)
+        setCompletedTasks(completedTasks)
+        setDateGraph(dates)
+    }
+
+
+
+    console.log(pendingTasks, completedTasks);
 
     useEffect(() => {
         const completedTaskIds = tasksCategory
@@ -181,10 +230,11 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             .map(task => task.id);
         setTasksConcluid(completedTaskIds);
         featchCategory();
+        groupTasksByDate(tasksCategory);
     }, [tasksCategory]);
 
     return (
-        <TaskContext.Provider value={{ tasks, category, taskConcluid, taskName, tasksCategory, isDropdownOpen, setTasks, setTaskName, setIsDropdownOpen, handleTaskToggle, handleTaskSeek, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, fetchTaskByCategory }}>
+        <TaskContext.Provider value={{ tasks, category, taskConcluid, selectedCategory, taskName, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskToggle, handleTaskSeek, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, fetchTaskByCategory }}>
             {children}
         </TaskContext.Provider>
     )

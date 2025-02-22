@@ -6,13 +6,13 @@ import * as d3 from "d3";
 type Props = {
     datasets: { data: number[]; color: string }[]; // Suporte para múltiplas linhas
     title: string;
+    days: string[]
 };
 
 const CHART_ASPECT_RATIO = 9 / 16;
 
-export function Graph({ datasets, title }: Props) {
+export function Graph({ datasets, title, days }: Props) {
     const [width, setWidth] = useState(0);
-    const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
     const height = width * CHART_ASPECT_RATIO;
     const chartHeight = (height * 3) / 4;

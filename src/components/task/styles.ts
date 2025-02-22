@@ -13,6 +13,10 @@ export const styles = StyleSheet.create({
         padding: 12,
         borderWidth: 1,
     },
+    containerCategory: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
     check: {
         flex: 1
     },
@@ -37,7 +41,7 @@ export const styles = StyleSheet.create({
         fontSize: 14,
         color: theme.gray3,
     },
-    category: {
+    text: {
         fontSize: 12,
         color: theme.gray2,
     },
@@ -46,7 +50,7 @@ export const styles = StyleSheet.create({
         textDecorationLine: "line-through",
 
     },
-    categoryCheck: {
+    textCheck: {
         fontSize: 12,
         color: theme.gray2,
         textDecorationLine: "line-through",
