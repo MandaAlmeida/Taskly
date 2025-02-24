@@ -3,6 +3,7 @@ import { AppError } from "@/utils/AppError";
 import { TASKS_COLLECTION } from "../storageConfig";
 import { tasksGetByCategory } from "./tasksGetByCategory";
 import { TaskProps } from "@/@types/task";
+import { FormatDate } from "@/utils/formatDate";
 
 export async function taskAddByCategory(newTask: TaskProps, category: string) {
     try {
@@ -13,7 +14,7 @@ export async function taskAddByCategory(newTask: TaskProps, category: string) {
         const taskAlreadyExists = storedTasks.some(
             task => task.name === newTask.name &&
                 task.category === category &&
-                new Date(task.date).getTime() === new Date(newTask.date).getTime()
+                FormatDate(task.date) === FormatDate(newTask.date)
         );
 
         if (taskAlreadyExists) {

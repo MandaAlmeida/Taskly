@@ -4,7 +4,7 @@ import { Svg, Path, G, Text as SvgText } from "react-native-svg";
 import * as d3 from "d3";
 
 type Props = {
-    datasets: { data: number[]; color: string }[]; // Suporte para múltiplas linhas
+    datasets: { data: number[]; color: string }[];
     title: string;
     days: string[]
 };

@@ -9,13 +9,12 @@ export function FlatListTaks() {
     const { tasksCategory, handleTaskRemove, handleTaskToggle } = useTask();
 
     return (
+
         <FlatList
             data={tasksCategory}
-            keyExtractor={item => item.id}
+            keyExtractor={item => String(item.id)}
             renderItem={({ item }) => (
                 <Task
-                    id={item.id}
-                    key={item.id}
                     name={item.name}
                     onRemove={() => handleTaskRemove(item.id, item.name)}
                     handleTaskConclue={() => handleTaskToggle(item.id)}
@@ -28,12 +27,12 @@ export function FlatListTaks() {
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={() => (
                 <View style={styles.containerListEmpty}>
-                    <View style={styles.afterElement} />
                     <Image source={Clipboard} />
                     <Text style={styles.textBoldListEmpty}>Você ainda não tem tarefas cadastradas</Text>
                     <Text style={styles.textListEmpty}>Crie tarefas e organize seus itens a fazer</Text>
                 </View>
             )}
         />
+
     )
 }

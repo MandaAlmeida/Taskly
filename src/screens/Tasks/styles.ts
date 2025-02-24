@@ -62,6 +62,7 @@ export const styles = StyleSheet.create({
     },
     containerList: {
         paddingHorizontal: 24,
+        flex: 1
     },
     list: {
         width: "100%",

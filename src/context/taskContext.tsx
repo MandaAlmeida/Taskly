@@ -9,6 +9,8 @@ import { taskAddByCategory } from "@/storage/task/taskAddByCategory";
 import { taskRemoveByCategory } from "@/storage/task/taskRemoveByCategory";
 import { tasksGetByCategory } from "@/storage/task/tasksGetByCategory";
 import { taskToggleActive } from "@/storage/task/taskToggleActive";
+import { task } from "@/taks";
+import { FormatDate } from "@/utils/formatDate";
 
 interface TaskContextProps {
     tasks: TaskProps[];
@@ -18,9 +20,10 @@ interface TaskContextProps {
     taskConcluid: string[];
     isDropdownOpen: boolean;
     selectedCategory: string;
-    pendingTasks: number[];
-    completedTasks: number[];
+    pendingTasks: number[][];
+    completedTasks: number[][];
     dateGraph: string[];
+    weekDaysGraph: string[];
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
     setTaskName: React.Dispatch<React.SetStateAction<string>>;
@@ -50,9 +53,11 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [category, setCategory] = useState([""]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("Todas");
-    const [pendingTasks, setPendingTasks] = useState<number[]>([0])
-    const [completedTasks, setCompletedTasks] = useState<number[]>([0]);
+    const [pendingTasks, setPendingTasks] = useState<number[][]>([[0]])
+    const [completedTasks, setCompletedTasks] = useState<number[][]>([[0]]);
     const [dateGraph, setDateGraph] = useState<string[]>([""])
+    const [weekDaysGraph, setWeekDaysGraph] = useState<string[]>([""])
+
 
 
     async function handleTaskRemove(id: string, name: string) {
@@ -108,7 +113,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         try {
             const data = await categoryGetAll();
             setCategory(data);
-            console.log(data)
 
         } catch (error) {
             console.log(error)
@@ -180,49 +184,82 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function fetchTaskByCategory(name: string) {
         try {
             const task = await tasksGetByCategory();
+
             if (name !== "Todas") {
                 const TaskCategory = task.filter((item) => item.category === name);
+
+                TaskCategory.sort((a, b) => FormatDate(a.date) - FormatDate(b.date));
                 return setTasksCategory(TaskCategory);
             }
-            return setTasksCategory(task)
+
+            task.sort((a, b) => FormatDate(a.date) - FormatDate(b.date));
+
+            return setTasksCategory(task);
 
         } catch (error) {
-            console.log(error)
-            Alert.alert("Pessoas", "Não foi possível carregar as pessoas do time selecionado");
+            console.log(error);
+            Alert.alert("Categoria", "Não foi possível carregar as tarefas da categoria selecionada");
         }
     }
 
-    async function groupTasksByDate(tasks: TaskProps[]) {
+    async function groupTasksByWeek(tasks: TaskProps[]) {
+        const weekDays = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+
+
+        const parseDate = (dateStr: string) => {
+            const [day, month, year] = dateStr.split('/').map(Number);
+            const dateObj = new Date(year, month - 1, day);
+            if (isNaN(dateObj.getTime())) return null;
+            return dateObj;
+        };
+
         const groupedData = tasks.reduce((acc, task) => {
-            const [day, month, year] = task.date.split('/');
-            const formattedDate = `${year}-${month}-${day}`; // Formato: yyyy-mm-dd
+            const dateObj = parseDate(task.date);
+            if (!dateObj) return acc;
 
-            const dateKey = new Date(formattedDate).toISOString().split("T")[0];
+            const weekDay = weekDays[dateObj.getDay()];
+            const weekNumber = getWeekNumber(dateObj);
+            const weekKey = `Semana ${weekNumber}`;
 
-            if (!acc[dateKey]) {
-                acc[dateKey] = { pending: 0, completed: 0 };
+            if (!acc.has(weekKey)) {
+                const weekStructure = new Map<string, { pending: number; completed: number }>();
+                weekDays.forEach(day => weekStructure.set(day, { pending: 0, completed: 0 }));
+                acc.set(weekKey, weekStructure);
             }
 
+            const weekStructure = acc.get(weekKey)!;
+
             if (!task.active) {
-                acc[dateKey].pending += 1;
+                weekStructure.get(weekDay)!.pending += 1;
             } else {
-                acc[dateKey].completed += 1;
+                weekStructure.get(weekDay)!.completed += 1;
             }
 
             return acc;
-        }, {} as Record<string, { pending: number; completed: number }>);
+        }, new Map<string, Map<string, { pending: number; completed: number }>>());
 
-        const dates = Object.keys(groupedData); // As datas
-        const pendingTasks = dates.map(date => groupedData[date].pending); // Tarefas pendentes
-        const completedTasks = dates.map(date => groupedData[date].completed); // Tarefas concluídas
-        setPendingTasks(pendingTasks)
-        setCompletedTasks(completedTasks)
-        setDateGraph(dates)
+
+        const weeks = Array.from(groupedData.keys());
+        const pendingTasksByWeek = weeks.map(week =>
+            weekDays.map(day => groupedData.get(week)?.get(day)?.pending || 0)
+        );
+        const completedTasksByWeek = weeks.map(week =>
+            weekDays.map(day => groupedData.get(week)?.get(day)?.completed || 0)
+        );
+
+        setPendingTasks(pendingTasksByWeek);
+        setCompletedTasks(completedTasksByWeek);
+        setDateGraph(weekDays);
+        setWeekDaysGraph(weeks);
     }
 
 
 
-    console.log(pendingTasks, completedTasks);
+    function getWeekNumber(date: Date): number {
+        const startOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDays = Math.floor((date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+        return Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
+    }
 
     useEffect(() => {
         const completedTaskIds = tasksCategory
@@ -230,11 +267,11 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             .map(task => task.id);
         setTasksConcluid(completedTaskIds);
         featchCategory();
-        groupTasksByDate(tasksCategory);
+        groupTasksByWeek(tasksCategory);
     }, [tasksCategory]);
 
     return (
-        <TaskContext.Provider value={{ tasks, category, taskConcluid, selectedCategory, taskName, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskToggle, handleTaskSeek, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, fetchTaskByCategory }}>
+        <TaskContext.Provider value={{ tasks, category, taskConcluid, selectedCategory, taskName, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskToggle, handleTaskSeek, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, fetchTaskByCategory }}>
             {children}
         </TaskContext.Provider>
     )

@@ -7,14 +7,13 @@ type ParticipantProps = {
     name: string;
     date: string;
     onRemove: () => void;
-    id: string;
     handleTaskConclue: () => void;
     active: boolean;
     priority: string;
     category: string;
 }
 
-export function Task({ name, onRemove, id, handleTaskConclue, active, priority, category, date }: ParticipantProps) {
+export function Task({ name, onRemove, handleTaskConclue, active, priority, category, date }: ParticipantProps) {
 
     return (
         <View style={[styles.container, {
@@ -39,9 +38,9 @@ export function Task({ name, onRemove, id, handleTaskConclue, active, priority, 
                                     : "#34C759"
                         }]} name="check" size={12} color="#F2F2F2" />
                         <View>
-                            <Text id={id} style={styles.nameCheck}>{name}</Text>
+                            <Text style={styles.nameCheck}>{name}</Text>
                             <View style={styles.containerCategory}>
-                                <Text id={id} style={styles.textCheck}>{category}</Text>
+                                <Text style={styles.textCheck}>{category}</Text>
                                 <Text style={styles.textCheck}> - </Text>
                                 <Text style={styles.textCheck}>{date}</Text>
                             </View>
@@ -58,9 +57,9 @@ export function Task({ name, onRemove, id, handleTaskConclue, active, priority, 
                                     : "#34C759"
                         }]}></Text>
                         <View>
-                            <Text id={id} style={styles.name}>{name}</Text>
+                            <Text style={styles.name}>{name}</Text>
                             <View style={styles.containerCategory}>
-                                <Text id={id} style={styles.text}>{category}</Text>
+                                <Text style={styles.text}>{category}</Text>
                                 <Text style={styles.text}> - </Text>
                                 <Text style={styles.text}>{date}</Text>
                             </View>

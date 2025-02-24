@@ -24,7 +24,6 @@ export function Tasks() {
     }
 
     function handleAddCategory() {
-        console.log("Ativado")
         navigate("addCategory");
     }
 

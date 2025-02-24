@@ -1,21 +1,29 @@
 import { Text, TouchableOpacity, View } from "react-native";
-import { MaterialIcons } from '@expo/vector-icons';
-
 
 import { Header } from "@/components/header";
+
+import { Feather } from "@expo/vector-icons";
 
 import { theme } from "@/styles/theme";
 import { Graph } from "@/components/Graph";
 import { styles } from "./styles";
 import { useTask } from "@/hooks/useTask";
 import { SelectCategory } from "@/components/selectCategory";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 
 export function Home() {
-    const { selectedCategory, tasksCategory, taskConcluid, isDropdownOpen, pendingTasks, completedTasks, dateGraph, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
+    const { selectedCategory, tasksCategory, taskConcluid, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
+    const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
 
-    const tasksPendentes = tasksCategory.length - taskConcluid.length;
+    const currentWeek = weekDaysGraph[selectedWeekIndex];
+
+
+    const currentPendingTasks = pendingTasks[selectedWeekIndex] || [];
+    const currentCompletedTasks = completedTasks[selectedWeekIndex] || [];
+
+    const totalPendingTasks = currentPendingTasks.reduce((acc, currentValue) => acc + currentValue, 0);
+    const totalCompletedTasks = currentCompletedTasks.reduce((acc, currentValue) => acc + currentValue, 0);
 
     useEffect(() => {
         fetchTaskByCategory(selectedCategory);
@@ -36,32 +44,59 @@ export function Home() {
                             onPress={() => setIsDropdownOpen(!isDropdownOpen)}
                         >
                             <Text style={styles.textbutton}>{selectedCategory}</Text>
-                            <MaterialIcons name="keyboard-arrow-down" size={24} color={theme.white} />
+                            <Feather size={24} color={theme.white} name={`chevron-down`} />
                         </TouchableOpacity>
                         {isDropdownOpen && (
                             <SelectCategory selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
                         )}
                     </View>
+                </View>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 10 }}>
+                    <TouchableOpacity
+                        onPress={() => setSelectedWeekIndex(prev => Math.max(0, prev - 1))}
+                        disabled={selectedWeekIndex <= 0}>
 
+                        <Feather
+                            size={24}
+                            color={selectedWeekIndex <= 0 ? theme.gray2 : theme.blue1}
+                            name={`chevron-left`} />
+
+                    </TouchableOpacity>
+                    <Text style={{ fontSize: 18, fontWeight: "bold", textAlign: "center" }}>
+                        {currentWeek}
+                    </Text>
+                    <TouchableOpacity
+                        onPress={() => setSelectedWeekIndex(prev => Math.min(dateGraph.length - 1, prev + 1))}
+                        disabled={selectedWeekIndex >= weekDaysGraph.length - 1}>
+
+                        <Feather
+                            size={24}
+                            color={selectedWeekIndex >= weekDaysGraph.length - 1 ? theme.gray2 : theme.blue1}
+                            name={`chevron-right`}
+                        />
+
+                    </TouchableOpacity>
                 </View>
                 <View style={styles.section}>
                     <View style={[styles.count, { backgroundColor: theme.blue1 }]}>
-                        <Text style={styles.textbutton}>{tasksPendentes}</Text>
+                        <Text style={styles.textbutton}>{totalPendingTasks}</Text>
                         <Text style={styles.textbutton}>Tarefas pendentes</Text>
                     </View>
                     <View style={[styles.count, { backgroundColor: theme.green1 }]}>
-                        <Text style={styles.textbutton}>{taskConcluid ? taskConcluid.length : 0}</Text>
+                        <Text style={styles.textbutton}>{totalCompletedTasks}</Text>
                         <Text style={styles.textbutton}>Tarefas concluidas</Text>
                     </View>
                 </View>
-                <Graph
-                    datasets={[
-                        { data: pendingTasks, color: theme.blue1 },
-                        { data: completedTasks, color: theme.green1 }
-                    ]}
-                    title="Progresso diária"
-                    days={dateGraph}
-                />
+                <View>
+                    <Graph
+                        datasets={[
+                            { data: currentPendingTasks, color: theme.blue1 },
+                            { data: currentCompletedTasks, color: theme.green1 }
+                        ]}
+                        title="Progresso semanal"
+                        days={dateGraph}
+                    />
+                </View>
             </View>
         </View>
     )
