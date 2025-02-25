@@ -37,6 +37,12 @@ export const styles = StyleSheet.create({
         borderStyle: "solid",
         borderRadius: 6,
         paddingHorizontal: 10,
-        justifyContent: "center",
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 5
     },
+    date: {
+        fontSize: 16,
+        color: theme.gray4
+    }
 })

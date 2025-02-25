@@ -78,32 +78,29 @@ export function AddTask() {
                     inputProps={{
                         placeholder: "Nome",
                     }}
-                    error={errors.name?.message} />
+                    error={errors.name?.message}
+                />
 
                 <View style={{ position: "relative" }}>
                     <TouchableOpacity
                         style={styles.button}
                         onPress={() => setIsDropdownOpen(!isDropdownOpen)}
                     >
-                        <Text style={styles.text}>Categoria: {selectedCategory}</Text>
+                        <Text style={styles.text}>Categoria: <Text style={{ color: theme.gray4 }}>{selectedCategory}</Text></Text>
                     </TouchableOpacity>
                     {isDropdownOpen && (
                         <SelectCategory selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} isAddTask />
                     )}
                 </View>
-                <View style={{ alignItems: "center", padding: 20 }}>
-                    <Text style={{ fontSize: 16, marginBottom: 10 }}>Selecione a Data:</Text>
-
+                <View>
                     <TouchableOpacity
                         onPress={() => setShowPicker(true)}
-                        style={{
-                            backgroundColor: "#6495ED",
-                            padding: 10,
-                            borderRadius: 5,
-                            alignItems: "center",
-                        }}
+                        style={styles.button}
                     >
-                        <Text style={{ color: "#FFF", fontSize: 16 }}>
+                        <Text style={styles.text}>Selecione a Data:</Text>
+
+
+                        <Text style={styles.date}>
                             {date.toLocaleDateString("pt-BR")}
                         </Text>
                     </TouchableOpacity>

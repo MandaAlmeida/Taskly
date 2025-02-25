@@ -14,7 +14,7 @@ import { theme } from "@/styles/theme";
 import { Header } from "@/components/header";
 
 
-export function Tasks() {
+export function PageTasks() {
     const [isFocused, setIsFocused] = useState(false);
     const { navigate } = useNavigation();
     const { tasksCategory, selectedCategory, category, taskConcluid, taskName, handleTaskSeek, setTaskName, setSelectedCategory, fetchTaskByCategory } = useTask();

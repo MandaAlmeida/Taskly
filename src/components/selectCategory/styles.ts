@@ -12,9 +12,9 @@ export const styles = StyleSheet.create({
         top: 35,
         zIndex: 100,
         borderWidth: 1,
-        borderColor: "#ccc",
+        borderColor: theme.gray2,
         borderRadius: 8,
-        backgroundColor: "#fff",
+        backgroundColor: theme.white,
         width: "100%",
         maxHeight: 200,
         overflow: "hidden",
@@ -22,18 +22,18 @@ export const styles = StyleSheet.create({
     categoryItem: {
         padding: 12,
         borderBottomWidth: 1,
-        borderBottomColor: "#eee",
+        borderBottomColor: theme.lightGray,
     },
     selectedItem: {
-        backgroundColor: "#6495ED",
+        backgroundColor: theme.blue1,
     },
     categoryText: {
         fontSize: 14,
-        color: "#333",
+        color: theme.gray2,
         textAlign: "center",
     },
     selectedText: {
-        color: "#fff",
+        color: theme.white,
         fontWeight: "bold",
     },
 })

@@ -11,6 +11,7 @@ import { tasksGetByCategory } from "@/storage/task/tasksGetByCategory";
 import { taskToggleActive } from "@/storage/task/taskToggleActive";
 import { task } from "@/taks";
 import { FormatDate } from "@/utils/formatDate";
+import { DateData } from "react-native-calendars";
 
 interface TaskContextProps {
     tasks: TaskProps[];
@@ -36,7 +37,7 @@ interface TaskContextProps {
     handleAddCategory: (name: string) => void;
     removeCategory: (category: string) => void;
     handleAddTask: (data: TaskProps) => void;
-    fetchTaskByCategory: (name: string) => void;
+    fetchTaskByCategory: (name: string, date?: DateData) => void;
 }
 
 export const TaskContext = createContext({} as TaskContextProps);
@@ -181,21 +182,27 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function fetchTaskByCategory(name: string) {
+    async function fetchTaskByCategory(name: string, date?: DateData) {
         try {
             const task = await tasksGetByCategory();
 
-            if (name !== "Todas") {
-                const TaskCategory = task.filter((item) => item.category === name);
+            let filteredTasks = task;
 
-                TaskCategory.sort((a, b) => FormatDate(a.date) - FormatDate(b.date));
-                return setTasksCategory(TaskCategory);
+            if (name !== "Todas") {
+                filteredTasks = task.filter((item) => item.category === name);
             }
 
-            task.sort((a, b) => FormatDate(a.date) - FormatDate(b.date));
+            if (date) {
+                filteredTasks = filteredTasks.filter(
+                    (item) => convertDateFormat(item.date) === date.dateString
+                );
+                console.log(filteredTasks.map((item) => convertDateFormat(item.date)));
+                console.log(date.dateString);
+            }
 
-            return setTasksCategory(task);
+            filteredTasks.sort((a, b) => FormatDate(a.date) - FormatDate(b.date));
 
+            return setTasksCategory(filteredTasks);
         } catch (error) {
             console.log(error);
             Alert.alert("Categoria", "Não foi possível carregar as tarefas da categoria selecionada");
@@ -253,12 +260,15 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         setWeekDaysGraph(weeks);
     }
 
-
-
     function getWeekNumber(date: Date): number {
         const startOfYear = new Date(date.getFullYear(), 0, 1);
         const pastDays = Math.floor((date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
         return Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
+    }
+
+    function convertDateFormat(date: string): string {
+        const [day, month, year] = date.split("/");
+        return `${year}-${month}-${day}`;
     }
 
     useEffect(() => {

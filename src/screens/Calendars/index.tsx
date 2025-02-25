@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { Calendar, CalendarUtils, DateData, LocaleConfig } from 'react-native-calendars';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Feather } from "@expo/vector-icons";
 
@@ -10,14 +10,29 @@ import { FlatListTaks } from "@/components/flatListTasks";
 import { styles } from "./styles";
 import { theme } from "@/styles/theme";
 import { Header } from "@/components/header";
+import { useTask } from "@/hooks/useTask";
 
 
 LocaleConfig.locales["pt-br"] = ptBR
 LocaleConfig.defaultLocale = "pt-br"
 
 export function Calendars() {
-    const [day, setDay] = useState<DateData>()
+    const [day, setDay] = useState<DateData>({
+        year: 0,
+        month: 0,
+        day: 0,
+        timestamp: 0,
+        dateString: "",
+    })
+    const { fetchTaskByCategory, selectedCategory } = useTask();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
+
+    function handleDayPress(item: DateData) {
+        setDay(item);
+        fetchTaskByCategory(selectedCategory, item);
+    }
+
+
     return (
         <View style={styles.container}>
             <Header />
@@ -38,7 +53,7 @@ export function Calendars() {
                     textDayStyle: { color: theme.blue1 },
                     textDisabledColor: theme.gray2,
                 }}
-                onDayPress={setDay}
+                onDayPress={handleDayPress}
                 markedDates={day && {
                     [day.dateString]: { selected: true }
                 }}

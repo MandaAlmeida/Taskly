@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 
 
 export function Home() {
-    const { selectedCategory, tasksCategory, taskConcluid, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
+    const { selectedCategory, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
     const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
 
     const currentWeek = weekDaysGraph[selectedWeekIndex];
