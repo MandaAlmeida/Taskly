@@ -13,10 +13,10 @@ import { useEffect, useState } from "react";
 
 
 export function Home() {
-    const { selectedCategory, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
+    const { selectedCategory, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, user, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
     const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
 
-    const currentWeek = weekDaysGraph[selectedWeekIndex];
+    const currentWeek = weekDaysGraph[selectedWeekIndex] || "Semana";
 
 
     const currentPendingTasks = pendingTasks[selectedWeekIndex] || [];
@@ -29,12 +29,13 @@ export function Home() {
         fetchTaskByCategory(selectedCategory);
     }, [selectedCategory])
 
+
     return (
         <View style={{ flex: 1 }}>
             <Header />
             <View style={styles.container}>
                 <Text style={styles.text}>
-                    Olá, <Text style={styles.name}>Amanda Almeida</Text>
+                    Olá, <Text style={styles.name}>{user ? user.name : "Bem-vindo"}</Text>
                 </Text>
                 <View style={styles.section}>
                     <Text style={styles.text}>Visão geral de tarefas</Text>

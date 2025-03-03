@@ -17,7 +17,7 @@ import { Header } from "@/components/header";
 export function PageTasks() {
     const [isFocused, setIsFocused] = useState(false);
     const { navigate } = useNavigation();
-    const { tasksCategory, selectedCategory, category, taskConcluid, taskName, handleTaskSeek, setTaskName, setSelectedCategory, fetchTaskByCategory } = useTask();
+    const { tasksCategory, selectedCategory, category, taskConcluid, taskName, setSelectedCategory, fetchTaskByCategory, setTaskName } = useTask();
 
     function handleAddTask() {
         navigate("addTask");
@@ -32,7 +32,7 @@ export function PageTasks() {
     }
 
     useEffect(() => {
-        fetchTaskByCategory(selectedCategory);
+        fetchTaskByCategory(selectedCategory, undefined, taskName);
     }, [selectedCategory])
 
     return (
@@ -44,14 +44,16 @@ export function PageTasks() {
                         style={[styles.input, isFocused && styles.inputFocused]}
                         placeholder='Pesquisar tarefa'
                         placeholderTextColor={theme.gray2}
-                        onChangeText={setTaskName}
-                        value={taskName}
+                        onChangeText={(text) => {
+                            setTaskName(text);
+                            fetchTaskByCategory(selectedCategory, undefined, text)
+                        }}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                     />
-                    <TouchableOpacity style={styles.button} onPress={handleTaskSeek}>
+                    {/* <TouchableOpacity style={styles.button} onPress={() => handleTaskSeek(taskName)}>
                         <Feather name="search" size={18} color={theme.white} />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
                 <View style={styles.category}>
                     <FlatList

@@ -11,20 +11,25 @@ import { Button } from "@/components/button";
 import { styles } from "./styles";
 import { theme } from '@/styles/theme';
 import { Header } from "@/components/header";
+import { useTask } from "@/hooks/useTask";
 
 export function SignUp() {
+    const { createUser } = useTask();
     const { control, handleSubmit, formState: { errors }, getValues } = useForm<AccountProps>();
     const emailRef = useRef<TextInput>(null);
+    const passwordRef = useRef<TextInput>(null);
     const passwordConfirmationRef = useRef<TextInput>(null);
+
     const { navigate } = useNavigation();
 
     function handleLogin() {
         navigate("signIn");
     }
 
-    function handleNextStep(data: AccountProps) {
-        console.log(data)
+    async function handleNextStep(data: AccountProps) {
+        await createUser(data.name, data.email, data.password, data.passwordConfirmation);
     }
+
 
     function validationPasswordConfirmation(passwordConfirmation: string) {
         const { password } = getValues();
@@ -72,10 +77,12 @@ export function SignUp() {
                     inputProps={{
                         placeholder: "E-mail",
                         placeholderTextColor: theme.gray2,
+                        onSubmitEditing: () => passwordRef.current?.focus(),
                     }}
                     error={errors.email?.message}
                 />
                 <InputForm
+                    ref={passwordRef}
                     icon="lock"
                     formProps={{
                         name: "password",

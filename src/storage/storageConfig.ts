@@ -1,4 +1,7 @@
-const CATEGORY_COLLECTION = "@ToDoList:category";
-const TASKS_COLLECTION = "@ToDoList:task";
+const CATEGORY_COLLECTION = "@Taskly:category";
+const TASKS_COLLECTION = "@Taskly:task";
+const TOKEN = "@Taskly:token";
+const USER = "@Taskly:user";
 
-export { CATEGORY_COLLECTION, TASKS_COLLECTION }
+
+export { CATEGORY_COLLECTION, TASKS_COLLECTION, TOKEN, USER }

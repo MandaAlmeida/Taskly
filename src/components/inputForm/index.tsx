@@ -5,10 +5,11 @@ import { Controller, UseControllerProps } from "react-hook-form"
 import { forwardRef } from "react";
 import clsx from "clsx";
 import { theme } from '@/styles/theme';
+import { AccountProps } from "@/@types/account";
 
 type InputProps = {
     icon: keyof typeof Feather.glyphMap;
-    formProps: UseControllerProps;
+    formProps: UseControllerProps<AccountProps>;
     inputProps: TextInputProps;
     error?: string
 }

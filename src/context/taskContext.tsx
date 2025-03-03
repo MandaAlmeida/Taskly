@@ -9,9 +9,18 @@ import { taskAddByCategory } from "@/storage/task/taskAddByCategory";
 import { taskRemoveByCategory } from "@/storage/task/taskRemoveByCategory";
 import { tasksGetByCategory } from "@/storage/task/tasksGetByCategory";
 import { taskToggleActive } from "@/storage/task/taskToggleActive";
-import { task } from "@/taks";
 import { FormatDate } from "@/utils/formatDate";
 import { DateData } from "react-native-calendars";
+import axios from "axios";
+
+import { addToken } from "@/storage/token/addToken";
+import { getToken } from "@/storage/token/getToken";
+
+type User = {
+    _id: string;
+    email: string;
+    name: string;
+}
 
 interface TaskContextProps {
     tasks: TaskProps[];
@@ -25,19 +34,22 @@ interface TaskContextProps {
     completedTasks: number[][];
     dateGraph: string[];
     weekDaysGraph: string[];
+    token: string;
+    user: User | null;
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
-    setTaskName: React.Dispatch<React.SetStateAction<string>>;
     setIsDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setSelectedCategory: React.Dispatch<React.SetStateAction<string>>;
+    setTaskName: React.Dispatch<React.SetStateAction<string>>;
 
     handleTaskRemove: (id: string, name: string) => void;
     handleTaskToggle: (id: string) => void;
-    handleTaskSeek: () => void;
     handleAddCategory: (name: string) => void;
     removeCategory: (category: string) => void;
     handleAddTask: (data: TaskProps) => void;
-    fetchTaskByCategory: (name: string, date?: DateData) => void;
+    fetchTaskByCategory: (name: string, date?: DateData, filter?: string) => void;
+    createUser: (name: string, email: string, password: string, confirmPassword: string) => void;
+    login: (email: string, password: string) => void;
 }
 
 export const TaskContext = createContext({} as TaskContextProps);
@@ -48,7 +60,7 @@ interface TaskContextProviderProps {
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [tasks, setTasks] = useState<TaskProps[]>([]);
-    const [tasksCategory, setTasksCategory] = useState<TaskProps[]>([])
+    const [tasksCategory, setTasksCategory] = useState<TaskProps[]>([]);
     const [taskName, setTaskName] = useState('');
     const [taskConcluid, setTasksConcluid] = useState<string[]>([]);
     const [category, setCategory] = useState([""]);
@@ -56,10 +68,86 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [selectedCategory, setSelectedCategory] = useState("Todas");
     const [pendingTasks, setPendingTasks] = useState<number[][]>([[0]])
     const [completedTasks, setCompletedTasks] = useState<number[][]>([[0]]);
-    const [dateGraph, setDateGraph] = useState<string[]>([""])
-    const [weekDaysGraph, setWeekDaysGraph] = useState<string[]>([""])
+    const [dateGraph, setDateGraph] = useState<string[]>([""]);
+    const [weekDaysGraph, setWeekDaysGraph] = useState<string[]>([""]);
+    const [token, setToken] = useState<string>("");
+    const [user, setUser] = useState<User | null>(null);
 
 
+    async function createUser(name: string, email: string, password: string, confirmPassword: string) {
+        try {
+            const response = await axios.post("http://10.0.2.2:3001/auth/register", {
+                name,
+                email,
+                password,
+                confirmPassword
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (response.status === 201) {
+                console.log("Usuário criado com sucesso!");
+            } else {
+                console.error("Erro ao criar usuário:", response.data.message);
+            }
+        } catch (error: any) {
+            console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+        }
+    }
+
+    async function login(email: string, password: string) {
+        try {
+            const response = await axios.post("http://10.0.2.2:3001/auth/login", {
+                email,
+                password,
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (response.status === 200) {
+                addToken(response.data.token);
+                setToken(response.data.token)
+            } else {
+                console.error("Erro ao fazer login:", response.data.message);
+            }
+        } catch (error: any) {
+            console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+        }
+    }
+
+    async function authTokenUser() {
+        const token = await getToken();
+        if (token) {
+            return setToken(token);
+        }
+        setToken("")
+    }
+
+
+    async function getUser() {
+        const userID = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+
+        try {
+            const response = await axios.get(`http://10.0.2.2:3001/user/${userID.id}`);
+
+
+            const user: User = {
+                _id: response.data.user._id,
+                email: response.data.user.email,
+                name: response.data.user.name,
+            };
+
+            setUser(user);
+
+        } catch (error: any) {
+            console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+
+        }
+    }
 
     async function handleTaskRemove(id: string, name: string) {
         try {
@@ -98,16 +186,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             console.error("Erro ao atualizar a task:", error);
         }
 
-    }
-
-    function handleTaskSeek() {
-        const taskAlreadyExists = tasksCategory.some(task => task.name === taskName);
-
-        if (!taskAlreadyExists) {
-            return Alert.alert('Tarefa não encontrada', 'Não existe uma tarefa com esse nome na lista');
-        } else {
-            Alert.alert('Nome inválido', 'O nome da tarefa não pode estar vazio.');
-        }
     }
 
     async function featchCategory() {
@@ -182,32 +260,43 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function fetchTaskByCategory(name: string, date?: DateData) {
+    async function fetchTaskByCategory(name: string, date?: DateData, filter?: string) {
         try {
             const task = await tasksGetByCategory();
 
             let filteredTasks = task;
 
+            // Filtro pela categoria
             if (name !== "Todas") {
-                filteredTasks = task.filter((item) => item.category === name);
+                filteredTasks = filteredTasks.filter((item) => item.category === name);
             }
 
+            // Filtro pela data
             if (date) {
                 filteredTasks = filteredTasks.filter(
                     (item) => convertDateFormat(item.date) === date.dateString
                 );
-                console.log(filteredTasks.map((item) => convertDateFormat(item.date)));
-                console.log(date.dateString);
             }
 
+            // Filtro pelo nome (se o filtro for fornecido)
+            if (filter) {
+                filteredTasks = filteredTasks.filter((task) =>
+                    task.name.toLowerCase().startsWith(filter.toLowerCase())
+                );
+            }
+
+            // Ordena as tarefas pela data
             filteredTasks.sort((a, b) => FormatDate(a.date) - FormatDate(b.date));
 
-            return setTasksCategory(filteredTasks);
+            // Atualiza o estado com as tarefas filtradas
+            setTasksCategory(filteredTasks);
+
         } catch (error) {
             console.log(error);
             Alert.alert("Categoria", "Não foi possível carregar as tarefas da categoria selecionada");
         }
     }
+
 
     async function groupTasksByWeek(tasks: TaskProps[]) {
         const weekDays = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
@@ -278,11 +367,15 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         setTasksConcluid(completedTaskIds);
         featchCategory();
         groupTasksByWeek(tasksCategory);
+        authTokenUser();
+        getUser();
     }, [tasksCategory]);
 
     return (
-        <TaskContext.Provider value={{ tasks, category, taskConcluid, selectedCategory, taskName, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskToggle, handleTaskSeek, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, fetchTaskByCategory }}>
+        <TaskContext.Provider value={{ tasks, taskName, category, taskConcluid, selectedCategory, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, user, token, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskToggle, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, fetchTaskByCategory, createUser, login }}>
             {children}
         </TaskContext.Provider>
     )
 }
+
+

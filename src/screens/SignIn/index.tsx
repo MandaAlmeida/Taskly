@@ -1,4 +1,4 @@
-import { Text, View, TextInput, TouchableOpacity } from "react-native";
+import { Text, View, TextInput, TouchableOpacity, ToastAndroid, Platform } from "react-native";
 import { styles } from "./styles";
 import { InputForm } from "@/components/inputForm";
 import { useRef } from "react";
@@ -10,10 +10,12 @@ import { Button } from "@/components/button";
 import { theme } from '@/styles/theme';
 import { useNavigation } from "@react-navigation/native";
 import { Header } from "@/components/header";
+import { useTask } from "@/hooks/useTask";
 
 
 export function SignIn() {
     const { control, handleSubmit, formState: { errors } } = useForm<AccountProps>();
+    const { login } = useTask();
     const emailRef = useRef<TextInput>(null);
     const { navigate } = useNavigation();
 
@@ -22,7 +24,7 @@ export function SignIn() {
     }
 
     function handleNextStep(data: AccountProps) {
-        console.log(data)
+        login(data.email, data.password)
     }
 
     return (
