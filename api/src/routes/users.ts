@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, Router, RequestHandler } from "express";
-import { getUsersById, deleteUser, updateUser, registerUser, loginUser, createTask, getTask } from "../controllers/user.js";
+import { getUsersById, deleteUser, updateUser, registerUser, loginUser, createTask, getTask, updateTask, deleteTask } from "../controllers/user.js";
 import jwt from "jsonwebtoken";
 
 const router = Router();
@@ -41,10 +41,11 @@ router.put("/user/:id", checkToken, updateUser);
 router.delete("/user/:id", checkToken, deleteUser);
 
 router.post("/task", checkToken, createTask);
-// Backend - Exemplo de rota para buscar tarefas do usuário
+
 router.get('/tasks/:id', checkToken, getTask);
 
+router.put("/task/:id", checkToken, updateTask);
 
-
+router.delete("/task/:id", checkToken, deleteTask);
 
 export default router;

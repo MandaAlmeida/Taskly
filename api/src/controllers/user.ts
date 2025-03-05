@@ -244,6 +244,58 @@ export async function getTask(req: Request, res: Response): Promise<void> {
     }
 };
 
+// Função para editar uma tarefa
+export async function updateTask(req: Request, res: Response): Promise<void> {
+    const { name, category, priority, date, active } = req.body;
+
+    // Captura o token do cabeçalho
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+        res.status(401).json({ message: "Acesso negado!" });
+        return;
+    }
+
+    try {
+
+        const updateTask = await Task.findByIdAndUpdate(req.params.id,
+            { name, category, priority, date, active },
+            { new: true });
+
+        // Retorna uma resposta de sucesso com os dados atualizados do usuário
+        res.status(200).json({ message: "Dados da tarefa atualizado com sucesso", updateTask });
+        return;
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erro ao salvar tarefa" });
+        return;
+    }
+};
+
+// Função para deletar uma tarefa
+export async function deleteTask(req: Request, res: Response): Promise<void> {
+    // Captura o token do cabeçalho
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+        res.status(401).json({ message: "Acesso negado!" });
+        return;
+    }
+
+    try {
+        const deleteTask = await Task.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({ message: "Tarefa excluida com sucesso", deleteTask });
+        return;
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erro ao excluir a tarefa" });
+        return;
+    }
+};
+
 
 
 

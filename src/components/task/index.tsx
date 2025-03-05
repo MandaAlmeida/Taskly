@@ -7,13 +7,14 @@ type ParticipantProps = {
     name: string;
     date: string;
     onRemove: () => void;
-    handleTaskConclue: () => void;
+    handleTaskConclue?: () => void;
+    handleUpdate: () => void;
     active: boolean;
     priority: string;
     category: string;
 }
 
-export function Task({ name, onRemove, handleTaskConclue, active, priority, category, date }: ParticipantProps) {
+export function Task({ name, onRemove, handleTaskConclue, handleUpdate, active, priority, category, date }: ParticipantProps) {
 
     return (
         <View style={[styles.container, {
@@ -67,6 +68,9 @@ export function Task({ name, onRemove, handleTaskConclue, active, priority, cate
                     </View>
                 )}
 
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleUpdate}>
+                <Feather name="edit" size={14} color="#808080" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={onRemove}>
                 <Feather name="trash-2" size={14} color="#808080" />

@@ -9,6 +9,7 @@ export const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
+        gap: 10,
         minHeight: 56,
         padding: 12,
         borderWidth: 1,

@@ -3,10 +3,13 @@ import { Task } from "../task";
 import { useTask } from "@/hooks/useTask";
 import Clipboard from "@/assets/Clipboard.png";
 import { styles } from "./styles";
+import { useNavigation } from "@react-navigation/native";
+import { TaskProps } from "@/@types/task";
 
 
 export function FlatListTaks() {
-    const { tasksCategory, handleTaskRemove, handleTaskToggle } = useTask();
+    const { tasksCategory, handleTaskRemove, handleUpdateTask } = useTask();
+    const { navigate } = useNavigation();
 
     function convertDateFormat(dateString: string): string {
         const date = new Date(dateString);
@@ -15,7 +18,11 @@ export function FlatListTaks() {
         const month = String(date.getMonth() + 1).padStart(2, '0'); // Pega o mês e garante que tenha 2 dígitos (Lembre-se que o mês é 0-indexed)
         const year = date.getFullYear(); // Pega o ano
 
-        return `${month}/${day}/${year}`;
+        return `${day}/${month}//${year}`;
+    }
+
+    function handleAddTask(item: TaskProps) {
+        navigate("addTask", { dataTask: item });
     }
 
     return (
@@ -27,11 +34,13 @@ export function FlatListTaks() {
                 <Task
                     name={item.name}
                     onRemove={() => handleTaskRemove(item._id!, item.name)}
-                    handleTaskConclue={() => handleTaskToggle(item._id!)}
+                    handleTaskConclue={() => handleUpdateTask({ ...item, active: !item.active })}
+                    handleUpdate={() => handleAddTask(item)}
                     active={item.active}
                     priority={item.priority}
                     category={item.category}
                     date={convertDateFormat(item.date)}
+
                 />
             )}
             showsVerticalScrollIndicator={false}

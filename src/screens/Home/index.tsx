@@ -15,8 +15,8 @@ import { useEffect, useState } from "react";
 export function Home() {
     const { selectedCategory, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, user, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
     const [selectedWeekIndex, setSelectedWeekIndex] = useState(weekDaysGraph.length - 1);
-
     const currentWeek = weekDaysGraph[selectedWeekIndex] || "Semana";
+
 
 
     const currentPendingTasks = pendingTasks[selectedWeekIndex] || [];

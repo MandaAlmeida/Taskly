@@ -5,4 +5,5 @@ export type TaskProps = {
     priority: string;
     date: string;
     active: boolean;
+    userId?: string;
 }

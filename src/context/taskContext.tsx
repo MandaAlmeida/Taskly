@@ -5,16 +5,14 @@ import { categoryCreate } from "@/storage/category/categoryCreate";
 import { AppError } from "@/utils/AppError";
 import { categoryGetAll } from "@/storage/category/categoryGetAll";
 import { categoryRemoveByName } from "@/storage/category/categoryRemoveByName";
-import { taskAddByCategory } from "@/storage/task/taskAddByCategory";
-import { taskRemoveByCategory } from "@/storage/task/taskRemoveByCategory";
-import { tasksGetByCategory } from "@/storage/task/tasksGetByCategory";
-import { taskToggleActive } from "@/storage/task/taskToggleActive";
 import { FormatDate } from "@/utils/formatDate";
 import { DateData } from "react-native-calendars";
 import axios from "axios";
 
 import { addToken } from "@/storage/token/addToken";
 import { getToken } from "@/storage/token/getToken";
+import { convertDateFormat } from "@/utils/convertDateFormat";
+import { getWeekNumber } from "@/utils/getWeekNumber";
 
 type User = {
     _id: string;
@@ -43,10 +41,10 @@ interface TaskContextProps {
     setTaskName: React.Dispatch<React.SetStateAction<string>>;
 
     handleTaskRemove: (id: string, name: string) => void;
-    handleTaskToggle: (id: string) => void;
     handleAddCategory: (name: string) => void;
     removeCategory: (category: string) => void;
     handleAddTask: (data: TaskProps) => void;
+    handleUpdateTask: (data: TaskProps) => void;
     fetchTaskByCategory: (category: string, date?: DateData, filter?: string) => void;
     createUser: (name: string, email: string, password: string, confirmPassword: string) => void;
     login: (email: string, password: string) => void;
@@ -73,7 +71,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [token, setToken] = useState<string>("");
     const [user, setUser] = useState<User | null>(null);
 
-
+    // USER
     async function createUser(name: string, email: string, password: string, confirmPassword: string) {
         try {
             const response = await axios.post("http://10.0.2.2:3001/auth/register", {
@@ -151,56 +149,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function handleTaskRemove(id: string, name: string) {
-        try {
-
-            Alert.alert("Remover", `Remover a tarefa ${name}?`, [
-                {
-                    text: 'Não',
-                    style: 'cancel'
-                },
-                {
-                    text: 'Sim',
-                    onPress: () => {
-                        // setTasks(prevState => prevState.filter(task => task.id !== id));
-                        // setTasksCategory(prevState => prevState.filter(task => task.id !== id));
-                        taskRemoveByCategory(id);
-                    }
-                },
-
-            ])
-        } catch (error) {
-            console.log(error)
-            Alert.alert("Remover pessoa", "Não foi possivel remover essa pessoa.")
-        }
-    }
-
-    async function handleTaskToggle(id: string) {
-        try {
-            await taskToggleActive(id);
-            console.log("Task atualizada com sucesso!");
-            // setTasksCategory(prevTasks =>
-            //     prevTasks.map(task =>
-            //         task.id === id ? { ...task, active: !task.active } : task
-            //     )
-            // );
-        } catch (error) {
-            console.error("Erro ao atualizar a task:", error);
-        }
-
-    }
-
-    async function featchCategory() {
-        try {
-            const data = await categoryGetAll();
-            setCategory(data);
-
-        } catch (error) {
-            console.log(error)
-            Alert.alert("Turmas", "Não foi possivel carregar as turmas")
-        }
-    }
-
+    // CATEGORY
     async function handleAddCategory(name: string) {
         try {
             if (name.length === 0) {
@@ -219,6 +168,17 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
         }
 
+    }
+
+    async function featchCategory() {
+        try {
+            const data = await categoryGetAll();
+            setCategory(data);
+
+        } catch (error) {
+            console.log(error)
+            Alert.alert("Turmas", "Não foi possivel carregar as turmas")
+        }
     }
 
     async function removeCategory(category: string) {
@@ -245,6 +205,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+
+    // TASK
     async function handleAddTask(data: TaskProps) {
         if (data.name.trim().length === 0) {
             return Alert.alert("Nova Tarefa", "Informe nome da nova tarefa para adicionar");
@@ -264,7 +226,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 },
             });
 
-            await taskAddByCategory(data, data.category);
             fetchTaskByCategory("Todas");
             if (response.status === 201) {
                 console.log("Task criado com sucesso!");
@@ -334,6 +295,73 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+    async function handleUpdateTask(data: TaskProps) {
+        try {
+            const response = await axios.put(
+                `http://10.0.2.2:3001/task/${data._id}`,
+                {
+                    ...data,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token.replace(/"/g, '')}`,
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                console.log("Task editada com sucesso!");
+                fetchTaskByCategory("Todas");
+            } else {
+                console.error("Erro ao modificar a task:", response.data.message);
+            }
+        } catch (error) {
+            if (error instanceof AppError) {
+                Alert.alert('Tarefa', error.message);
+            } else {
+                console.log(error);
+                Alert.alert('Tarefa', 'Não foi possível editar a tarefa');
+            }
+        }
+    }
+
+    async function handleTaskRemove(id: string, name: string) {
+        try {
+            Alert.alert("Remover", `Remover a tarefa ${name}?`, [
+                {
+                    text: 'Não',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Sim',
+                    onPress: async () => {
+                        try {
+                            await axios.delete(
+                                `http://10.0.2.2:3001/task/${id}`,
+                                {
+                                    headers: {
+                                        Authorization: `Bearer ${token.replace(/"/g, '')}`,
+                                    },
+                                }
+                            );
+
+                            setTasksCategory(prevTasks => prevTasks.filter(task => task._id !== id));
+
+                            Alert.alert("Sucesso", "Tarefa removida com sucesso!");
+                        } catch (error) {
+                            console.error(error);
+                            Alert.alert("Erro", "Não foi possível remover a tarefa.");
+                        }
+                    }
+                },
+            ]);
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Erro", "Ocorreu um problema ao tentar remover a tarefa.");
+        }
+    }
+
+    // GRAPH
     async function groupTasksByWeek(tasks: TaskProps[]) {
         const weekDays = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
@@ -393,24 +421,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         setWeekDaysGraph(weeks);
     }
 
-
-
-    function getWeekNumber(date: Date): number {
-        const startOfYear = new Date(date.getFullYear(), 0, 1);
-        const pastDays = Math.floor((date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
-        return Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
-    }
-
-    function convertDateFormat(dateString: string): string {
-        const date = new Date(dateString);
-
-        const day = String(date.getDate()).padStart(2, '0'); // Pega o dia e garante que tenha 2 dígitos
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Pega o mês e garante que tenha 2 dígitos (Lembre-se que o mês é 0-indexed)
-        const year = date.getFullYear(); // Pega o ano
-
-        return `${year}-${day}-${month}`;
-    }
-
     useEffect(() => {
         const completedTaskIds = tasksCategory
             .filter(task => task.active === true)
@@ -422,7 +432,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     }, [tasksCategory]);
 
     return (
-        <TaskContext.Provider value={{ tasks, taskName, category, taskConcluid, selectedCategory, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, user, token, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskToggle, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, fetchTaskByCategory, createUser, login }}>
+        <TaskContext.Provider value={{ tasks, taskName, category, taskConcluid, selectedCategory, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, user, token, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, handleUpdateTask, fetchTaskByCategory, createUser, login }}>
             {children}
         </TaskContext.Provider>
     )

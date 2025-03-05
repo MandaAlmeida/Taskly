@@ -20,7 +20,7 @@ export function PageTasks() {
     const { tasksCategory, selectedCategory, category, taskConcluid, taskName, setSelectedCategory, fetchTaskByCategory, setTaskName } = useTask();
 
     function handleAddTask() {
-        navigate("addTask");
+        navigate("addTask", {});
     }
 
     function handleAddCategory() {

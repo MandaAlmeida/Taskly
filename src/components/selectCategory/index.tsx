@@ -5,7 +5,7 @@ import { styles } from "./styles";
 
 type Props = {
     selectedCategory: string;
-    setSelectedCategory: React.Dispatch<React.SetStateAction<string>>;
+    setSelectedCategory: (category: string) => void;
     isAddTask?: boolean
 }
 

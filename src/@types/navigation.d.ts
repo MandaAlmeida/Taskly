@@ -1,7 +1,7 @@
 export declare global {
     namespace ReactNavigation {
         interface RootParamList {
-            addTask: undefined;
+            addTask: { dataTask?: TaskProps };
             tasks: undefined;
             signIn: undefined;
             signUp: undefined;

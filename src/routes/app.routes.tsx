@@ -8,11 +8,12 @@ import { AddCategory } from "@/screens/AddCategory";
 import { Calendars } from "@/screens/Calendars";
 import { theme } from '@/styles/theme';
 import { Home } from "@/screens/Home";
+import { TaskProps } from "@/@types/task";
 
 type AppRoutes = {
     home: undefined;
     tasks: undefined;
-    addTask: undefined;
+    addTask: { dataTask?: TaskProps };
     addCategory: undefined;
     calendar: undefined;
 };
