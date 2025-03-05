@@ -11,10 +11,10 @@ app.use(express.json());
 app.use(cors());
 
 const port = 3001;
-const mongoURI = process.env.MONGO_URI;
+const mongoUri: string = process.env.MONGO_URI!;
 
 
-mongoose.connect(mongoURI)
+mongoose.connect(mongoUri)
     .then(() => {
         app.listen(port, () => {
             console.log(`Conectado ao Banco de Dados!`);

@@ -47,7 +47,7 @@ interface TaskContextProps {
     handleAddCategory: (name: string) => void;
     removeCategory: (category: string) => void;
     handleAddTask: (data: TaskProps) => void;
-    fetchTaskByCategory: (name: string, date?: DateData, filter?: string) => void;
+    fetchTaskByCategory: (category: string, date?: DateData, filter?: string) => void;
     createUser: (name: string, email: string, password: string, confirmPassword: string) => void;
     login: (email: string, password: string) => void;
 }
@@ -119,20 +119,22 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function authTokenUser() {
-        const token = await getToken();
-        if (token) {
-            return setToken(token);
-        }
-        setToken("")
-    }
-
-
     async function getUser() {
+        const token = await getToken();
+
+        if (!token) {
+            console.error("Token não encontrado");
+            return;
+        }
+
         const userID = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
 
         try {
-            const response = await axios.get(`http://10.0.2.2:3001/user/${userID.id}`);
+            const response = await axios.get(`http://10.0.2.2:3001/user/${userID.id}`, {
+                headers: {
+                    "Authorization": `Bearer ${token.replace(/"/g, '')}`,
+                },
+            });
 
 
             const user: User = {
@@ -141,11 +143,11 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 name: response.data.user.name,
             };
 
-            setUser(user);
+            setUser(user); // Atualiza o estado do usuário
+            setToken(token);
 
         } catch (error: any) {
             console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
-
         }
     }
 
@@ -160,8 +162,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 {
                     text: 'Sim',
                     onPress: () => {
-                        setTasks(prevState => prevState.filter(task => task.id !== id));
-                        setTasksCategory(prevState => prevState.filter(task => task.id !== id));
+                        // setTasks(prevState => prevState.filter(task => task.id !== id));
+                        // setTasksCategory(prevState => prevState.filter(task => task.id !== id));
                         taskRemoveByCategory(id);
                     }
                 },
@@ -177,11 +179,11 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         try {
             await taskToggleActive(id);
             console.log("Task atualizada com sucesso!");
-            setTasksCategory(prevTasks =>
-                prevTasks.map(task =>
-                    task.id === id ? { ...task, active: !task.active } : task
-                )
-            );
+            // setTasksCategory(prevTasks =>
+            //     prevTasks.map(task =>
+            //         task.id === id ? { ...task, active: !task.active } : task
+            //     )
+            // );
         } catch (error) {
             console.error("Erro ao atualizar a task:", error);
         }
@@ -247,76 +249,111 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         if (data.name.trim().length === 0) {
             return Alert.alert("Nova Tarefa", "Informe nome da nova tarefa para adicionar");
         }
+
         try {
+            const response = await axios.post("http://10.0.2.2:3001/task",
+                {
+                    name: data.name,
+                    category: data.category,
+                    priority: data.priority,
+                    date: data.date,
+                    active: data.active,
+                }, {
+                headers: {
+                    Authorization: `Bearer ${token.replace(/"/g, '')}`,
+                },
+            });
+
             await taskAddByCategory(data, data.category);
             fetchTaskByCategory("Todas");
+            if (response.status === 201) {
+                console.log("Task criado com sucesso!");
+            } else {
+                console.error("Erro ao criar task:", response.data.message);
+            }
+
         } catch (error) {
             if (error instanceof AppError) {
-                Alert.alert('Nova tarafa', error.message)
+                Alert.alert('Nova Tarefa', error.message);
             } else {
                 console.log(error);
-                Alert.alert('Nova tarefa', 'Não foi possivel adicionar')
+                Alert.alert('Nova tarefa', 'Não foi possível adicionar');
             }
         }
     }
 
-    async function fetchTaskByCategory(name: string, date?: DateData, filter?: string) {
+    async function fetchTaskByCategory(category: string, date?: DateData, filter?: string) {
         try {
-            const task = await tasksGetByCategory();
+            const response = await axios.get(`http://10.0.2.2:3001/tasks/${user?._id}`, {
+                headers: {
+                    Authorization: `Bearer ${token.replace(/"/g, '')}`,
+                },
+            });
 
-            let filteredTasks = task;
+            const tasks = Array.isArray(response.data) ? response.data : [response.data];
+
+            const formattedTasks = tasks.map((task: any) => ({
+                _id: task._id,
+                name: task.name,
+                category: task.category,
+                priority: task.priority,
+                date: task.date,
+                active: task.active,
+            }));
+
+            let filteredTasks = formattedTasks;
 
             // Filtro pela categoria
-            if (name !== "Todas") {
-                filteredTasks = filteredTasks.filter((item) => item.category === name);
+            if (category !== "Todas") {
+                filteredTasks = filteredTasks.filter((item) => item.category === category);
             }
 
-            // Filtro pela data
+            // Filtro pela data (caso fornecida)
             if (date) {
                 filteredTasks = filteredTasks.filter(
                     (item) => convertDateFormat(item.date) === date.dateString
                 );
             }
 
-            // Filtro pelo nome (se o filtro for fornecido)
+            // Filtro pelo nome 
             if (filter) {
-                filteredTasks = filteredTasks.filter((task) =>
+                filteredTasks = filteredTasks.filter((task: any) =>
                     task.name.toLowerCase().startsWith(filter.toLowerCase())
                 );
             }
 
-            // Ordena as tarefas pela data
-            filteredTasks.sort((a, b) => FormatDate(a.date) - FormatDate(b.date));
+            // Ordena as tarefas pela data (presumindo que 'FormatDate' seja uma função para formatar datas)
+            filteredTasks.sort((a: any, b: any) => FormatDate(a.date) - FormatDate(b.date));
 
             // Atualiza o estado com as tarefas filtradas
             setTasksCategory(filteredTasks);
 
         } catch (error) {
-            console.log(error);
+            console.error(error);
             Alert.alert("Categoria", "Não foi possível carregar as tarefas da categoria selecionada");
         }
     }
 
-
     async function groupTasksByWeek(tasks: TaskProps[]) {
         const weekDays = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
-
+        // Função para converter a string de data ISO 8601 em objeto Date
         const parseDate = (dateStr: string) => {
-            const [day, month, year] = dateStr.split('/').map(Number);
-            const dateObj = new Date(year, month - 1, day);
-            if (isNaN(dateObj.getTime())) return null;
+            const dateObj = new Date(dateStr); // O formato ISO 8601 é nativo no JavaScript
+            if (isNaN(dateObj.getTime())) return null; // Verifica se a data é válida
             return dateObj;
         };
 
         const groupedData = tasks.reduce((acc, task) => {
             const dateObj = parseDate(task.date);
+
             if (!dateObj) return acc;
 
             const weekDay = weekDays[dateObj.getDay()];
-            const weekNumber = getWeekNumber(dateObj);
+            const weekNumber = getWeekNumber(dateObj); // A função getWeekNumber deve retornar o número da semana
             const weekKey = `Semana ${weekNumber}`;
 
+            // Se a semana ainda não foi criada, inicializa
             if (!acc.has(weekKey)) {
                 const weekStructure = new Map<string, { pending: number; completed: number }>();
                 weekDays.forEach(day => weekStructure.set(day, { pending: 0, completed: 0 }));
@@ -325,6 +362,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
             const weekStructure = acc.get(weekKey)!;
 
+            // Verifica se a tarefa está ativa ou não e conta corretamente
             if (!task.active) {
                 weekStructure.get(weekDay)!.pending += 1;
             } else {
@@ -334,8 +372,14 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             return acc;
         }, new Map<string, Map<string, { pending: number; completed: number }>>());
 
+        // Ordena as semanas em ordem crescente
+        const weeks = Array.from(groupedData.keys()).sort((a, b) => {
+            const weekNumberA = parseInt(a.replace('Semana ', ''), 10);
+            const weekNumberB = parseInt(b.replace('Semana ', ''), 10);
+            return weekNumberA - weekNumberB; // Ordenação crescente
+        });
 
-        const weeks = Array.from(groupedData.keys());
+        // Mapeia as tarefas pendentes e concluídas por semana
         const pendingTasksByWeek = weeks.map(week =>
             weekDays.map(day => groupedData.get(week)?.get(day)?.pending || 0)
         );
@@ -349,25 +393,31 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         setWeekDaysGraph(weeks);
     }
 
+
+
     function getWeekNumber(date: Date): number {
         const startOfYear = new Date(date.getFullYear(), 0, 1);
         const pastDays = Math.floor((date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
         return Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
     }
 
-    function convertDateFormat(date: string): string {
-        const [day, month, year] = date.split("/");
-        return `${year}-${month}-${day}`;
+    function convertDateFormat(dateString: string): string {
+        const date = new Date(dateString);
+
+        const day = String(date.getDate()).padStart(2, '0'); // Pega o dia e garante que tenha 2 dígitos
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Pega o mês e garante que tenha 2 dígitos (Lembre-se que o mês é 0-indexed)
+        const year = date.getFullYear(); // Pega o ano
+
+        return `${year}-${day}-${month}`;
     }
 
     useEffect(() => {
         const completedTaskIds = tasksCategory
             .filter(task => task.active === true)
-            .map(task => task.id);
-        setTasksConcluid(completedTaskIds);
+            .map(task => task._id!);
+        setTasksConcluid(completedTaskIds); 1
         featchCategory();
         groupTasksByWeek(tasksCategory);
-        authTokenUser();
         getUser();
     }, [tasksCategory]);
 

@@ -1,5 +1,5 @@
 export type TaskProps = {
-    id: string,
+    _id?: string;
     name: string;
     category: string;
     priority: string;

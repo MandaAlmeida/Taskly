@@ -44,7 +44,6 @@ export function AddTask() {
 
     function HandleAddTask(data: TaskProps) {
         const Task: TaskProps = {
-            id: Date.now().toString(),
             name: data.name,
             priority: text,
             category: selectedCategory,
