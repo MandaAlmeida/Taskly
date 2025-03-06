@@ -1,8 +1,9 @@
 // Importa o modelo User para interagir com o banco de dados
-import { Task, User } from "../db.js";
+import { Category, Task, User } from "../db.js";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Types } from "mongoose";
 
 // Função para listar o usuário
 export async function getUsersById(req: Request, res: Response): Promise<void> {
@@ -59,7 +60,8 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     })
 
     try {
-        await user.save()
+        await user.save();
+        await createDefaultCategories(user._id);
         res.status(201).json({ message: "Usuário criado com sucesso" });
         return;
 
@@ -230,7 +232,6 @@ export async function getTask(req: Request, res: Response): Promise<void> {
     try {
         // Busca as tarefas associadas ao userId
         const tasks = await Task.find({ userId: userId });  // Filtra pelo userId
-        console.log(userId)
 
         if (!tasks || tasks.length === 0) {
             res.status(404).json({ message: "Nenhuma tarefa encontrada para este usuário" });
@@ -296,6 +297,149 @@ export async function deleteTask(req: Request, res: Response): Promise<void> {
     }
 };
 
+// Funcao cria as categorias padrao
+async function createDefaultCategories(userId: Types.ObjectId) {
+    const defaultCategories = ["Todas", "Pessoal", "Trabalho", "Estudo"];
+
+    // Insere as categorias padrão no banco, vinculadas ao usuário recém-criado
+    await Category.insertMany(
+        defaultCategories.map((name) => ({
+            name,
+            userId,
+        }))
+    );
+}
+
+// Função para criar uma categoria
+export async function createCategory(req: Request, res: Response): Promise<void> {
+    const { name } = req.body;
+
+    // Captura o token do cabeçalho
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+        res.status(401).json({ message: "Acesso negado!" });
+        return;
+    }
+
+    try {
+        // Verifica o token e obtém o ID do usuário
+        const secret = process.env.SECRET as string;
+        const decoded = jwt.verify(token, secret) as { id: string };
+        const userId = decoded.id;
+
+        // Validação dos campos obrigatórios
+        if (!name) {
+            res.status(422).json({ message: "A categoria é obrigatória!" });
+            return;
+        }
+
+        // Verifica se já existe uma Category com o mesmo nome, categoria e data para este usuário
+        const existingCategory = await Category.findOne({ name });
+
+        if (existingCategory) {
+            res.status(422).json({ error: "Essa categoria já existe para este usuário" });
+            return;
+        }
+
+        // Criando Category e vinculando ao usuário autenticado
+        const category = new Category({
+            name,
+            userId, // Vincula a tarefa ao usuário autenticado
+        });
+
+        await category.save();
+        res.status(201).json({ message: "Tarefa criada com sucesso" });
+        return;
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erro ao salvar tarefa" });
+        return;
+    }
+};
+
+// Função para ler uma tarefa
+export async function getCategory(req: Request, res: Response): Promise<void> {
+    const userId = req.params.id; // Obtém o ID do usuário da URL
+
+    // Captura o token do cabeçalho
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+        console.error("Erro: token está ausente");
+        res.status(401).json({ message: "Acesso negado! Token ausente." });
+        return;
+    }
+
+    try {
+        // Busca as categorias associadas ao userId
+        const categories = await Category.find({ userId });
+
+        if (!categories || categories.length === 0) {
+            res.status(404).json({ message: "Nenhuma categoria encontrada para este usuário." });
+            return;
+        }
+
+        res.status(200).json(categories);
+    } catch (error) {
+        console.error("Erro ao verificar token ou buscar categorias:", error);
+        res.status(500).json({ message: "Erro ao buscar as categorias", error });
+    }
+}
+
+// Função para editar uma tarefa
+export async function updateCategory(req: Request, res: Response): Promise<void> {
+    const { name } = req.body;
+
+    // Captura o token do cabeçalho
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+        res.status(401).json({ message: "Acesso negado!" });
+        return;
+    }
+
+    try {
+
+        const updateCategory = await Category.findByIdAndUpdate(req.params.id,
+            { name },
+            { new: true });
+
+        // Retorna uma resposta de sucesso com os dados atualizados do usuário
+        res.status(200).json({ message: "Dados da tarefa atualizado com sucesso", updateCategory });
+        return;
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erro ao salvar tarefa" });
+        return;
+    }
+};
+
+// Função para deletar uma tarefa
+export async function deleteCategory(req: Request, res: Response): Promise<void> {
+    // Captura o token do cabeçalho
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+        res.status(401).json({ message: "Acesso negado!" });
+        return;
+    }
+
+    try {
+        const deleteCategory = await Category.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({ message: "Categoria excluida com sucesso", deleteCategory });
+        return;
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erro ao excluir a categoria" });
+        return;
+    }
+};
 
 
 

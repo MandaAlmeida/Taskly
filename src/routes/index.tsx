@@ -1,19 +1,17 @@
 import { NavigationContainer } from "@react-navigation/native";
 
-
+import { useTask } from "@/hooks/useTask";
 import { AppRoutes } from "./app.routes";
 import { AuthRoutes } from "./auth.routes";
-import { useTask } from "@/hooks/useTask";
 
+import { Loading } from "@/components/loading";
 
 export function Routes() {
-    const { token } = useTask();
+    const { loading, token } = useTask();
 
     return (
-        <NavigationContainer >
-            {
-                token !== "" ? <AppRoutes /> : <AuthRoutes />
-            }
-        </NavigationContainer >
-    )
+        <NavigationContainer>
+            {loading ? <Loading /> : token ? <AppRoutes /> : <AuthRoutes />}
+        </NavigationContainer>
+    );
 }

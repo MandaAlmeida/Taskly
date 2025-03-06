@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, Router, RequestHandler } from "express";
-import { getUsersById, deleteUser, updateUser, registerUser, loginUser, createTask, getTask, updateTask, deleteTask } from "../controllers/user.js";
+import { getUsersById, deleteUser, updateUser, registerUser, loginUser, createTask, getTask, updateTask, deleteTask, createCategory, getCategory, deleteCategory } from "../controllers/user.js";
 import jwt from "jsonwebtoken";
 
 const router = Router();
@@ -47,5 +47,13 @@ router.get('/tasks/:id', checkToken, getTask);
 router.put("/task/:id", checkToken, updateTask);
 
 router.delete("/task/:id", checkToken, deleteTask);
+
+router.post("/category", checkToken, createCategory);
+
+router.get("/category/:id", checkToken, getCategory);
+
+router.delete("/category/:id", checkToken, deleteCategory);
+
+
 
 export default router;

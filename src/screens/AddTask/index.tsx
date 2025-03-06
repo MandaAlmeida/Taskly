@@ -18,21 +18,22 @@ export function AddTask() {
     const route = useRoute();
     const { dataTask } = route.params as { dataTask?: TaskProps };
 
-    const { isDropdownOpen, setIsDropdownOpen, setTasks, handleAddTask, handleUpdateTask } = useTask();
+    const { isDropdownOpen, category, setIsDropdownOpen, setTasks, handleAddTask, handleUpdateTask } = useTask();
     const isEditing = !!dataTask;
 
-    const { control, handleSubmit, setValue, formState: { errors } } = useForm<TaskProps>({
+    const { control, handleSubmit, setValue, setError, clearErrors, formState: { errors }, trigger } = useForm<TaskProps>({
         defaultValues: {
             name: dataTask?.name || "",
             priority: dataTask?.priority || "Alta",
-            category: dataTask?.category || "Pessoal",
+            category: dataTask?.category || "",
             date: dataTask?.date || new Date().toISOString(),
         }
     });
 
-    // Estados para controlar manualmente os valores
+
+    // Estados para controle manual
     const [taskName, setTaskName] = useState(dataTask?.name || "");
-    const [selectedCategory, setSelectedCategory] = useState(dataTask?.category || "Pessoal");
+    const [selectedCategory, setSelectedCategory] = useState(dataTask?.category || "Selecione");
     const [text, setText] = useState(dataTask?.priority || "Alta");
     const [date, setDate] = useState(dataTask ? new Date(dataTask.date) : new Date());
     const [showPicker, setShowPicker] = useState(false);
@@ -46,22 +47,46 @@ export function AddTask() {
         }
     }, [dataTask, setValue]);
 
-    const handleChange = (event: any, selectedDate?: Date) => {
+    // Garante que a categoria seja validada ao ser selecionada
+    useEffect(() => {
+        setValue("category", selectedCategory);
+        trigger("category"); // Dispara a validação manualmente
+    }, [selectedCategory, setValue, trigger]);
+
+    function handleChange(event: any, selectedDate?: Date) {
         setShowPicker(false);
         if (selectedDate) {
             setDate(selectedDate);
         }
     };
 
-    const handleBackToTask = () => {
+    function handleBackToTask() {
         navigate("tasks");
     };
 
-    const handleActivePriority = (selectedPriority: string) => {
+    function handleAddCategory() {
+        navigate("addCategory");
+    }
+
+    function handleActivePriority(selectedPriority: string) {
         setText(selectedPriority);
     };
 
-    function handleSaveTask(data: TaskProps) {
+    function handleSelectCategory(categorySelecionada: string) {
+        setSelectedCategory(categorySelecionada);
+        setValue("category", categorySelecionada); // Atualiza no formulário
+        clearErrors("category"); // Remove o erro se já estiver correto
+    };
+
+
+    async function handleSaveTask(data: TaskProps) {
+        if (!data.category || data.category === "Selecione") {
+            setError("category", { type: "manual", message: "Selecione uma categoria" });
+            return;
+        }
+
+        clearErrors("category"); // Remove o erro se tudo estiver certo
+
         const task = {
             name: data.name,
             priority: text,
@@ -70,14 +95,14 @@ export function AddTask() {
             date: date.toISOString(),
         };
 
+
         if (isEditing) {
-            handleUpdateTask({ ...dataTask, ...task });
+            handleUpdateTask({ ...dataTask, ...task }, handleBackToTask);
         } else {
             setTasks((prevTasks) => [...prevTasks, task]);
-            handleAddTask(task);
+            handleAddTask(task, handleBackToTask);
         }
 
-        handleBackToTask();
     }
 
     return (
@@ -107,18 +132,38 @@ export function AddTask() {
                     error={errors.name?.message}
                 />
 
+                {/* Campo de Categoria */}
                 <View style={{ position: "relative" }}>
-                    <TouchableOpacity
-                        style={styles.button}
-                        onPress={() => setIsDropdownOpen(!isDropdownOpen)}
-                    >
-                        <Text style={styles.text}>Categoria: <Text style={{ color: theme.gray4 }}>{selectedCategory}</Text></Text>
-                    </TouchableOpacity>
-                    {isDropdownOpen && (
-                        <SelectCategory selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} isAddTask />
+                    {category.length > 1 ? (
+                        <>
+                            <TouchableOpacity
+                                style={styles.button}
+                                onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                            >
+                                <Text style={styles.text}>
+                                    Categoria: <Text style={{ color: theme.gray4 }}>{selectedCategory === "" ? "Selecione" : selectedCategory}</Text>
+                                </Text>
+                            </TouchableOpacity>
+                            {isDropdownOpen && (
+                                <SelectCategory selectedCategory={selectedCategory} setSelectedCategory={handleSelectCategory} isAddTask />
+                            )}
+
+
+                        </>
+                    ) : (
+                        <TouchableOpacity
+                            style={styles.buttonAddCategory}
+                            onPress={handleAddCategory}
+                        >
+                            <Text style={styles.text}>Adicionar categoria</Text>
+                            <Feather name="plus" size={24} color={theme.blue1} />
+                        </TouchableOpacity>
                     )}
+                    {errors.category && <Text style={styles.error}>{errors.category.message}</Text>}
+
                 </View>
 
+                {/* Campo de Data */}
                 <View>
                     <TouchableOpacity
                         onPress={() => setShowPicker(true)}
@@ -138,6 +183,7 @@ export function AddTask() {
                     )}
                 </View>
 
+                {/* Prioridade */}
                 <View style={styles.priority}>
                     <Text style={styles.text}>Prioridade</Text>
                     <Priority
@@ -158,6 +204,7 @@ export function AddTask() {
                 </View>
             </View>
 
+            {/* Botão de Adicionar/Salvar */}
             <Button
                 text={isEditing ? "Salvar alterações" : "Adicionar tarefa"}
                 onPress={handleSubmit(handleSaveTask)}

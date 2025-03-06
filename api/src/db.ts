@@ -15,6 +15,12 @@ const TaskSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
 });
 
+const CategorySchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
+});
+
 
 export const User = mongoose.model("User", UserSchema)
 export const Task = mongoose.model("Task", TaskSchema)
+export const Category = mongoose.model("Category", CategorySchema)

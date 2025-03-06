@@ -1,23 +1,18 @@
 import { Text, TouchableOpacity, View } from "react-native";
-
 import { Header } from "@/components/header";
-
 import { Feather } from "@expo/vector-icons";
-
 import { theme } from "@/styles/theme";
 import { Graph } from "@/components/Graph";
 import { styles } from "./styles";
 import { useTask } from "@/hooks/useTask";
 import { SelectCategory } from "@/components/selectCategory";
 import { useEffect, useState } from "react";
-
+import { Loading } from "@/components/loading";
 
 export function Home() {
-    const { selectedCategory, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, user, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
+    const { selectedCategory, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, user, loading, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
     const [selectedWeekIndex, setSelectedWeekIndex] = useState(weekDaysGraph.length - 1);
     const currentWeek = weekDaysGraph[selectedWeekIndex] || "Semana";
-
-
 
     const currentPendingTasks = pendingTasks[selectedWeekIndex] || [];
     const currentCompletedTasks = completedTasks[selectedWeekIndex] || [];
@@ -27,8 +22,11 @@ export function Home() {
 
     useEffect(() => {
         fetchTaskByCategory(selectedCategory);
-    }, [selectedCategory])
+    }, [selectedCategory]);
 
+    if (loading) {
+        return <Loading />; // Exibe o componente de loading enquanto está carregando
+    }
 
     return (
         <View style={{ flex: 1 }}>
@@ -98,5 +96,5 @@ export function Home() {
                 </View>
             </View>
         </View>
-    )
+    );
 }

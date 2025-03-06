@@ -16,23 +16,23 @@ export function SelectCategory({ selectedCategory, setSelectedCategory, isAddTas
     return (
         <View style={styles.dropdownList}>
             <FlatList
-                data={isAddTask ? category.filter(item => item !== 'Todas') : category}
-                keyExtractor={(item) => item}
+                data={isAddTask ? category.filter(item => item.name !== 'Todas') : category}
+                keyExtractor={(item) => item._id!}
                 renderItem={({ item }) => (
                     <TouchableOpacity
-                        style={[styles.categoryItem, selectedCategory === item && styles.selectedItem]}
+                        style={[styles.categoryItem, selectedCategory === item.name && styles.selectedItem]}
                         onPress={() => {
-                            setSelectedCategory(item);
+                            setSelectedCategory(item.name);
                             setIsDropdownOpen(false);
                         }}
                     >
                         <Text
                             style={[
                                 styles.categoryText,
-                                selectedCategory === item && styles.selectedText,
+                                selectedCategory === item.name && styles.selectedText,
                             ]}
                         >
-                            {item}
+                            {item.name}
                         </Text>
                     </TouchableOpacity>
                 )}

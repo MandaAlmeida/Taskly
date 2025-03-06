@@ -41,8 +41,20 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 5
     },
+    buttonAddCategory: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        alignItems: 'center',
+    },
     date: {
         fontSize: 16,
         color: theme.gray4
+    },
+    error: {
+        fontSize: 14,
+        marginTop: 7,
+        color: theme.red,
     }
 })

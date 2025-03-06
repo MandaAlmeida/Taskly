@@ -51,16 +51,13 @@ export function PageTasks() {
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                     />
-                    {/* <TouchableOpacity style={styles.button} onPress={() => handleTaskSeek(taskName)}>
-                        <Feather name="search" size={18} color={theme.white} />
-                    </TouchableOpacity> */}
                 </View>
                 <View style={styles.category}>
                     <FlatList
                         data={category}
-                        keyExtractor={(index) => index.toString()}
+                        keyExtractor={(item) => item._id!}
                         renderItem={({ item }) => (
-                            <Category text={item} isFocus={selectedCategory === item} Focused={() => handleActivePriority(item)} />
+                            <Category text={item.name} isFocus={selectedCategory === item.name} Focused={() => handleActivePriority(item.name)} />
                         )}
                         ListFooterComponent={
                             <TouchableOpacity style={styles.buttonCategory} onPress={handleAddCategory}>

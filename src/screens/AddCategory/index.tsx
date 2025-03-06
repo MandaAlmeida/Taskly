@@ -30,8 +30,8 @@ export function AddCategory() {
                 </TouchableOpacity>
             </View>
             <FlatList
-                data={category.filter(item => item !== 'Todas')}
-                keyExtractor={(index) => index.toString()}
+                data={category.filter(item => item.name !== 'Todas')}
+                keyExtractor={(item) => item._id!}
                 ListHeaderComponent={
                     <View style={[styles.category, { paddingHorizontal: 10 }]}>
                         <Text style={styles.text}>Todas</Text>
@@ -39,8 +39,8 @@ export function AddCategory() {
                 }
                 renderItem={({ item }) => (
                     <View style={[styles.category, { paddingHorizontal: 10 }]}>
-                        <Text style={styles.text}>{item}</Text>
-                        <TouchableOpacity onPress={() => removeCategory(item)}>
+                        <Text style={styles.text}>{item.name}</Text>
+                        <TouchableOpacity onPress={() => removeCategory(item.name, item._id)}>
                             <Feather name="trash-2" color={theme.gray2} />
                         </TouchableOpacity>
                     </View>

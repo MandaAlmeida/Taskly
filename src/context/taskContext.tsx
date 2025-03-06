@@ -1,10 +1,7 @@
 import { createContext, ReactNode, useCallback, useEffect, useState } from "react";
 import { TaskProps } from "@/@types/task";
 import { Alert } from "react-native";
-import { categoryCreate } from "@/storage/category/categoryCreate";
 import { AppError } from "@/utils/AppError";
-import { categoryGetAll } from "@/storage/category/categoryGetAll";
-import { categoryRemoveByName } from "@/storage/category/categoryRemoveByName";
 import { FormatDate } from "@/utils/formatDate";
 import { DateData } from "react-native-calendars";
 import axios from "axios";
@@ -13,6 +10,7 @@ import { addToken } from "@/storage/token/addToken";
 import { getToken } from "@/storage/token/getToken";
 import { convertDateFormat } from "@/utils/convertDateFormat";
 import { getWeekNumber } from "@/utils/getWeekNumber";
+import { CategoryProps } from "@/@types/category";
 
 type User = {
     _id: string;
@@ -23,7 +21,7 @@ type User = {
 interface TaskContextProps {
     tasks: TaskProps[];
     tasksCategory: TaskProps[];
-    category: string[];
+    category: CategoryProps[];
     taskName: string;
     taskConcluid: string[];
     isDropdownOpen: boolean;
@@ -34,6 +32,7 @@ interface TaskContextProps {
     weekDaysGraph: string[];
     token: string;
     user: User | null;
+    loading: boolean;
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
     setIsDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -42,9 +41,9 @@ interface TaskContextProps {
 
     handleTaskRemove: (id: string, name: string) => void;
     handleAddCategory: (name: string) => void;
-    removeCategory: (category: string) => void;
-    handleAddTask: (data: TaskProps) => void;
-    handleUpdateTask: (data: TaskProps) => void;
+    removeCategory: (category: string, id?: string) => void;
+    handleAddTask: (data: TaskProps, handleBackToTask: () => void) => void;
+    handleUpdateTask: (data: TaskProps, handleBackToTask: () => void) => void;
     fetchTaskByCategory: (category: string, date?: DateData, filter?: string) => void;
     createUser: (name: string, email: string, password: string, confirmPassword: string) => void;
     login: (email: string, password: string) => void;
@@ -61,7 +60,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [tasksCategory, setTasksCategory] = useState<TaskProps[]>([]);
     const [taskName, setTaskName] = useState('');
     const [taskConcluid, setTasksConcluid] = useState<string[]>([]);
-    const [category, setCategory] = useState([""]);
+    const [category, setCategory] = useState<CategoryProps[]>([]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("Todas");
     const [pendingTasks, setPendingTasks] = useState<number[][]>([[0]])
@@ -70,6 +69,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [weekDaysGraph, setWeekDaysGraph] = useState<string[]>([""]);
     const [token, setToken] = useState<string>("");
     const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(false);
+
 
     // USER
     async function createUser(name: string, email: string, password: string, confirmPassword: string) {
@@ -143,7 +144,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
             setUser(user); // Atualiza o estado do usuário
             setToken(token);
-
+            featchCategory(token);
         } catch (error: any) {
             console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
         }
@@ -156,13 +157,25 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 return Alert.alert("Nova categoria", "Informe o nome da categoria")
             }
 
-            await categoryCreate(name);
-            setCategory((prevTasks) => [...prevTasks, name])
+            const response = await axios.post("http://10.0.2.2:3001/category", {
+                name
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token.replace(/"/g, '')}`,
+                },
+            });
+
+            if (response.status === 201) {
+                console.log("Categoria criada com sucesso!");
+                featchCategory(token)
+            } else {
+                console.error("Erro ao tentar criar a categoria", response.data.message);
+            }
         } catch (error) {
             if (error instanceof AppError) {
                 Alert.alert("Novo categoria", error.message)
             } else {
-                Alert.alert("Novo categoria", "Não foi possível criar um novo categoria.")
+                Alert.alert("Novo categoria", "Não foi possível criar uma nova categoria.")
                 console.log(error)
             }
 
@@ -170,18 +183,35 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     }
 
-    async function featchCategory() {
+    async function featchCategory(token: string) {
         try {
-            const data = await categoryGetAll();
-            setCategory(data);
+            if (user) {
+                const response = await axios.get(`http://10.0.2.2:3001/category/${user._id}`, {
+                    headers: {
+                        Authorization: `Bearer ${token.replace(/"/g, '')}`,
+                    },
+                });
 
+                if (response.status === 200) {
+                    setCategory(response.data);
+                } else {
+                    console.error("Erro ao tentar buscar as categoria", response.data.message);
+                }
+            }
         } catch (error) {
-            console.log(error)
-            Alert.alert("Turmas", "Não foi possivel carregar as turmas")
+            console.error("Erro desconhecido:", error);
+
+            if (axios.isAxiosError(error)) {
+                console.error("Erro Axios:", error.response?.data || error.message);
+            } else {
+                console.error("Erro não Axios:", error);
+            }
+
+            Alert.alert("Categorias", "Não foi possível carregar as categorias");
         }
     }
 
-    async function removeCategory(category: string) {
+    async function removeCategory(category: string, id?: string) {
         try {
             Alert.alert("Remover", `Remover a categoria ${category}?`, [
                 {
@@ -190,11 +220,24 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 },
                 {
                     text: 'Sim',
-                    onPress: () => {
-                        categoryRemoveByName(category);
-                        setCategory((prevCategories) =>
-                            prevCategories.filter((item) => item !== category)
-                        );
+                    onPress: async () => {
+                        try {
+                            await axios.delete(
+                                `http://10.0.2.2:3001/category/${id}`,
+                                {
+                                    headers: {
+                                        Authorization: `Bearer ${token.replace(/"/g, '')}`,
+                                    },
+                                }
+                            );
+
+                            setCategory(prevTasks => prevTasks.filter(task => task._id !== id));
+
+                            Alert.alert("Sucesso", "Categoria removida com sucesso!");
+                        } catch (error) {
+                            console.error(error);
+                            Alert.alert("Erro", "Não foi possível remover a categoria.");
+                        }
                     }
                 },
 
@@ -205,11 +248,18 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-
     // TASK
-    async function handleAddTask(data: TaskProps) {
+    async function handleAddTask(data: TaskProps, handleBackToTask: () => void) {
         if (data.name.trim().length === 0) {
             return Alert.alert("Nova Tarefa", "Informe nome da nova tarefa para adicionar");
+        }
+
+        const existingTask = tasks.filter((task: any) =>
+            task.name.toLowerCase() === data.name.toLowerCase()
+        );
+
+        if (existingTask) {
+            return Alert.alert("Tarefa Existente", "Essa tarefa ja esta cadastrada")
         }
 
         try {
@@ -229,6 +279,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             fetchTaskByCategory("Todas");
             if (response.status === 201) {
                 console.log("Task criado com sucesso!");
+                handleBackToTask();
             } else {
                 console.error("Erro ao criar task:", response.data.message);
             }
@@ -245,57 +296,59 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     async function fetchTaskByCategory(category: string, date?: DateData, filter?: string) {
         try {
-            const response = await axios.get(`http://10.0.2.2:3001/tasks/${user?._id}`, {
-                headers: {
-                    Authorization: `Bearer ${token.replace(/"/g, '')}`,
-                },
-            });
+            if (user) {
+                const response = await axios.get(`http://10.0.2.2:3001/tasks/${user?._id}`, {
+                    headers: {
+                        Authorization: `Bearer ${token.replace(/"/g, '')}`,
+                    },
+                });
 
-            const tasks = Array.isArray(response.data) ? response.data : [response.data];
+                const tasks = Array.isArray(response.data) ? response.data : [response.data];
 
-            const formattedTasks = tasks.map((task: any) => ({
-                _id: task._id,
-                name: task.name,
-                category: task.category,
-                priority: task.priority,
-                date: task.date,
-                active: task.active,
-            }));
+                const formattedTasks = tasks.map((task: any) => ({
+                    _id: task._id,
+                    name: task.name,
+                    category: task.category,
+                    priority: task.priority,
+                    date: task.date,
+                    active: task.active,
+                }));
 
-            let filteredTasks = formattedTasks;
+                let filteredTasks = formattedTasks;
 
-            // Filtro pela categoria
-            if (category !== "Todas") {
-                filteredTasks = filteredTasks.filter((item) => item.category === category);
+                // Filtro pela categoria
+                if (category !== "Todas") {
+                    filteredTasks = filteredTasks.filter((item) => item.category === category);
+                }
+
+                // Filtro pela data (caso fornecida)
+                if (date) {
+                    filteredTasks = filteredTasks.filter(
+                        (item) => convertDateFormat(item.date) === date.dateString
+                    );
+                }
+
+                // Filtro pelo nome 
+                if (filter) {
+                    filteredTasks = filteredTasks.filter((task: any) =>
+                        task.name.toLowerCase().startsWith(filter.toLowerCase())
+                    );
+                }
+
+                // Ordena as tarefas pela data (presumindo que 'FormatDate' seja uma função para formatar datas)
+                filteredTasks.sort((a: any, b: any) => FormatDate(a.date) - FormatDate(b.date));
+
+                // Atualiza o estado com as tarefas filtradas
+                setTasksCategory(filteredTasks);
+                groupTasksByWeek(filteredTasks)
             }
-
-            // Filtro pela data (caso fornecida)
-            if (date) {
-                filteredTasks = filteredTasks.filter(
-                    (item) => convertDateFormat(item.date) === date.dateString
-                );
-            }
-
-            // Filtro pelo nome 
-            if (filter) {
-                filteredTasks = filteredTasks.filter((task: any) =>
-                    task.name.toLowerCase().startsWith(filter.toLowerCase())
-                );
-            }
-
-            // Ordena as tarefas pela data (presumindo que 'FormatDate' seja uma função para formatar datas)
-            filteredTasks.sort((a: any, b: any) => FormatDate(a.date) - FormatDate(b.date));
-
-            // Atualiza o estado com as tarefas filtradas
-            setTasksCategory(filteredTasks);
-
         } catch (error) {
             console.error(error);
             Alert.alert("Categoria", "Não foi possível carregar as tarefas da categoria selecionada");
         }
     }
 
-    async function handleUpdateTask(data: TaskProps) {
+    async function handleUpdateTask(data: TaskProps, handleBackToTask: () => void) {
         try {
             const response = await axios.put(
                 `http://10.0.2.2:3001/task/${data._id}`,
@@ -415,24 +468,25 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             weekDays.map(day => groupedData.get(week)?.get(day)?.completed || 0)
         );
 
+        // Atualiza os estados com as tarefas pendentes e concluídas
         setPendingTasks(pendingTasksByWeek);
         setCompletedTasks(completedTasksByWeek);
         setDateGraph(weekDays);
         setWeekDaysGraph(weeks);
     }
 
+
     useEffect(() => {
         const completedTaskIds = tasksCategory
             .filter(task => task.active === true)
             .map(task => task._id!);
-        setTasksConcluid(completedTaskIds); 1
-        featchCategory();
-        groupTasksByWeek(tasksCategory);
+        setTasksConcluid(completedTaskIds);
         getUser();
-    }, [tasksCategory]);
+        setLoading(false);
+    }, [tasksCategory, token]);
 
     return (
-        <TaskContext.Provider value={{ tasks, taskName, category, taskConcluid, selectedCategory, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, user, token, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskRemove, handleAddCategory, removeCategory, handleAddTask, handleUpdateTask, fetchTaskByCategory, createUser, login }}>
+        <TaskContext.Provider value={{ tasks, taskName, category, taskConcluid, selectedCategory, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, user, token, loading, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTaskByCategory, createUser, login, removeCategory }}>
             {children}
         </TaskContext.Provider>
     )

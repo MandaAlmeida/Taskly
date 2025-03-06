@@ -5,5 +5,5 @@ export function convertDateFormat(dateString: string): string {
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Pega o mês e garante que tenha 2 dígitos (Lembre-se que o mês é 0-indexed)
     const year = date.getFullYear(); // Pega o ano
 
-    return `${year}-${day}-${month}`;
+    return `${year}-${month}-${day}`;
 }
