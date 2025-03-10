@@ -43,10 +43,11 @@ interface TaskContextProps {
     handleAddCategory: (name: string) => void;
     removeCategory: (category: string, id?: string) => void;
     handleAddTask: (data: TaskProps, handleBackToTask: () => void) => void;
-    handleUpdateTask: (data: TaskProps, handleBackToTask: () => void) => void;
+    handleUpdateTask: (data: TaskProps, handleBackToTask?: () => void) => void;
     fetchTaskByCategory: (category: string, date?: DateData, filter?: string) => void;
     createUser: (name: string, email: string, password: string, confirmPassword: string) => void;
     login: (email: string, password: string) => void;
+    deslogar: () => void;
 }
 
 export const TaskContext = createContext({} as TaskContextProps);
@@ -148,6 +149,11 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         } catch (error: any) {
             console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
         }
+    }
+
+    async function deslogar() {
+        addToken("");
+        setToken("");
     }
 
     // CATEGORY
@@ -254,12 +260,13 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             return Alert.alert("Nova Tarefa", "Informe nome da nova tarefa para adicionar");
         }
 
-        const existingTask = tasks.filter((task: any) =>
-            task.name.toLowerCase() === data.name.toLowerCase()
+        const existingTask = tasksCategory.filter((task: TaskProps) =>
+            task.name.toLowerCase() === data.name.toLowerCase() &&
+            convertDateFormat(task.date) === convertDateFormat(data.date) && task.category === data.category
         );
 
-        if (existingTask) {
-            return Alert.alert("Tarefa Existente", "Essa tarefa ja esta cadastrada")
+        if (existingTask.length > 0) {
+            return Alert.alert("Tarefa Existente", "Essa tarefa já está cadastrada");
         }
 
         try {
@@ -348,7 +355,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function handleUpdateTask(data: TaskProps, handleBackToTask: () => void) {
+    async function handleUpdateTask(data: TaskProps, handleBackToTask?: () => void) {
         try {
             const response = await axios.put(
                 `http://10.0.2.2:3001/task/${data._id}`,
@@ -486,7 +493,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     }, [tasksCategory, token]);
 
     return (
-        <TaskContext.Provider value={{ tasks, taskName, category, taskConcluid, selectedCategory, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, user, token, loading, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTaskByCategory, createUser, login, removeCategory }}>
+        <TaskContext.Provider value={{ tasks, taskName, category, taskConcluid, selectedCategory, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, user, token, loading, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTaskByCategory, createUser, login, removeCategory, deslogar }}>
             {children}
         </TaskContext.Provider>
     )

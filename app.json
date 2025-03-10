@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#DADADA"
+      "backgroundColor": "#F4F4F4"
     },
     "ios": {
       "supportsTablet": true,
@@ -27,7 +27,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#DADADA"
+        "backgroundColor": "#F4F4F4"
       },
       "package": "com.venezaa.taskly"
     },
