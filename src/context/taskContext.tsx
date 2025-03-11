@@ -112,7 +112,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 addToken(response.data.token);
                 setToken(response.data.token)
             } else {
-                console.error("Erro ao fazer login:", response.data.message);
+                console.log("Erro ao fazer login:", response.data.message);
             }
         } catch (error: any) {
             console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
@@ -123,7 +123,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         const token = await getToken();
 
         if (!token) {
-            console.error("Token não encontrado");
+            console.log("Token não encontrado");
             return;
         }
 

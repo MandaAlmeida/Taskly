@@ -7,7 +7,11 @@ export declare global {
             signUp: undefined;
             addCategory: undefined;
             calendar: undefined;
-            profile: undefined
+            profile: undefined;
+            onboading1: undefined;
+            onboading2: undefined;
+            onboading3: undefined;
+            welcome: undefined;
         }
     }
 }

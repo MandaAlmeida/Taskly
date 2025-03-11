@@ -9,19 +9,31 @@ import { Button } from "@/components/button";
 
 import { theme } from '@/styles/theme';
 import { useNavigation } from "@react-navigation/native";
-import { Header } from "@/components/header";
+import { Feather } from '@expo/vector-icons';
 import { useTask } from "@/hooks/useTask";
 
 
 export function SignIn() {
-    const { control, handleSubmit, formState: { errors } } = useForm<AccountProps>();
+    const { control, handleSubmit, formState: { errors }, watch } = useForm<AccountProps>();
     const { login } = useTask();
     const emailRef = useRef<TextInput>(null);
     const { navigate } = useNavigation();
 
+    const email = watch("email");
+    const password = watch("password");
+    const isDisabled = !email || !password;
+
+    console.log(isDisabled)
+
     function handleRegister() {
         navigate("signUp");
     }
+
+
+    function handleNextWelcome() {
+        navigate("welcome");
+    }
+
 
     function handleNextStep(data: AccountProps) {
         login(data.email, data.password)
@@ -29,12 +41,14 @@ export function SignIn() {
 
     return (
         <View style={styles.container}>
-            <Header />
+            <TouchableOpacity style={styles.previous} onPress={handleNextWelcome} >
+                <Feather name="chevron-left" size={30} color={theme.gray4} />
+            </TouchableOpacity>
             <View style={styles.form}>
-                <Text style={styles.title}>Acesse sua conta</Text>
+                <Text style={styles.title}>Login</Text>
                 <InputForm
                     ref={emailRef}
-                    icon="mail"
+                    text="Email"
                     formProps={{
                         name: "email",
                         control,
@@ -53,7 +67,7 @@ export function SignIn() {
                     error={errors.email?.message}
                 />
                 <InputForm
-                    icon="lock"
+                    text="Senha"
                     formProps={{
                         name: "password",
                         control,
@@ -68,13 +82,14 @@ export function SignIn() {
                     }}
                     error={errors.password?.message}
                 />
-                <Button text="Fazer login" onPress={handleSubmit(handleNextStep)} style={{ width: "100%", backgroundColor: theme.blue1 }} />
-                <View style={styles.register}>
-                    <Text style={styles.text}>Você não possui uma conta?</Text>
-                    <TouchableOpacity onPress={handleRegister}>
-                        <Text style={styles.link}>Criar conta</Text>
-                    </TouchableOpacity>
-                </View>
+                <Button text="Fazer login" onPress={handleSubmit(handleNextStep)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1 }]} disabled={isDisabled} />
+
+            </View>
+            <View style={styles.register}>
+                <Text style={styles.text}>Não tem uma conta?</Text>
+                <TouchableOpacity onPress={handleRegister}>
+                    <Text style={styles.link}>Crie uma agora!</Text>
+                </TouchableOpacity>
             </View>
         </View>
     )

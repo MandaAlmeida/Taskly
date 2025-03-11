@@ -9,6 +9,12 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: 50
     },
+    skip: {
+        width: "100%",
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+    },
     image: {
         width: 213,
         height: 278
@@ -25,10 +31,9 @@ export const styles = StyleSheet.create({
         width: "100%",
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'flex-end',
         marginTop: 50
     },
-    button: {
+    buttonNext: {
         height: 48,
         backgroundColor: theme.blue1,
         justifyContent: 'center',
@@ -38,6 +43,11 @@ export const styles = StyleSheet.create({
     textButton: {
         fontSize: 16,
         color: theme.white,
+        textTransform: 'uppercase'
+    },
+    buttonPrevious: {
+        fontSize: 16,
+        color: theme.gray4,
         textTransform: 'uppercase'
     }
 

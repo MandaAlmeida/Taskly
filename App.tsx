@@ -12,7 +12,7 @@ export default function App() {
   return (
     <TaskContextProvider>
       <SafeAreaView style={{ flex: 1 }}>
-        <StatusBar style="light" backgroundColor={theme.white} translucent />
+        <StatusBar style="dark" backgroundColor={theme.white} translucent />
         <Routes />
       </SafeAreaView>
     </TaskContextProvider>
