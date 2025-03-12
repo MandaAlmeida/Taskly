@@ -1,8 +1,6 @@
 import { FlatList, Image, Text, View } from "react-native"
 import { Task } from "../task";
 import { useTask } from "@/hooks/useTask";
-import Clipboard from "@/assets/Clipboard.png";
-import { styles } from "./styles";
 import { useNavigation } from "@react-navigation/native";
 import { TaskProps } from "@/@types/task";
 
@@ -26,7 +24,6 @@ export function FlatListTaks() {
     }
 
     return (
-
         <FlatList
             data={tasksCategory}
             keyExtractor={item => String(item._id!)} // Usando o operador de afirmação de não-null
@@ -44,14 +41,6 @@ export function FlatListTaks() {
                 />
             )}
             showsVerticalScrollIndicator={false}
-            ListEmptyComponent={() => (
-                <View style={styles.containerListEmpty}>
-                    <Image source={Clipboard} />
-                    <Text style={styles.textBoldListEmpty}>Você ainda não tem tarefas cadastradas</Text>
-                    <Text style={styles.textListEmpty}>Crie tarefas e organize seus itens a fazer</Text>
-                </View>
-            )}
         />
-
     )
 }

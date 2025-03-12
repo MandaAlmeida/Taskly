@@ -10,8 +10,6 @@ const checkToken: RequestHandler = (req: Request, res: Response, next: NextFunct
     const authHeader: string | undefined = req.headers["authorization"];
     const token: string | undefined = authHeader && authHeader.split(" ")[1];
 
-    console.log(authHeader)
-
     if (!token) {
         res.status(401).json({ message: "Acesso negado" });
         return;
@@ -20,7 +18,6 @@ const checkToken: RequestHandler = (req: Request, res: Response, next: NextFunct
     try {
         const secret = process.env.SECRET!
         const tokem = jwt.verify(token, secret)
-        console.log(tokem)
         next()
     } catch (error) {
         res.status(400).json({ message: "Token inválido!" });

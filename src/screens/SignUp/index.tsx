@@ -10,17 +10,25 @@ import { Button } from "@/components/button";
 
 import { styles } from "./styles";
 import { theme } from '@/styles/theme';
-import { Header } from "@/components/header";
+import { Feather } from '@expo/vector-icons';
 import { useTask } from "@/hooks/useTask";
 
 export function SignUp() {
     const { createUser } = useTask();
-    const { control, handleSubmit, formState: { errors }, getValues } = useForm<AccountProps>();
+    const { control, handleSubmit, formState: { errors }, getValues, watch } = useForm<AccountProps>();
     const emailRef = useRef<TextInput>(null);
     const passwordRef = useRef<TextInput>(null);
     const passwordConfirmationRef = useRef<TextInput>(null);
 
     const { navigate } = useNavigation();
+
+    const name = watch("name");
+    const email = watch("email");
+    const password = watch("password");
+    const passwordConfirmation = watch("passwordConfirmation");
+    const isDisabled = !email || !password || !name || !passwordConfirmation
+
+    console.log(isDisabled)
 
     function handleLogin() {
         navigate("signIn");
@@ -37,14 +45,26 @@ export function SignUp() {
         return password === passwordConfirmation || "As senhas devem ser iguais"
     }
 
+
+    function handleRegister() {
+        navigate("signUp");
+    }
+
+
+    function handleNextWelcome() {
+        navigate("welcome");
+    }
+
     return (
         <View style={styles.container}>
-            <Header />
+            <TouchableOpacity style={styles.previous} onPress={handleNextWelcome} >
+                <Feather name="chevron-left" size={30} color={theme.gray4} />
+            </TouchableOpacity>
             <ScrollView contentContainerStyle={styles.form}>
-                <Text style={styles.title}>Acesse sua conta</Text>
+                <Text style={styles.title}>Registro</Text>
 
                 <InputForm
-                    icon="user"
+                    text="Nome"
                     formProps={{
                         name: "name",
                         control,
@@ -62,7 +82,7 @@ export function SignUp() {
                 />
                 <InputForm
                     ref={emailRef}
-                    icon="mail"
+                    text="Email"
                     formProps={{
                         name: "email",
                         control,
@@ -83,7 +103,7 @@ export function SignUp() {
                 />
                 <InputForm
                     ref={passwordRef}
-                    icon="lock"
+                    text="Senha"
                     formProps={{
                         name: "password",
                         control,
@@ -106,7 +126,7 @@ export function SignUp() {
                 />
                 <InputForm
                     ref={passwordConfirmationRef}
-                    icon="lock"
+                    text="Confirmar senha"
                     formProps={{
                         name: "passwordConfirmation",
                         control,
@@ -124,14 +144,14 @@ export function SignUp() {
                     error={errors.passwordConfirmation?.message}
                 />
 
-                <Button text="Criar conta" onPress={handleSubmit(handleNextStep)} style={{ minWidth: "100%", backgroundColor: theme.blue1 }} />
-                <View style={styles.register}>
-                    <Text style={styles.text}>Você ja possui uma conta?</Text>
-                    <TouchableOpacity onPress={handleLogin}>
-                        <Text style={styles.link}>Entrar na conta</Text>
-                    </TouchableOpacity>
-                </View>
+                <Button text="Criar conta" onPress={handleSubmit(handleNextStep)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1 }]} disabled={isDisabled} />
             </ScrollView>
+            <View style={styles.register}>
+                <Text style={styles.text}>Já tem uma conta?</Text>
+                <TouchableOpacity onPress={handleLogin}>
+                    <Text style={styles.link}>Faça login.</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     )
 }

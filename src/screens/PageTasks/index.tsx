@@ -1,90 +1,84 @@
 import React, { useEffect, useState } from "react"
-import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { Text, TextInput, View, Image } from "react-native"
 
 import { styles } from "./styles"
 
-import { Feather } from '@expo/vector-icons';
 
 import { useTask } from "@/hooks/useTask";
 
 import { useNavigation } from "@react-navigation/native";
-import { Category } from "@/components/category";
+
 import { FlatListTaks } from "@/components/flatListTasks";
 import { theme } from "@/styles/theme";
+
+import ImageHome from "@/assets/Checklist-rafiki.png";
 import { Header } from "@/components/header";
 
 
 export function PageTasks() {
     const [isFocused, setIsFocused] = useState(false);
     const { navigate } = useNavigation();
-    const { tasksCategory, selectedCategory, category, taskConcluid, taskName, setSelectedCategory, fetchTaskByCategory, setTaskName } = useTask();
+    const {
+        tasksCategory,
+        selectedCategory,
+        taskConcluid,
+        taskName,
+        fetchTaskByCategory,
+        setTaskName,
+    } = useTask();
 
-    function handleAddTask() {
-        navigate("addTask", {});
-    }
-
-    function handleAddCategory() {
-        navigate("addCategory");
-    }
-
-    function handleActivePriority(selectedPriority: string) {
-        setSelectedCategory(selectedPriority);
-    }
 
     useEffect(() => {
         fetchTaskByCategory(selectedCategory, undefined, taskName);
-    }, [selectedCategory])
+    }, [selectedCategory]);
 
     return (
         <View style={styles.container}>
             <View style={styles.containerHeader}>
-                <Header />
-                <View style={styles.form}>
-                    <TextInput
-                        style={[styles.input, isFocused && styles.inputFocused]}
-                        placeholder='Pesquisar tarefa'
-                        placeholderTextColor={theme.gray2}
-                        onChangeText={(text) => {
-                            setTaskName(text);
-                            fetchTaskByCategory(selectedCategory, undefined, text)
-                        }}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                    />
-                </View>
-                <View style={styles.category}>
-                    <FlatList
-                        data={category}
-                        keyExtractor={(item) => item._id!}
-                        renderItem={({ item }) => (
-                            <Category text={item.name} isFocus={selectedCategory === item.name} Focused={() => handleActivePriority(item.name)} />
-                        )}
-                        ListFooterComponent={
-                            <TouchableOpacity style={styles.buttonCategory} onPress={handleAddCategory}>
-                                <Feather name="plus" size={24} color={theme.white} />
-                            </TouchableOpacity>
-                        }
-                        horizontal
-                    />
-
-                </View>
+                <Header text="Tarefas" />
             </View>
-            <View style={styles.containerList}>
-                <View style={styles.list}>
-                    <View style={styles.listContent}>
-                        <Text style={styles.textCreate}>Criadas </Text>
-                        <Text style={[styles.textCount, { backgroundColor: theme.blue1 }]}>{tasksCategory ? tasksCategory.length : 0}</Text></View>
-                    <View style={styles.listContent}>
-                        <Text style={styles.textConclude}>Concluídas</Text>
-                        <Text style={[styles.textCount, { backgroundColor: theme.green1 }]}>{taskConcluid ? taskConcluid.length : 0}</Text>
+            {tasksCategory.length > 0 ? (
+                <>
+                    <View style={styles.form}>
+                        <TextInput
+                            style={[styles.input, isFocused && styles.inputFocused]}
+                            placeholder="Pesquisar tarefa"
+                            placeholderTextColor={theme.gray2}
+                            onChangeText={(text) => {
+                                setTaskName(text);
+                                fetchTaskByCategory(selectedCategory, undefined, text);
+                            }}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                        />
                     </View>
-                </View>
+                    <View style={styles.containerList}>
+                        <View style={styles.list}>
+                            <View style={styles.listContent}>
+                                <Text style={styles.textCreate}>Criadas </Text>
+                                <Text style={[styles.textCount, { backgroundColor: theme.blue1 }]}>
+                                    {tasksCategory.length > 0 ? tasksCategory.length : "0"}
+                                </Text>
+                            </View>
+                            <View style={styles.listContent}>
+                                <Text style={styles.textConclude}>Concluídas</Text>
+                                <Text style={[styles.textCount, { backgroundColor: theme.green1 }]}>
+                                    {taskConcluid ? taskConcluid.length : "0"}
+                                </Text>
+                            </View>
+                        </View>
 
-                <FlatListTaks />
-            </View>
-            <TouchableOpacity style={styles.buttonTask} onPress={handleAddTask}>
-                <Feather name="plus" size={16} color={theme.white} />
-            </TouchableOpacity>
-        </View>
-    )
+                        <FlatListTaks />
+                    </View>
+                </>
+            ) : (
+                <View style={styles.emptyContainer}>
+                    <Image source={ImageHome} style={styles.image} />
+                    <Text style={styles.title}>O que você quer fazer hoje?</Text>
+                    <Text>Toque em "+" para adicionar suas tarefas. </Text>
+                </View>
+            )
+            }
+        </View >
+    );
 }

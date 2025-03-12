@@ -182,7 +182,13 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 Alert.alert("Novo categoria", error.message)
             } else {
                 Alert.alert("Novo categoria", "Não foi possível criar uma nova categoria.")
-                console.log(error)
+                console.error("Erro desconhecido:", error);
+
+                if (axios.isAxiosError(error)) {
+                    console.error("Erro Axios:", error.response?.data || error.message);
+                } else {
+                    console.error("Erro não Axios:", error);
+                }
             }
 
         }
@@ -198,10 +204,14 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     },
                 });
 
+
+                if (!response.data || response.data.length === 0) {
+                    return;
+                }
+
+
                 if (response.status === 200) {
                     setCategory(response.data);
-                } else {
-                    console.error("Erro ao tentar buscar as categoria", response.data.message);
                 }
             }
         } catch (error) {
@@ -212,8 +222,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             } else {
                 console.error("Erro não Axios:", error);
             }
-
-            Alert.alert("Categorias", "Não foi possível carregar as categorias");
         }
     }
 
@@ -251,6 +259,13 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         } catch (error) {
             console.log(error)
             Alert.alert("Remover categoria", "Não foi possivel remover essa categoria.")
+            console.error("Erro desconhecido:", error);
+
+            if (axios.isAxiosError(error)) {
+                console.error("Erro Axios:", error.response?.data || error.message);
+            } else {
+                console.error("Erro não Axios:", error);
+            }
         }
     }
 
@@ -310,6 +325,14 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     },
                 });
 
+                // console.log(response.data)
+
+                if (!response.data || response.data.length === 0) {
+                    return;
+                }
+
+
+
                 const tasks = Array.isArray(response.data) ? response.data : [response.data];
 
                 const formattedTasks = tasks.map((task: any) => ({
@@ -350,8 +373,13 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 groupTasksByWeek(filteredTasks)
             }
         } catch (error) {
-            console.error(error);
-            Alert.alert("Categoria", "Não foi possível carregar as tarefas da categoria selecionada");
+            console.error("Erro desconhecido:", error);
+
+            if (axios.isAxiosError(error)) {
+                console.error("Erro Axios:", error.response?.data || error.message);
+            } else {
+                console.error("Erro não Axios:", error);
+            }
         }
     }
 
@@ -372,6 +400,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             if (response.status === 200) {
                 console.log("Task editada com sucesso!");
                 fetchTaskByCategory("Todas");
+                if (handleBackToTask)
+                    handleBackToTask();
             } else {
                 console.error("Erro ao modificar a task:", response.data.message);
             }

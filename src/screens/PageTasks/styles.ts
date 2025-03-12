@@ -4,18 +4,33 @@ import { theme } from '@/styles/theme';
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
+        gap: 16,
+        padding: 16
     },
     containerHeader: {
         width: "100%",
-        padding: 24,
         alignItems: "center",
         gap: 30,
+    },
+    emptyContainer: {
+        flex: 1,
+        alignItems: 'center',
+        marginTop: 75,
+        gap: 10
+    },
+    image: {
+        width: 227,
+        height: 227,
+    },
+    title: {
+        fontSize: 20,
+        color: theme.gray4
     },
     input: {
         flex: 1,
         height: 42,
         borderWidth: 1,
-        borderColor: theme.blue1,
+        borderColor: theme.gray1,
         borderRadius: 5,
         padding: 10,
         color: theme.gray4,
@@ -61,8 +76,8 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     containerList: {
-        paddingHorizontal: 24,
-        flex: 1
+        flex: 1,
+        width: "100%"
     },
     list: {
         width: "100%",

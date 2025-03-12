@@ -228,22 +228,18 @@ export async function createTask(req: Request, res: Response): Promise<void> {
 
 // Função para ler uma tarefa
 export async function getTask(req: Request, res: Response): Promise<void> {
-    const userId = req.params.id;  // Obtém o ID do usuário a partir da URL
+    const userId = req.params.id;
     try {
-        // Busca as tarefas associadas ao userId
-        const tasks = await Task.find({ userId: userId });  // Filtra pelo userId
+        const tasks = await Task.find({ userId: userId });
 
-        if (!tasks || tasks.length === 0) {
-            res.status(404).json({ message: "Nenhuma tarefa encontrada para este usuário" });
-            return;
-        }
-
-        res.status(200).json(tasks);
+        // Se não houver tarefas, retorna um array vazio com status 200 (OK)
+        res.status(200).json(tasks.length > 0 ? tasks : []);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Erro ao buscar as tarefas", error });
     }
 };
+
 
 // Função para editar uma tarefa
 export async function updateTask(req: Request, res: Response): Promise<void> {

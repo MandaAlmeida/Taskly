@@ -1,9 +1,12 @@
-import { View, Image } from "react-native";
+import { View, Text } from "react-native";
+import { styles } from "./styles";
 
-export function Header() {
+type Props = {
+    text: string
+}
+
+export function Header({ text }: Props) {
     return (
-        <View style={{ width: "100%", alignItems: "center" }}>
-            <Image source={require('../../assets/logo.png')} />
-        </View>
+        <Text style={styles.text}>{text}</Text>
     )
 }
