@@ -49,7 +49,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     }
 
     // criar senha
-    const salt = await bcrypt.genSalt(12)
+    const salt = await bcrypt.genSalt(8)
     const passwordHash = await bcrypt.hash(password, salt);
 
     // criando usuario 
@@ -239,7 +239,6 @@ export async function getTask(req: Request, res: Response): Promise<void> {
         res.status(500).json({ message: "Erro ao buscar as tarefas", error });
     }
 };
-
 
 // Função para editar uma tarefa
 export async function updateTask(req: Request, res: Response): Promise<void> {
