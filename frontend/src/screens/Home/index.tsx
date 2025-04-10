@@ -5,7 +5,6 @@ import { theme } from "@/styles/theme";
 import { Graph } from "@/components/Graph";
 import { styles } from "./styles";
 import { useTask } from "@/hooks/useTask";
-import { SelectCategory } from "@/components/selectCategory";
 import { useEffect, useState } from "react";
 import { Loading } from "@/components/loading";
 
@@ -20,17 +19,12 @@ export function Home() {
     const totalPendingTasks = currentPendingTasks.reduce((acc, currentValue) => acc + currentValue, 0);
     const totalCompletedTasks = currentCompletedTasks.reduce((acc, currentValue) => acc + currentValue, 0);
 
-    useEffect(() => {
-        fetchTaskByCategory(selectedCategory);
-    }, [selectedCategory]);
-
     if (loading) {
         return <Loading />; // Exibe o componente de loading enquanto está carregando
     }
 
     return (
         <View style={{ flex: 1 }}>
-            <Header />
             <View style={styles.container}>
                 <Text style={styles.text}>
                     Olá, <Text style={styles.name}>{user ? user.name : "Bem-vindo"}</Text>
@@ -45,9 +39,6 @@ export function Home() {
                             <Text style={styles.textbutton}>{selectedCategory}</Text>
                             <Feather size={24} color={theme.white} name={`chevron-down`} />
                         </TouchableOpacity>
-                        {isDropdownOpen && (
-                            <SelectCategory selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
-                        )}
                     </View>
                 </View>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 10 }}>

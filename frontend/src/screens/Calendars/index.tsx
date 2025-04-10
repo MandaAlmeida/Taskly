@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { Calendar, CalendarUtils, DateData, LocaleConfig } from 'react-native-calendars';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Feather } from "@expo/vector-icons";
 
@@ -35,7 +35,7 @@ export function Calendars() {
 
     return (
         <View style={styles.container}>
-            <Header />
+            <Header text="Calendario" />
             <Calendar
                 current={INITIAL_DATE}
                 style={styles.calendar}
@@ -58,7 +58,6 @@ export function Calendars() {
                     [day.dateString]: { selected: true }
                 }}
             />
-            <FlatListTaks />
         </View>
     )
 }

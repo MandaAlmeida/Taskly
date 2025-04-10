@@ -41,6 +41,11 @@ export const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         gap: 10
+    },
+    error: {
+        fontSize: 14,
+        marginTop: 5,
+        color: theme.red,
     }
 
 })

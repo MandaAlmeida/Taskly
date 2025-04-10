@@ -1,3 +1,5 @@
+import { DateData } from "react-native-calendars";
+
 export type TaskProps = {
     _id?: string;
     name: string;

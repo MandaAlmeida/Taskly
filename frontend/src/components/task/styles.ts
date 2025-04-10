@@ -4,7 +4,6 @@ import { theme } from "@/styles/theme";
 export const styles = StyleSheet.create({
     container: {
         width: "100%",
-        marginBottom: 8,
         borderRadius: 8,
         flexDirection: "row",
         alignItems: "center",
@@ -21,7 +20,17 @@ export const styles = StyleSheet.create({
         height: 30,
         paddingHorizontal: 8,
         backgroundColor: "#809CFF",
-        borderRadius: 10
+        borderRadius: 4
+    },
+    containerPriority: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 5,
+        height: 30,
+        paddingHorizontal: 8,
+        borderWidth: 1,
+        borderColor: "#809CFF",
+        borderRadius: 4
     },
     category: {
         fontSize: 12,
@@ -56,6 +65,7 @@ export const styles = StyleSheet.create({
     name: {
         fontSize: 14,
         color: theme.gray3,
+        marginBottom: 5
     },
     text: {
         fontSize: 12,
@@ -64,7 +74,7 @@ export const styles = StyleSheet.create({
     nameCheck: {
         color: theme.gray2,
         textDecorationLine: "line-through",
-
+        marginBottom: 5
     },
     textCheck: {
         fontSize: 12,

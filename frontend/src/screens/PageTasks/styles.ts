@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
     container: {
         flex: 1,
         gap: 16,
-        padding: 16
+        padding: 24
     },
     containerHeader: {
         width: "100%",
@@ -76,7 +76,6 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     containerList: {
-        flex: 1,
         width: "100%"
     },
     list: {

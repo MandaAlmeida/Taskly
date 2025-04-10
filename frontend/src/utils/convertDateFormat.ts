@@ -1,4 +1,4 @@
-export function convertDateFormat(dateString: string): string {
+export function convertDateFormat(dateString: Date | string): string {
     const date = new Date(dateString);
 
     const day = String(date.getDate()).padStart(2, '0'); // Pega o dia e garante que tenha 2 dígitos

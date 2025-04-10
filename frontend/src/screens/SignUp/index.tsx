@@ -14,7 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTask } from "@/hooks/useTask";
 
 export function SignUp() {
-    const { createUser } = useTask();
+    const { createUser, error } = useTask();
     const { control, handleSubmit, formState: { errors }, getValues, watch } = useForm<AccountProps>();
     const emailRef = useRef<TextInput>(null);
     const passwordRef = useRef<TextInput>(null);
@@ -28,14 +28,13 @@ export function SignUp() {
     const passwordConfirmation = watch("passwordConfirmation");
     const isDisabled = !email || !password || !name || !passwordConfirmation
 
-    console.log(isDisabled)
-
     function handleLogin() {
         navigate("signIn");
     }
 
     async function handleNextStep(data: AccountProps) {
-        await createUser(data.name, data.email, data.password, data.passwordConfirmation);
+        await createUser(data.name, data.email, data.password, data.passwordConfirmation, handleLogin);
+
     }
 
 
@@ -44,12 +43,6 @@ export function SignUp() {
 
         return password === passwordConfirmation || "As senhas devem ser iguais"
     }
-
-
-    function handleRegister() {
-        navigate("signUp");
-    }
-
 
     function handleNextWelcome() {
         navigate("welcome");
@@ -143,7 +136,7 @@ export function SignUp() {
                     }}
                     error={errors.passwordConfirmation?.message}
                 />
-
+                {error && <Text style={styles.error}>Usuario ja cadastrado</Text>}
                 <Button text="Criar conta" onPress={handleSubmit(handleNextStep)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1 }]} disabled={isDisabled} />
             </ScrollView>
             <View style={styles.register}>

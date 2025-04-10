@@ -5,21 +5,26 @@ export const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 24,
-        gap: 50,
-        backgroundColor: theme.white,
+        backgroundColor: theme.white
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 56
     },
     title: {
-        fontSize: 16,
-        color: theme.blue1,
+        fontSize: 20,
+        color: theme.gray4,
+        fontWeight: '700'
     },
     text: {
         fontSize: 16,
         color: theme.gray2,
+    },
+    input: {
+        fontSize: 24,
+        color: theme.gray4,
     },
     priority: {
         gap: 10,
@@ -41,13 +46,6 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 5
     },
-    buttonAddCategory: {
-        height: 50,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 10,
-        alignItems: 'center',
-    },
     date: {
         fontSize: 16,
         color: theme.gray4
@@ -56,5 +54,21 @@ export const styles = StyleSheet.create({
         fontSize: 14,
         marginTop: 7,
         color: theme.red,
+    },
+    containerButton: {
+        flexDirection: 'row',
+        gap: 32,
+        marginBottom: 16
+    },
+    modal: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: "rgba(0,0,0, 0.7)"
+
+    },
+    buttonSelect: {
+        flexDirection: 'row',
+        gap: 5,
+        alignItems: 'center'
     }
 })

@@ -4,39 +4,39 @@ import { useTask } from "@/hooks/useTask";
 import { useNavigation } from "@react-navigation/native";
 import { TaskProps } from "@/@types/task";
 
+type Props = {
+    data: TaskProps[]
+}
 
-export function FlatListTaks() {
-    const { tasksCategory, handleTaskRemove, handleUpdateTask } = useTask();
+export function FlatListTaks({ data }: Props) {
+    const { handleTaskRemove, handleUpdateTask } = useTask();
     const { navigate } = useNavigation();
 
-    function convertDateFormat(dateString: string): string {
-        const date = new Date(dateString);
-
-        const day = String(date.getDate()).padStart(2, '0'); // Pega o dia e garante que tenha 2 dígitos
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Pega o mês e garante que tenha 2 dígitos (Lembre-se que o mês é 0-indexed)
-        const year = date.getFullYear(); // Pega o ano
-
+    function formatDate(dateString: string): string {
+        const [year, month, day] = dateString.split("T")[0].split("-");
         return `${day}/${month}/${year}`;
     }
 
-    function handleAddTask(item: TaskProps) {
-        navigate("addTask", { dataTask: item });
+    function handleAddTask() {
+        navigate("addTask");
     }
 
     return (
         <FlatList
-            data={tasksCategory}
-            keyExtractor={item => String(item._id!)} // Usando o operador de afirmação de não-null
+            data={data}
+            keyExtractor={item => String(item._id!)}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
             renderItem={({ item }) => (
                 <Task
                     name={item.name}
                     onRemove={() => handleTaskRemove(item._id!, item.name)}
                     handleTaskConclue={() => handleUpdateTask({ ...item, active: !item.active })}
-                    handleUpdate={() => handleAddTask(item)}
+                    handleUpdate={() => handleAddTask()}
                     active={item.active}
                     priority={item.priority}
                     category={item.category}
-                    date={convertDateFormat(item.date)}
+                    date={formatDate(item.date)}
 
                 />
             )}

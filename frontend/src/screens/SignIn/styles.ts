@@ -41,6 +41,11 @@ export const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 10
+    },
+    error: {
+        fontSize: 14,
+        marginTop: 5,
+        color: theme.red,
     }
 
 })

@@ -15,15 +15,13 @@ import { useTask } from "@/hooks/useTask";
 
 export function SignIn() {
     const { control, handleSubmit, formState: { errors }, watch } = useForm<AccountProps>();
-    const { login } = useTask();
-    const emailRef = useRef<TextInput>(null);
+    const { login, error } = useTask();
     const { navigate } = useNavigation();
 
+    const passwordRef = useRef<TextInput>(null);
     const email = watch("email");
     const password = watch("password");
     const isDisabled = !email || !password;
-
-    console.log(isDisabled)
 
     function handleRegister() {
         navigate("signUp");
@@ -47,7 +45,6 @@ export function SignIn() {
             <View style={styles.form}>
                 <Text style={styles.title}>Login</Text>
                 <InputForm
-                    ref={emailRef}
                     text="Email"
                     formProps={{
                         name: "email",
@@ -63,10 +60,12 @@ export function SignIn() {
                     inputProps={{
                         placeholder: "E-mail",
                         placeholderTextColor: theme.gray2,
+                        onSubmitEditing: () => passwordRef.current?.focus(),
                     }}
                     error={errors.email?.message}
                 />
                 <InputForm
+                    ref={passwordRef}
                     text="Senha"
                     formProps={{
                         name: "password",
@@ -82,6 +81,7 @@ export function SignIn() {
                     }}
                     error={errors.password?.message}
                 />
+                {error && <Text style={styles.error}>Senha ou email invalidos</Text>}
                 <Button text="Fazer login" onPress={handleSubmit(handleNextStep)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1 }]} disabled={isDisabled} />
 
             </View>

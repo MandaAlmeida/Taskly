@@ -1,81 +1,79 @@
 import React, { useEffect, useState } from "react"
-import { Text, TextInput, View, Image } from "react-native"
+import { Text, View, Image, ScrollView } from "react-native"
 
 import { styles } from "./styles"
 
-
 import { useTask } from "@/hooks/useTask";
 
-import { useNavigation } from "@react-navigation/native";
-
 import { FlatListTaks } from "@/components/flatListTasks";
-import { theme } from "@/styles/theme";
 
 import ImageHome from "@/assets/Checklist-rafiki.png";
 import { Header } from "@/components/header";
+import { Search } from "@/components/search";
+import { TextFilter } from "@/components/textFilter";
 
 
 export function PageTasks() {
-    const [isFocused, setIsFocused] = useState(false);
-    const { navigate } = useNavigation();
+    const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
+        today: true,
+        pending: false,
+        futurePending: false,
+        completed: false,
+    });
+
+    function toggleSection(key: string) {
+        setOpenSections((prev) => ({
+            ...prev,
+            [key]: !prev[key],
+        }));
+    }
+
     const {
-        tasksCategory,
-        selectedCategory,
-        taskConcluid,
+        tasksToday,
+        tasksPendent,
+        tasksFuture,
+        tasksConcluid,
         taskName,
         fetchTaskByCategory,
-        setTaskName,
     } = useTask();
 
 
     useEffect(() => {
-        fetchTaskByCategory(selectedCategory, undefined, taskName);
-    }, [selectedCategory]);
+        fetchTaskByCategory(undefined, taskName);
+    }, []);
 
     return (
         <View style={styles.container}>
             <View style={styles.containerHeader}>
                 <Header text="Tarefas" />
             </View>
-            {tasksCategory.length > 0 ? (
+            {tasksToday.length > 0 || tasksPendent.length > 0 || tasksFuture.length > 0 || tasksConcluid.length > 0 ? (
                 <>
-                    <View style={styles.form}>
-                        <TextInput
-                            style={[styles.input, isFocused && styles.inputFocused]}
-                            placeholder="Pesquisar tarefa"
-                            placeholderTextColor={theme.gray2}
-                            onChangeText={(text) => {
-                                setTaskName(text);
-                                fetchTaskByCategory(selectedCategory, undefined, text);
-                            }}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                        />
-                    </View>
-                    <View style={styles.containerList}>
-                        <View style={styles.list}>
-                            <View style={styles.listContent}>
-                                <Text style={styles.textCreate}>Criadas </Text>
-                                <Text style={[styles.textCount, { backgroundColor: theme.blue1 }]}>
-                                    {tasksCategory.length > 0 ? tasksCategory.length : "0"}
-                                </Text>
-                            </View>
-                            <View style={styles.listContent}>
-                                <Text style={styles.textConclude}>Concluídas</Text>
-                                <Text style={[styles.textCount, { backgroundColor: theme.green1 }]}>
-                                    {taskConcluid ? taskConcluid.length : "0"}
-                                </Text>
-                            </View>
+                    <Search />
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        <View style={styles.containerList}>
+                            <TextFilter text="Pra terminar hoje 🙌" number={tasksToday.length > 0 ? tasksToday.length : "0"} Open={() => toggleSection("today")} isOpen={openSections["today"]} />
+                            {openSections["today"] ? <FlatListTaks data={tasksToday} /> : ""}
                         </View>
-
-                        <FlatListTaks />
-                    </View>
+                        <View style={styles.containerList}>
+                            <TextFilter text="Procrastinadas 😅" number={tasksPendent.length > 0 ? tasksPendent.length : "0"} Open={() => toggleSection("pending")} isOpen={openSections["pending"]} />
+                            {openSections["pending"] ? <FlatListTaks data={tasksPendent} /> : ""}
+                        </View>
+                        <View style={styles.containerList}>
+                            <TextFilter text="Depois eu vejo 👀" number={tasksFuture.length > 0 ? tasksFuture.length : "0"} Open={() => toggleSection("futurePending")} isOpen={openSections["futurePending"]} />
+                            {openSections["futurePending"] ? <FlatListTaks data={tasksFuture} /> : ""}
+                        </View>
+                        <View style={styles.containerList}>
+                            <TextFilter text="Missão cumprida 🎯" number={tasksConcluid.length > 0 ? tasksConcluid.length : "0"} Open={() => toggleSection("completed")} isOpen={openSections["completed"]} />
+                            {openSections["completed"] ? <FlatListTaks data={tasksConcluid} /> : ""}
+                        </View>
+                    </ScrollView>
                 </>
             ) : (
                 <View style={styles.emptyContainer}>
                     <Image source={ImageHome} style={styles.image} />
                     <Text style={styles.title}>O que você quer fazer hoje?</Text>
-                    <Text>Toque em "+" para adicionar suas tarefas. </Text>
+                    <Text>Toque em "+" para adicionar suas tarefas.</Text>
                 </View>
             )
             }

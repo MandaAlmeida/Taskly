@@ -10,40 +10,39 @@ import { AddTask } from "@/screens/AddTask";
 import { AddCategory } from "@/screens/AddCategory";
 import { Calendars } from "@/screens/Calendars";
 import { Profile } from "@/screens/Profile";
-import { TaskProps } from "@/@types/task";
-import { useNavigation } from "@react-navigation/native";
 import { styles } from "./styles";
+import { NavigatorScreenParams, useNavigation } from "@react-navigation/native";
+import { Anotation } from "@/screens/Anotation";
 
-type AppRoutes = {
-    home: undefined;
-    tasks: undefined;
-    addTask: { dataTask?: TaskProps };
+import { CalendarDays, House, ListChecks, NotepadText, Plus } from "lucide-react-native"
+
+export type StackParamList = {
+    tabs: NavigatorScreenParams<TabParamList>;
+    addTask: undefined;
     addCategory: undefined;
-    calendar: undefined;
     profile: undefined;
 };
 
-const Tab = createBottomTabNavigator<AppRoutes>();
-const Stack = createNativeStackNavigator<AppRoutes>();
+export type TabParamList = {
+    home: undefined;
+    tasks: undefined;
+    calendar: undefined;
+    anotation: undefined;
+    addTask: undefined;
+};
 
-function StackNavigator() {
-    return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="tasks" component={PageTasks} />
-            <Stack.Screen name="addCategory" component={AddCategory} />
-        </Stack.Navigator>
-    );
-}
 
-export function AppRoutes() {
+
+const Stack = createNativeStackNavigator<StackParamList>()
+const Tab = createBottomTabNavigator<TabParamList>()
+
+function BottomTabs() {
     const navigation = useNavigation();
-
     return (
         <Tab.Navigator
             screenOptions={{
                 headerShown: false,
                 tabBarHideOnKeyboard: true,
-                animation: "fade",
                 tabBarStyle: styles.tabBar,
                 tabBarShowLabel: false,
             }}
@@ -52,18 +51,24 @@ export function AppRoutes() {
                 name="home"
                 component={Home}
                 options={{
-                    tabBarIcon: ({ focused }) => <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}><FontAwesome name="home" size={22} color={theme.white} />
-                        <Text style={styles.text}>Inicio</Text>
-                    </View>,
+                    tabBarIcon: ({ focused }) => (
+                        <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}>
+                            <House size={22} color={theme.white} />
+                            <Text style={styles.text}>Início</Text>
+                        </View>
+                    ),
                 }}
             />
             <Tab.Screen
                 name="tasks"
-                component={StackNavigator}
+                component={PageTasks}
                 options={{
-                    tabBarIcon: ({ focused }) => <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}><FontAwesome name="list" size={22} color={theme.white} />
-                        <Text style={styles.text}>Tarefa</Text>
-                    </View>,
+                    tabBarIcon: ({ focused }) => (
+                        <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}>
+                            <ListChecks size={24} color={theme.white} />
+                            <Text style={styles.text}>Tarefa</Text>
+                        </View>
+                    ),
                 }}
             />
             <Tab.Screen
@@ -73,9 +78,9 @@ export function AppRoutes() {
                     tabBarButton: () => (
                         <TouchableOpacity
                             style={styles.addButton}
-                            onPress={() => navigation.navigate("addTask", {})}
+                            onPress={() => navigation.navigate("addTask")}
                         >
-                            <Octicons name="plus" size={22} color="white" />
+                            <Plus size={24} color="white" />
                         </TouchableOpacity>
                     ),
                 }}
@@ -84,20 +89,37 @@ export function AppRoutes() {
                 name="calendar"
                 component={Calendars}
                 options={{
-                    tabBarIcon: ({ focused }) => <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}><FontAwesome name="calendar" size={22} color={theme.white} />
-                        <Text style={styles.text}>Calendario</Text>
-                    </View>,
+                    tabBarIcon: ({ focused }) => (
+                        <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}>
+                            <CalendarDays size={24} color={theme.white} />
+                            <Text style={styles.text}>Calendário</Text>
+                        </View>
+                    ),
                 }}
             />
             <Tab.Screen
-                name="profile"
-                component={Profile}
+                name="anotation"
+                component={Anotation}
                 options={{
-                    tabBarIcon: ({ focused }) => <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}><FontAwesome name="user-o" size={22} color={theme.white} />
-                        <Text style={styles.text}>Perfil</Text>
-                    </View>,
+                    tabBarIcon: ({ focused }) => (
+                        <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}>
+                            <NotepadText size={24} color={theme.white} />
+                            <Text style={styles.text}>Anotações</Text>
+                        </View>
+                    ),
                 }}
             />
         </Tab.Navigator>
-    );
+    )
+}
+
+export function AppRoutes() {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="tabs" component={BottomTabs} />
+            <Stack.Screen name="addTask" component={AddTask} />
+            <Stack.Screen name="addCategory" component={AddCategory} />
+            <Stack.Screen name="profile" component={Profile} />
+        </Stack.Navigator>
+    )
 }

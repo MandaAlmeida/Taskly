@@ -20,10 +20,12 @@ type User = {
 
 interface TaskContextProps {
     tasks: TaskProps[];
-    tasksCategory: TaskProps[];
+    tasksToday: TaskProps[];
+    tasksPendent: TaskProps[];
+    tasksFuture: TaskProps[];
+    tasksConcluid: TaskProps[];
     category: CategoryProps[];
     taskName: string;
-    taskConcluid: string[];
     isDropdownOpen: boolean;
     selectedCategory: string;
     pendingTasks: number[][];
@@ -33,19 +35,24 @@ interface TaskContextProps {
     token: string;
     user: User | null;
     loading: boolean;
+    error: boolean;
+    priority: string;
+    date: DateData;
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
     setIsDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setSelectedCategory: React.Dispatch<React.SetStateAction<string>>;
     setTaskName: React.Dispatch<React.SetStateAction<string>>;
+    setPriority: React.Dispatch<React.SetStateAction<string>>;
+    setDate: React.Dispatch<React.SetStateAction<DateData>>;
 
     handleTaskRemove: (id: string, name: string) => void;
     handleAddCategory: (name: string) => void;
     removeCategory: (category: string, id?: string) => void;
     handleAddTask: (data: TaskProps, handleBackToTask: () => void) => void;
     handleUpdateTask: (data: TaskProps, handleBackToTask?: () => void) => void;
-    fetchTaskByCategory: (category: string, date?: DateData, filter?: string) => void;
-    createUser: (name: string, email: string, password: string, confirmPassword: string) => void;
+    fetchTaskByCategory: (date?: DateData, filter?: string) => void;
+    createUser: (name: string, email: string, password: string, confirmPassword: string, handleBackToLogin: () => void) => void;
     login: (email: string, password: string) => void;
     deslogar: () => void;
 }
@@ -58,9 +65,11 @@ interface TaskContextProviderProps {
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [tasks, setTasks] = useState<TaskProps[]>([]);
-    const [tasksCategory, setTasksCategory] = useState<TaskProps[]>([]);
+    const [tasksToday, setTasksToday] = useState<TaskProps[]>([]);
+    const [tasksPendent, setTasksPendent] = useState<TaskProps[]>([]);
+    const [tasksFuture, setTasksFuture] = useState<TaskProps[]>([]);
+    const [tasksConcluid, setTasksConcluid] = useState<TaskProps[]>([]);
     const [taskName, setTaskName] = useState('');
-    const [taskConcluid, setTasksConcluid] = useState<string[]>([]);
     const [category, setCategory] = useState<CategoryProps[]>([]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("Todas");
@@ -71,10 +80,19 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [token, setToken] = useState<string>("");
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
+    const [priority, setPriority] = useState("");
+    const [date, setDate] = useState<DateData>({
+        year: 0,
+        month: 0,
+        day: 0,
+        timestamp: 0,
+        dateString: "",
+    })
 
 
     // USER
-    async function createUser(name: string, email: string, password: string, confirmPassword: string) {
+    async function createUser(name: string, email: string, password: string, confirmPassword: string, handleBackToLogin: () => void) {
         try {
             const response = await axios.post("http://10.0.2.2:3001/auth/register", {
                 name,
@@ -89,11 +107,15 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
             if (response.status === 201) {
                 console.log("Usuário criado com sucesso!");
+                setError(false)
+                handleBackToLogin();
             } else {
-                console.error("Erro ao criar usuário:", response.data.message);
+                console.log("Erro ao criar usuário:", response.data.message);
+                setError(true)
             }
         } catch (error: any) {
-            console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+            console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+            setError(true)
         }
     }
 
@@ -109,13 +131,16 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             });
 
             if (response.status === 200) {
+                setError(false)
                 addToken(response.data.token);
                 setToken(response.data.token)
             } else {
+                setError(true)
                 console.log("Erro ao fazer login:", response.data.message);
             }
         } catch (error: any) {
-            console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+            setError(true)
+            console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
         }
     }
 
@@ -147,7 +172,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             setToken(token);
             featchCategory(token);
         } catch (error: any) {
-            console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+            console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
         }
     }
 
@@ -275,7 +300,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             return Alert.alert("Nova Tarefa", "Informe nome da nova tarefa para adicionar");
         }
 
-        const existingTask = tasksCategory.filter((task: TaskProps) =>
+        const existingTask = tasksToday.filter((task: TaskProps) =>
             task.name.toLowerCase() === data.name.toLowerCase() &&
             convertDateFormat(task.date) === convertDateFormat(data.date) && task.category === data.category
         );
@@ -298,7 +323,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 },
             });
 
-            fetchTaskByCategory("Todas");
+            fetchTaskByCategory();
             if (response.status === 201) {
                 console.log("Task criado com sucesso!");
                 handleBackToTask();
@@ -316,7 +341,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function fetchTaskByCategory(category: string, date?: DateData, filter?: string) {
+    async function fetchTaskByCategory(date?: DateData, filter?: string) {
         try {
             if (user) {
                 const response = await axios.get(`http://10.0.2.2:3001/tasks/${user?._id}`, {
@@ -324,8 +349,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                         Authorization: `Bearer ${token.replace(/"/g, '')}`,
                     },
                 });
-
-                // console.log(response.data)
 
                 if (!response.data || response.data.length === 0) {
                     return;
@@ -346,12 +369,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
                 let filteredTasks = formattedTasks;
 
-                // Filtro pela categoria
-                if (category !== "Todas") {
-                    filteredTasks = filteredTasks.filter((item) => item.category === category);
-                }
 
-                // Filtro pela data (caso fornecida)
+
                 if (date) {
                     filteredTasks = filteredTasks.filter(
                         (item) => convertDateFormat(item.date) === date.dateString
@@ -365,11 +384,46 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     );
                 }
 
-                // Ordena as tarefas pela data (presumindo que 'FormatDate' seja uma função para formatar datas)
+                // Inicialize as listas fora do forEach
+                const concluidList: TaskProps[] = [];
+                const todayList: TaskProps[] = [];
+                const pendingList: TaskProps[] = [];
+                const futureList: TaskProps[] = [];
+
+                const today = new Date();
+                const todayStr = convertDateFormat(today);
+
+
+                tasks.forEach((task) => {
+                    const taskDateStr = new Date(task.date).toISOString().split("T")[0];
+
+                    if (task.active === true) {
+                        concluidList.push(task);
+                    } else {
+                        if (taskDateStr === todayStr) {
+                            todayList.push(task);
+                        }
+                        if (taskDateStr < todayStr) {
+                            pendingList.push(task);
+                        }
+                        if (taskDateStr > todayStr) {
+                            futureList.push(task);
+                        }
+                    }
+
+                    console.log(todayStr, taskDateStr)
+                });
+
+
+
+                setTasksToday(todayList);
+                setTasksPendent(pendingList);
+                setTasksFuture(futureList);
+                setTasksConcluid(concluidList);
+
                 filteredTasks.sort((a: any, b: any) => FormatDate(a.date) - FormatDate(b.date));
 
-                // Atualiza o estado com as tarefas filtradas
-                setTasksCategory(filteredTasks);
+                setTasks(filteredTasks);
                 groupTasksByWeek(filteredTasks)
             }
         } catch (error) {
@@ -398,8 +452,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             );
 
             if (response.status === 200) {
-                console.log("Task editada com sucesso!");
-                fetchTaskByCategory("Todas");
+                await fetchTaskByCategory();
                 if (handleBackToTask)
                     handleBackToTask();
             } else {
@@ -435,7 +488,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                                 }
                             );
 
-                            setTasksCategory(prevTasks => prevTasks.filter(task => task._id !== id));
+                            setTasksToday(prevTasks => prevTasks.filter(task => task._id !== id));
 
                             Alert.alert("Sucesso", "Tarefa removida com sucesso!");
                         } catch (error) {
@@ -514,16 +567,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
 
     useEffect(() => {
-        const completedTaskIds = tasksCategory
-            .filter(task => task.active === true)
-            .map(task => task._id!);
-        setTasksConcluid(completedTaskIds);
         getUser();
         setLoading(false);
-    }, [tasksCategory, token]);
+    }, [tasksToday, token]);
 
     return (
-        <TaskContext.Provider value={{ tasks, taskName, category, taskConcluid, selectedCategory, tasksCategory, isDropdownOpen, completedTasks, pendingTasks, dateGraph, weekDaysGraph, user, token, loading, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTaskByCategory, createUser, login, removeCategory, deslogar }}>
+        <TaskContext.Provider value={{ tasks, taskName, category, tasksConcluid, selectedCategory, tasksToday, isDropdownOpen, completedTasks, tasksFuture, tasksPendent, pendingTasks, dateGraph, weekDaysGraph, user, token, loading, error, date, priority, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTaskByCategory, createUser, login, removeCategory, deslogar }}>
             {children}
         </TaskContext.Provider>
     )
