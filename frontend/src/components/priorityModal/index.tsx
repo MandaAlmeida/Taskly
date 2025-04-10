@@ -4,6 +4,7 @@ import { styles } from './styles';
 import { useTask } from '@/hooks/useTask';
 import { Flag } from 'lucide-react-native';
 import { theme } from '@/styles/theme';
+import { useState } from 'react';
 
 type Props = {
     isVisible: boolean;
@@ -30,10 +31,17 @@ const priorities: Priority[] = [
 
 
 export function PriorityModal({ isVisible, handleOnVisible }: Props) {
+    const [active, setActive] = useState<{ [key: string]: boolean }>({})
     const { setPriority } = useTask();
 
     function handleSelect(priority: string) {
         setPriority(priority);
+    }
+
+    function toggleSection(key: string) {
+        setActive((prev) => ({
+            [key]: !prev[key],
+        }));
     }
 
     return (
@@ -46,11 +54,11 @@ export function PriorityModal({ isVisible, handleOnVisible }: Props) {
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
                         <TouchableOpacity
-                            style={[styles.categoryBox, { backgroundColor: "#D7D7D7" }]}
-                            onPress={() => handleSelect(item.name)}
+                            style={[styles.categoryBox, { backgroundColor: active[item.id] ? theme.blue1 : "#D7D7D7" }]}
+                            onPress={() => (handleSelect(item.name), toggleSection(item.id))}
                         >
-                            <Flag color={theme.gray4} size={24} />
-                            <Text style={styles.categoryText}>{item.name}</Text>
+                            <Flag color={active[item.id] ? "#D7D7D7" : theme.gray3} size={24} />
+                            <Text style={[styles.categoryText, { color: active[item.id] ? "#D7D7D7" : theme.gray3 }]}>{item.name}</Text>
                         </TouchableOpacity>
                     )}
                     contentContainerStyle={styles.grid}

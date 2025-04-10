@@ -1,3 +1,4 @@
+import { theme } from '@/styles/theme';
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
@@ -25,9 +26,10 @@ export const styles = StyleSheet.create({
         margin: 6,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1,
     },
     categoryText: {
-        color: '#FFF',
+        color: theme.gray3,
         marginTop: 6,
         fontSize: 12,
         fontWeight: 'bold',

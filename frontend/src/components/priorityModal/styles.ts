@@ -28,7 +28,6 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
     },
     categoryText: {
-        color: theme.gray4,
         marginTop: 6,
         fontSize: 12,
         fontWeight: 'bold',
