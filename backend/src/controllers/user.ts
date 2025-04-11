@@ -373,7 +373,7 @@ export async function getCategory(req: Request, res: Response): Promise<void> {
         const categories = await Category.find({ userId });
 
         if (!categories || categories.length === 0) {
-            res.status(404).json({ message: "Nenhuma categoria encontrada para este usuário." });
+            console.log({ message: "Nenhuma categoria encontrada para este usuário." });
             return;
         }
 

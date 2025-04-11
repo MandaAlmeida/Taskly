@@ -3,19 +3,18 @@ import { styles } from "./styles"
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { theme } from '@/styles/theme';
 import { Flag } from 'lucide-react-native';
+import { Status } from '@/@types/enum/status.enum';
 
 type ParticipantProps = {
     name: string;
     date: string;
-    onRemove: () => void;
-    handleTaskConclue?: () => void;
-    handleUpdate: () => void;
-    active: boolean;
+    handleTaskConclue: () => void;
+    status: Status
     priority: string;
     category: string;
 }
 
-export function Task({ name, handleTaskConclue, active, priority, category, date }: ParticipantProps) {
+export function Task({ name, status, priority, category, date, handleTaskConclue }: ParticipantProps) {
 
     return (
         <View style={[styles.container, {
@@ -23,10 +22,12 @@ export function Task({ name, handleTaskConclue, active, priority, category, date
             backgroundColor: "rgba(128, 156, 255, 0.2)"
         }]}>
 
-            {active ? (
+            {status === "COMPLETED" ? (
                 <View style={styles.containerCheck}>
                     <TouchableOpacity
-                        onPress={handleTaskConclue}><AntDesign style={[styles.conclude, {
+                        onPress={handleTaskConclue}
+                    >
+                        <AntDesign style={[styles.conclude, {
                             backgroundColor: "#809CFF"
                         }]} name="check" size={12} color="#F2F2F2" /></TouchableOpacity>
                     <View>
@@ -36,7 +37,9 @@ export function Task({ name, handleTaskConclue, active, priority, category, date
                 </View>
             ) : (
                 <View style={styles.containerCheck}>
-                    <TouchableOpacity onPress={handleTaskConclue}>
+                    <TouchableOpacity
+                        onPress={handleTaskConclue}
+                    >
                         <Text style={[styles.circle, {
                             borderColor: "#809CFF"
                         }]}></Text>

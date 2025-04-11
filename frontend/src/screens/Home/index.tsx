@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { Loading } from "@/components/loading";
 
 export function Home() {
-    const { selectedCategory, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, user, loading, setIsDropdownOpen, setSelectedCategory, fetchTaskByCategory } = useTask();
+    const { selectedCategory, isDropdownOpen, pendingTasks, completedTasks, dateGraph, weekDaysGraph, user, loading, setIsDropdownOpen, setSelectedCategory, fetchTask } = useTask();
     const [selectedWeekIndex, setSelectedWeekIndex] = useState(weekDaysGraph.length - 1);
     const currentWeek = weekDaysGraph[selectedWeekIndex] || "Semana";
 

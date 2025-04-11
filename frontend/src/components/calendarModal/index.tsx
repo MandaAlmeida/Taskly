@@ -21,12 +21,12 @@ type Props = {
 type NavigationProps = StackNavigationProp<StackParamList>;
 
 export function CalendarModal({ isVisible, handleOnVisible }: Props) {
-    const { fetchTaskByCategory, selectedCategory, setDate, date } = useTask();
+    const { fetchTask, selectedCategory, setDate, date } = useTask();
     const navigation = useNavigation<NavigationProps>();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
     function handleDayPress(item: DateData) {
         setDate(item);
-        fetchTaskByCategory(selectedCategory, item);
+        fetchTask(selectedCategory, item);
         console.log(item)
     }
 

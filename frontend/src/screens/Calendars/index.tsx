@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Feather } from "@expo/vector-icons";
 
 import { ptBR } from "@/utils/localeCalendarConfig";
-import { FlatListTaks } from "@/components/flatListTasks";
+import { FlatListTaks } from "@/components/sectionTasks";
 
 import { styles } from "./styles";
 import { theme } from "@/styles/theme";
@@ -24,12 +24,12 @@ export function Calendars() {
         timestamp: 0,
         dateString: "",
     })
-    const { fetchTaskByCategory, selectedCategory } = useTask();
+    const { fetchTask, selectedCategory } = useTask();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
 
     function handleDayPress(item: DateData) {
         setDay(item);
-        fetchTaskByCategory(selectedCategory, item);
+        fetchTask(selectedCategory, item);
     }
 
 

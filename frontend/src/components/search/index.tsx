@@ -8,8 +8,8 @@ import { Search as SearchIcon } from 'lucide-react-native';
 export function Search() {
     const [isFocused, setIsFocused] = useState(false);
     const {
-        selectedCategory,
-        fetchTaskByCategory,
+        taskName,
+        fetchTaskBySearch,
         setTaskName,
     } = useTask();
 
@@ -20,11 +20,13 @@ export function Search() {
             </TouchableOpacity>
             <TextInput
                 style={[styles.input, isFocused && styles.inputFocused]}
-                placeholder="Pesquisar tarefa"
+                placeholder="Pesquisar por tarefa ou subcategoria"
                 placeholderTextColor={theme.gray2}
+                value={taskName}
                 onChangeText={(text) => {
-                    setTaskName(text);
-                    fetchTaskByCategory(selectedCategory, undefined, text);
+                    const onlyLetters = text.replace(/[^a-zA-Z\s]/g, '');
+                    setTaskName(onlyLetters);
+                    fetchTaskBySearch(onlyLetters);
                 }}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
