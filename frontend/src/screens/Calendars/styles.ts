@@ -1,11 +1,10 @@
 import { StyleSheet } from "react-native";
-import { theme } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        gap: 30,
-        padding: 16
+        gap: 10,
+        padding: 24
     },
     calendar: {
         backgroundColor: "Transparent",

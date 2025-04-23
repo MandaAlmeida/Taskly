@@ -5,7 +5,7 @@ export declare global {
             tasks: undefined;
             signIn: undefined;
             signUp: undefined;
-            addCategory: undefined;
+            category: undefined;
             calendar: undefined;
             profile: undefined;
             onboading1: undefined;

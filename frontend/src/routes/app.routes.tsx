@@ -7,19 +7,19 @@ import { theme } from '@/styles/theme';
 import { Home } from "@/screens/Home";
 import { PageTasks } from "@/screens/PageTasks";
 import { AddTask } from "@/screens/AddTask";
-import { AddCategory } from "@/screens/AddCategory";
+import { Category } from "@/screens/Category";
 import { Calendars } from "@/screens/Calendars";
 import { Profile } from "@/screens/Profile";
 import { styles } from "./styles";
 import { NavigatorScreenParams, useNavigation } from "@react-navigation/native";
-import { Anotation } from "@/screens/Anotation";
+import { Anotations } from "@/screens/Anotations";
 
 import { CalendarDays, House, ListChecks, NotepadText, Plus } from "lucide-react-native"
 
 export type StackParamList = {
     tabs: NavigatorScreenParams<TabParamList>;
     addTask: undefined;
-    addCategory: undefined;
+    category: undefined;
     profile: undefined;
 };
 
@@ -99,7 +99,7 @@ function BottomTabs() {
             />
             <Tab.Screen
                 name="anotation"
-                component={Anotation}
+                component={Anotations}
                 options={{
                     tabBarIcon: ({ focused }) => (
                         <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}>
@@ -118,7 +118,7 @@ export function AppRoutes() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="tabs" component={BottomTabs} />
             <Stack.Screen name="addTask" component={AddTask} />
-            <Stack.Screen name="addCategory" component={AddCategory} />
+            <Stack.Screen name="category" component={Category} />
             <Stack.Screen name="profile" component={Profile} />
         </Stack.Navigator>
     )

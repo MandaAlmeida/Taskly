@@ -1,0 +1,95 @@
+import React, { useEffect } from "react";
+import { FlatList, View, Text, ListRenderItemInfo, TouchableOpacity } from "react-native";
+import { styles } from "./styles";
+
+import { useTask } from "@/hooks/useTask";
+
+import { Header } from "@/components/header";
+import { Search } from "@/components/search";
+import { EmptyState } from "@/components/emptyState";
+import { formatLayout, LayoutBlock } from "@/utils/formatLayout";
+import { formatDatePTBR } from "@/utils/formatDate";
+import { Annotation } from "@/components/annotation";
+
+export function Anotations() {
+    const { annotation, fetchAnnotation, fetchAnnotationById } = useTask();
+
+    useEffect(() => {
+        fetchAnnotation();
+    }, []);
+
+    function handleAnnotation(id: string) {
+        fetchAnnotationById(id)
+    }
+
+    const layout = formatLayout(annotation);
+
+    const renderItem = ({ item }: ListRenderItemInfo<LayoutBlock>) => {
+        if (item.type === "row") {
+            return (
+                <View style={styles.row}>
+                    {item.items.map((annotation) => (
+                        <TouchableOpacity
+                            key={annotation._id}
+                            style={[styles.card, styles.cardSmall, {
+                                backgroundColor: "#FF808020",
+                                borderColor: "#FF8080",
+                            }]}
+                            onPress={() => handleAnnotation(annotation._id)}
+                        >
+                            <Text style={styles.title}>{annotation.title}</Text>
+                            <Text style={styles.description}>{annotation.content}</Text>
+                            <View style={styles.footer}>
+                                <Text style={styles.date}>{formatDatePTBR(annotation.createdAt)}</Text>
+                                <Text style={[styles.tag, { backgroundColor: "#FF8080" }]}>
+                                    {annotation.category}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            );
+        } else {
+            const annotation = item.items[0];
+            return (
+                <TouchableOpacity
+                    key={annotation._id}
+                    style={[styles.card, styles.cardLarge, {
+                        backgroundColor: "#FF808020",
+                        borderColor: "#FF8080",
+                    }]}
+                    onPress={() => handleAnnotation(annotation._id)}
+                >
+                    <Text style={styles.title}>{annotation.title}</Text>
+                    <Text style={styles.description}>{annotation.content}</Text>
+                    <View style={styles.footer}>
+                        <Text style={styles.date}>{formatDatePTBR(annotation.createdAt)}</Text>
+                        <Text style={[styles.tag, { backgroundColor: "#FF8080" }]}>
+                            {annotation.category}
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+            );
+        }
+    };
+
+    return (
+        <View style={styles.container}>
+            <Header text="Anotações" />
+            {annotation.length > 0 ? (
+                <>
+                    <Search />
+                    <FlatList
+                        data={layout}
+                        renderItem={renderItem}
+                        keyExtractor={(_, index) => index.toString()}
+                        showsVerticalScrollIndicator={false}
+                    />
+                </>
+            ) : (
+                <EmptyState />
+            )}
+            <Annotation />
+        </View>
+    );
+}

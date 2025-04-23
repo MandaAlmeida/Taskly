@@ -1,0 +1,108 @@
+import { theme } from "@/styles/theme";
+import { useState } from "react";
+import { FlatList, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { styles } from "./styles";
+import { useTask } from "@/hooks/useTask";
+import * as LucideIcons from 'lucide-react-native';
+import chroma from 'chroma-js';
+import { colors } from "@/Array/colors";
+import { iconsList } from "@/Array/icons";
+import { useNavigation } from "@react-navigation/native";
+
+type CategoryProps = {
+    title: string
+}
+
+export function AddCategory({ title }: CategoryProps) {
+    const { isCreateCategoryOpen, setIsCreateCategoryOpen, handleAddCategory } = useTask();
+    const navigate = useNavigation();
+    const [selectedName, setSelectedName] = useState("")
+    const [selectedIcon, setSelectedIcon] = useState<number>(0);
+    const [selectedColor, setSelectedColor] = useState<number>(0);
+
+
+    function CreateCategory() {
+        handleAddCategory(selectedName, selectedIcon, chroma(colors[selectedColor]).hex())
+        navigate.goBack()
+    }
+
+
+    return (
+        <Modal visible={isCreateCategoryOpen} transparent animationType="fade" >
+            <View style={styles.modal}>
+                <View style={styles.container}>
+                    <Text style={styles.title}>{title}</Text>
+                    <View style={styles.containerInput}>
+                        <Text style={styles.text}>Nome:</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Nome da categoria"
+                            placeholderTextColor={theme.white}
+                            value={selectedName}
+                            onChangeText={(text) => { setSelectedName(text) }}
+                        />
+                    </View>
+
+                    <View style={styles.containerInput}>
+                        <Text style={styles.text}>Icone:</Text>
+                        <FlatList
+                            data={iconsList}
+                            horizontal
+                            contentContainerStyle={styles.containerColor}
+                            showsHorizontalScrollIndicator={false}
+                            keyExtractor={(_, icon) => icon.toString()}
+                            renderItem={({ item, index }) => {
+                                const Icon = LucideIcons[item];
+
+                                return (
+                                    <TouchableOpacity
+                                        onPress={() => setSelectedIcon(index)}
+                                        style={[
+                                            styles.circle,
+                                            selectedIcon === index && styles.selectedIcon,
+                                        ]}
+                                    >
+                                        <Icon
+                                            size={20}
+                                            color={selectedIcon === index ? '#fff' : '#333'}
+                                        />
+                                    </TouchableOpacity>
+                                )
+                            }}
+                        />
+                    </View>
+
+                    <View style={styles.containerInput}>
+                        <Text style={styles.text}>Cor:</Text>
+                        <FlatList
+                            data={colors}
+                            horizontal
+                            contentContainerStyle={styles.containerColor}
+                            showsHorizontalScrollIndicator={false}
+                            keyExtractor={(_, color) => color.toString()}
+                            renderItem={({ item, index }) => (
+                                <TouchableOpacity
+                                    onPress={() => setSelectedColor(index)}
+                                    style={[
+                                        styles.circle,
+                                        { backgroundColor: item },
+                                        selectedColor === index && styles.selected,
+                                    ]}
+                                />
+                            )}
+                        />
+                    </View>
+                </View>
+                <View style={styles.containerButton}>
+                    <TouchableOpacity onPress={() => setIsCreateCategoryOpen(false)} style={styles.button}>
+                        <Text style={styles.cancelText}>Cancelar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => CreateCategory()} style={[styles.button, { backgroundColor: theme.blue1 }]}>
+                        <Text style={styles.confirmText}>Criar Categoria</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    )
+}

@@ -13,12 +13,9 @@ export const styles = StyleSheet.create({
         fontSize: 20,
         color: theme.gray4,
     },
-    user: {
+    image: {
         width: 42,
         height: 42,
-        backgroundColor: theme.blue4,
         borderRadius: 21,
-        justifyContent: 'center',
-        alignItems: 'center'
     }
 })

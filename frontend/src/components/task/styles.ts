@@ -19,7 +19,6 @@ export const styles = StyleSheet.create({
         gap: 5,
         height: 30,
         paddingHorizontal: 8,
-        backgroundColor: "#809CFF",
         borderRadius: 4
     },
     containerPriority: {
@@ -29,7 +28,6 @@ export const styles = StyleSheet.create({
         height: 30,
         paddingHorizontal: 8,
         borderWidth: 1,
-        borderColor: "#809CFF",
         borderRadius: 4
     },
     category: {
@@ -59,7 +57,8 @@ export const styles = StyleSheet.create({
     conclude: {
         width: 17,
         height: 17,
-        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
         borderRadius: 100
     },
     name: {

@@ -1,14 +1,14 @@
 import { theme } from '@/styles/theme';
 import { Calendar as CalentarDate, CalendarUtils, DateData, LocaleConfig } from 'react-native-calendars';
 import { styles } from './styles';
-import { useState } from 'react';
 import { ptBR } from '@/utils/localeCalendarConfig';
 import { useTask } from '@/hooks/useTask';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modal';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { StackParamList } from '@/routes/app.routes';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 LocaleConfig.locales["pt-br"] = ptBR
 LocaleConfig.defaultLocale = "pt-br"
@@ -21,13 +21,12 @@ type Props = {
 type NavigationProps = StackNavigationProp<StackParamList>;
 
 export function CalendarModal({ isVisible, handleOnVisible }: Props) {
-    const { fetchTask, selectedCategory, setDate, date } = useTask();
+    const { fetchTask, setDate, date } = useTask();
     const navigation = useNavigation<NavigationProps>();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
     function handleDayPress(item: DateData) {
         setDate(item);
-        fetchTask(selectedCategory, item);
-        console.log(item)
+        fetchTask();
     }
 
     function handleGoBack() {
@@ -40,8 +39,9 @@ export function CalendarModal({ isVisible, handleOnVisible }: Props) {
                 <CalentarDate
                     current={INITIAL_DATE}
                     style={styles.calendar}
-                    // renderArrow={(direction: "left" | "right") => (
-                    //     <Chevron-${direction} size={24} color={theme.blue1} name={`chevron-${direction}`} />)}
+                    renderArrow={(direction: "left" | "right") => (
+                        direction === "left" ?
+                            <ChevronLeft size={24} color={theme.blue1} /> : <ChevronRight size={24} color={theme.blue1} />)}
                     theme={{
                         textMonthFontSize: 18,
                         textSectionTitleColor: theme.blue1,

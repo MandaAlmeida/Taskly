@@ -3,11 +3,11 @@ import { styles } from "./styles";
 
 type Props = {
     text: string,
-    isFocus: boolean,
-    Focused: () => void,
+    isFocus?: boolean,
+    Focused?: () => void,
 }
 
-export function Category({ text, isFocus, Focused }: Props) {
+export function Category({ text, isFocus = false, Focused }: Props) {
     return (
         <TouchableOpacity style={[styles.button, {
             backgroundColor: isFocus ? "#4EA8DE" : "transparent"

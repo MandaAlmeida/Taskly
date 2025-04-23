@@ -1,5 +1,13 @@
-export type CategoryProps = {
-    _id?: string;
+export type CreateCategoryProps = {
     name: string;
-    userId?: string;
+    icon: number;
+    color: string;
+}
+
+export type CategoryProps = {
+    _id: string;
+    category: string;
+    icon: number;
+    color: string;
+    userId: string;
 }

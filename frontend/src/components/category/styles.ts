@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
         borderRadius: 6,
     },
     text: {
-        color: "#fdfcfe",
+        color: "#000",
         fontSize: 16,
     },
 })

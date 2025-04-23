@@ -1,0 +1,21 @@
+# Use root/example as user/password credentials
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: almeidafonseca15
+      MONGO_INITDB_ROOT_PASSWORD: Ph4M4MO1N64GNgwF
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb+srv://almeidafonseca15:Ph4M4MO1N64GNgwF@cluster.x73zs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster
+      ME_CONFIG_BASICAUTH: false

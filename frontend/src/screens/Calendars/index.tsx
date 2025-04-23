@@ -1,16 +1,19 @@
-import { View } from "react-native";
+import { FlatList, View, Image, Text } from "react-native";
 import { Calendar, CalendarUtils, DateData, LocaleConfig } from 'react-native-calendars';
 import { useState } from "react";
 
 import { Feather } from "@expo/vector-icons";
 
 import { ptBR } from "@/utils/localeCalendarConfig";
-import { FlatListTaks } from "@/components/sectionTasks";
+import ImageHome from "@/assets/Checklist-rafiki.png";
+
 
 import { styles } from "./styles";
 import { theme } from "@/styles/theme";
 import { Header } from "@/components/header";
 import { useTask } from "@/hooks/useTask";
+import { Task } from "@/components/task";
+import { EmptyState } from "@/components/emptyState";
 
 
 LocaleConfig.locales["pt-br"] = ptBR
@@ -24,12 +27,12 @@ export function Calendars() {
         timestamp: 0,
         dateString: "",
     })
-    const { fetchTask, selectedCategory } = useTask();
+    const { fetchTaskByDate, tasksData, handleTaskConclue, formatDate } = useTask();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
 
     function handleDayPress(item: DateData) {
         setDay(item);
-        fetchTask(selectedCategory, item);
+        fetchTaskByDate(item.dateString);
     }
 
 
@@ -58,6 +61,24 @@ export function Calendars() {
                     [day.dateString]: { selected: true }
                 }}
             />
+
+            {tasksData.length > 0 ? <FlatList
+                data={tasksData}
+                keyExtractor={(item) => item._id}
+                ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+                renderItem={({ item }) => (
+                    <Task
+                        name={item.name}
+                        handleTaskConclue={() => handleTaskConclue(item)}
+                        status={item.status}
+                        priority={item.priority}
+                        category={item.category}
+                        date={formatDate(item.date)}
+                    />
+                )} /> : (
+                <EmptyState />
+            )}
+
         </View>
     )
 }

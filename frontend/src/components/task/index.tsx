@@ -1,35 +1,36 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 import { styles } from "./styles"
-import AntDesign from '@expo/vector-icons/AntDesign';
 import { theme } from '@/styles/theme';
-import { Flag } from 'lucide-react-native';
-import { Status } from '@/@types/enum/status.enum';
+import { Check, Flag } from 'lucide-react-native';
 
 type ParticipantProps = {
     name: string;
     date: string;
     handleTaskConclue: () => void;
-    status: Status
+    handleOpenTask: () => void;
+    status: string;
     priority: string;
     category: string;
+    color: string
 }
 
-export function Task({ name, status, priority, category, date, handleTaskConclue }: ParticipantProps) {
+export function Task({ name, status, priority, category, date, color, handleTaskConclue, handleOpenTask }: ParticipantProps) {
 
     return (
-        <View style={[styles.container, {
-            borderColor: "#809CFF",
-            backgroundColor: "rgba(128, 156, 255, 0.2)"
-        }]}>
+        <TouchableOpacity style={[styles.container, {
+            borderColor: color,
+            backgroundColor: `${color}20`
+        }]} onPress={handleOpenTask}>
 
             {status === "COMPLETED" ? (
                 <View style={styles.containerCheck}>
                     <TouchableOpacity
+                        style={[styles.conclude, {
+                            backgroundColor: color
+                        }]}
                         onPress={handleTaskConclue}
                     >
-                        <AntDesign style={[styles.conclude, {
-                            backgroundColor: "#809CFF"
-                        }]} name="check" size={12} color="#F2F2F2" /></TouchableOpacity>
+                        <Check size={12} color="#F2F2F2" /></TouchableOpacity>
                     <View>
                         <Text style={styles.nameCheck}>{name}</Text>
                         <Text style={styles.textCheck}>{date}</Text>
@@ -38,12 +39,11 @@ export function Task({ name, status, priority, category, date, handleTaskConclue
             ) : (
                 <View style={styles.containerCheck}>
                     <TouchableOpacity
+                        style={[styles.circle, {
+                            borderColor: color
+                        }]}
                         onPress={handleTaskConclue}
-                    >
-                        <Text style={[styles.circle, {
-                            borderColor: "#809CFF"
-                        }]}></Text>
-                    </TouchableOpacity>
+                    />
                     <View>
                         <Text style={styles.name}>{name}</Text>
                         <Text style={styles.text}>{date}</Text>
@@ -54,15 +54,15 @@ export function Task({ name, status, priority, category, date, handleTaskConclue
 
 
             <View style={styles.containerItems}>
-                <View style={styles.containerCategory}>
+                <View style={[styles.containerCategory, { backgroundColor: color }]}>
                     <Text style={styles.category}>{category}</Text>
                 </View>
-                <View style={styles.containerPriority}>
+                <View style={[styles.containerPriority, { borderColor: color }]}>
                     <Flag size={14} color={theme.gray3} />
                     <Text style={[styles.category, { color: theme.gray3 }]}>{priority}</Text>
                 </View>
             </View>
 
-        </View >
+        </TouchableOpacity >
     )
 }

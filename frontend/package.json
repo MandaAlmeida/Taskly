@@ -17,6 +17,7 @@
     "@react-navigation/native-stack": "^7.2.0",
     "@react-navigation/stack": "^7.1.1",
     "axios": "^1.8.1",
+    "chroma-js": "^3.1.2",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
     "expo": "~52.0.28",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/chroma-js": "^3.1.1",
     "@types/d3": "^7.4.3",
     "@types/jwt-decode": "^2.2.1",
     "@types/react": "~18.3.12",

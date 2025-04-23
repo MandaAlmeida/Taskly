@@ -9,7 +9,7 @@ import { theme } from "@/styles/theme";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { StackParamList } from "@/routes/app.routes";
 import { CalendarModal } from "@/components/calendarModal";
-import { CategoryModal } from "@/components/categoryModal";
+import { SubCategoryModal } from "@/components/subCategoryModal";
 import { PriorityModal } from "@/components/priorityModal";
 
 type NavigationProps = StackNavigationProp<StackParamList>;
@@ -21,9 +21,7 @@ export function AddTask() {
         calendar: false
     });
 
-    const { setTasks, handleAddTask, tasks, selectedCategory, tasksCategory, priority, date, setDate, setSelectedCategory, setPriority } = useTask();
-
-
+    const { handleAddTask, selectedSubCategory, selectedCategory, priority, date, setDate, setPriority, setSelectedSubCategory } = useTask();
 
     function toggleSection(key: string) {
         setOpenSections((prev) => ({
@@ -37,18 +35,17 @@ export function AddTask() {
     };
 
     function handleSaveTask() {
-        if (date.dateString === "", selectedCategory === "Todas", priority === "") {
+        if (date.dateString === "", selectedSubCategory === undefined, priority === "") {
             return;
         }
         const task = {
             name: taskName,
             priority: priority,
-            category: selectedCategory,
-            active: false,
+            category: selectedCategory?._id,
+            subCategory: selectedSubCategory?._id,
             date: date.dateString,
         };
 
-        setTasks((prevTasks) => [...prevTasks, task]);
         handleAddTask(task, handleBackToTask);
         setDate({
             year: 0,
@@ -57,11 +54,9 @@ export function AddTask() {
             timestamp: 0,
             dateString: "",
         })
-        setSelectedCategory("")
+        setSelectedSubCategory(undefined)
         setPriority("")
         setTaskName("")
-        console.log(tasks)
-
     }
 
 
@@ -99,7 +94,7 @@ export function AddTask() {
 
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("category")}>
                     <Feather name="tag" size={24} color={theme.gray4} />
-                    {selectedCategory !== "Todas" ? <Text>{selectedCategory}</Text> : ""}
+                    {selectedSubCategory !== undefined ? <Text>{selectedSubCategory?.subCategory}</Text> : ""}
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("priority")}>
                     <Feather name="flag" size={24} color={theme.gray4} />
@@ -110,7 +105,7 @@ export function AddTask() {
                 <CalendarModal isVisible={openSections["calendar"]} handleOnVisible={() => toggleSection("calendar")} />
                 : ""}
             {openSections["category"] ?
-                <CategoryModal isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />
+                <SubCategoryModal isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />
                 : ""}
             {openSections["priority"] ?
                 <PriorityModal isVisible={openSections["priority"]} handleOnVisible={() => toggleSection("priority")} />

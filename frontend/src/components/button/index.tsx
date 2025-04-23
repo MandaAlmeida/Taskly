@@ -5,12 +5,14 @@ import { styles } from './styles';
 type Props = TouchableOpacityProps & {
     text: string;
     style?: StyleProp<ViewStyle>;
+    styleText?: StyleProp<ViewStyle>;
+
 }
 
-export function Button({ text, style, ...rest }: Props) {
+export function Button({ text, style, styleText, ...rest }: Props) {
     return (
         <TouchableOpacity style={[styles.button, style]} {...rest}>
-            <Text style={styles.text}>{text}</Text>
+            <Text style={[styles.text, styleText]}>{text}</Text>
         </TouchableOpacity>
     )
 }
