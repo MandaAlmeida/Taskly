@@ -11,11 +11,12 @@ import { Search } from "@/components/search";
 import { SectionTaks } from "@/components/sectionTasks";
 import { EmptyState } from "@/components/emptyState";
 import { ModalTask } from "@/components/modalTask";
+import { formatDate } from "@/utils/formatDate";
 
 
 
 export function PageTasks() {
-    const { tasks, fetchTask, subCategory, category, taskById, formatDate, tasksSearch, openSections } = useTask();
+    const { tasks, fetchTask, subCategory, category, taskById, tasksSearch, openSections } = useTask();
 
     useEffect(() => {
         fetchTask();
@@ -59,17 +60,6 @@ export function PageTasks() {
                 <>
                     <Search />
                     <SectionTaks sections={sections} />
-                    {taskById && <ModalTask
-                        _id={taskById?._id}
-                        name={taskById?.name}
-                        category={category.find((category) => category._id === taskById.category)?.category || "Sem categoria"}
-                        subCategory={subCategory.find((subCategory) => subCategory._id === taskById.subCategory)?.subCategory || "Sem sub categoria"}
-                        priority={taskById?.priority}
-                        date={formatDate(taskById?.date)}
-                        status={taskById?.status}
-                        userId={taskById?.userId}
-                    />}
-
                 </>
             ) : (
                 <EmptyState />

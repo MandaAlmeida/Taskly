@@ -4,7 +4,7 @@ import { theme } from "@/styles/theme";
 export const styles = StyleSheet.create({
     container: {
         width: "100%",
-        borderRadius: 8,
+        borderRadius: 10,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
         gap: 5,
         height: 30,
         paddingHorizontal: 8,
-        borderRadius: 4
+        borderRadius: 10
     },
     containerPriority: {
         flexDirection: "row",
@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
         height: 30,
         paddingHorizontal: 8,
         borderWidth: 1,
-        borderRadius: 4
+        borderRadius: 10
     },
     category: {
         fontSize: 12,
@@ -49,17 +49,17 @@ export const styles = StyleSheet.create({
         gap: 13,
     },
     circle: {
-        width: 17,
-        height: 17,
+        width: 24,
+        height: 24,
         borderWidth: 2,
-        borderRadius: 100
+        borderRadius: 10
     },
     conclude: {
-        width: 17,
-        height: 17,
+        width: 24,
+        height: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 100
+        borderRadius: 10
     },
     name: {
         fontSize: 14,

@@ -9,30 +9,31 @@ export const styles = StyleSheet.create({
         backgroundColor: theme.white
     },
     header: {
+        gap: 20,
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 24
     },
     textHeader: {
+        flex: 1,
         fontSize: 22,
         color: theme.gray4,
         fontWeight: "700"
     },
     circle: {
-        width: 17,
-        height: 17,
+        width: 24,
+        height: 24,
         borderWidth: 2,
-        borderRadius: 100
+        borderRadius: 10
     },
     conclude: {
-        width: 17,
-        height: 17,
+        width: 24,
+        height: 24,
+        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 100
     },
     containerContent: {
+        flex: 1,
         gap: 20
     },
     containerItem: {
@@ -55,23 +56,45 @@ export const styles = StyleSheet.create({
         height: 37
     },
     subTasks: {
-        flexDirection: "row",
-        gap: 10,
-        height: 232
-    },
-    delete: {
-        color: theme.red
-    },
-    editTask: {
-        backgroundColor: theme.blue1,
-        height: 48,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 10
+        flex: 1,
+        gap: 10
     },
     text: {
         fontSize: 16,
         color: theme.white
+    },
+    containerCheck: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 13,
+        paddingVertical: 15,
+        borderBottomWidth: 1
+    },
+    name: {
+        fontSize: 14,
+        color: theme.gray3,
+        width: 280
+    },
+    nameCheck: {
+        color: theme.gray2,
+        textDecorationLine: "line-through",
+        width: 280
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: "space-between",
+        alignItems: "center"
+    },
+    completTask: {
+        paddingHorizontal: 16,
+        height: 48,
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 10,
+    },
+    delete: {
+        color: theme.red
     }
 
 })

@@ -1,11 +1,9 @@
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { CreateTaskProps, TaskProps } from "@/@types/task";
+import { CreateSubTaskProps, CreateTaskProps, TaskProps } from "@/@types/task";
 import { Alert } from "react-native";
 import { AppError } from "@/utils/AppError";
-import { FormatDate } from "@/utils/formatDate";
 import { DateData } from "react-native-calendars";
 import axios from "axios";
-
 import { addToken } from "@/storage/token/addToken";
 import { getToken } from "@/storage/token/getToken";
 import { CategoryProps } from "@/@types/category";
@@ -71,20 +69,23 @@ interface TaskContextProps {
     handleAddCategory: (name: string, icon: number, color: string) => void;
     removeCategory: (category: string, id?: string) => void;
     handleAddTask: (data: CreateTaskProps, handleBackToTask: () => void) => void;
-    handleUpdateTask: (data: TaskProps, handleBackToTask?: () => void) => void;
+    handleUpdateTask: ({
+        _id,
+        handleBackToTask,
+        ...rest
+    }: UpdateTaskParams) => void;
     fetchTask: () => void;
     fetchTaskBySearch: (item: string) => void;
     fetchTaskByDate: (date: string) => void;
     createUser: (name: string, email: string, password: string, confirmPassword: string, handleBackToLogin: () => void) => void;
     login: (email: string, password: string) => void;
     deslogar: () => void;
-    formatDate: (dateString: string) => string;
-    handleTaskConclue: (tasks: TaskProps) => void;
     fetchAnnotation: () => void
     fetchAttachment: (fileName: attachmentProps[]) => void;
     fetchAnnotationById: (id: string) => void;
     featchSubCategory: () => void;
     fetchTaskById: (taskId: string) => void;
+    handleSubTaskRemove: (taskId: string, subTask: string, subTaskId: string) => void
 }
 
 export const TaskContext = createContext({} as TaskContextProps);
@@ -92,6 +93,18 @@ export const TaskContext = createContext({} as TaskContextProps);
 interface TaskContextProviderProps {
     children: ReactNode;
 }
+
+type UpdateTaskParams = Partial<{
+    name: string;
+    category: string;
+    priority: string;
+    date: string;
+    status: string;
+    subCategory: string;
+    subTask: CreateSubTaskProps[]
+    subTaskId: string;
+}> & { _id: string; handleBackToTask?: () => void, task: TaskProps };
+
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [tasks, setTasks] = useState<TaskProps[]>([]);
@@ -206,7 +219,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 birth: response.data.birth
             };
 
-            console.log(user)
             setUser(user);
             featchCategory();
         } catch (error: any) {
@@ -217,7 +229,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function fetchImageUser(fileName: string) {
         try {
             const response = await api.get(`/annotation/fetchAttachment?attachment=${fileName}`);
-            console.log(response.data)
             return response.data
         } catch (error) {
             console.error("Erro ao buscar os arquivos:", error);
@@ -449,7 +460,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
             fetchTask();
             if (response.status === 201) {
-                console.log("Task criado com sucesso!");
+                console.log("Tarefa criada com sucesso!");
                 handleBackToTask();
             } else {
                 console.error("Erro ao criar task:", response.data.message);
@@ -475,15 +486,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 }
 
 
-                const tasks = response.data.map((task: any) => ({
-                    _id: task._id,
-                    name: task.name,
-                    category: task.category,
-                    subCategory: task.subCategory,
-                    priority: task.priority,
-                    status: task.status,
-                    date: task.date,
-                }));
+                const tasks = response.data
 
                 setTasks(tasks);
             }
@@ -561,25 +564,74 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function handleUpdateTask(data: TaskProps, handleBackToTask?: () => void) {
+
+    async function handleUpdateTask({
+        _id,
+        handleBackToTask,
+        task,
+        ...rest
+    }: UpdateTaskParams) {
         try {
-            await api.put(`/task/update/${data._id}`,
-                {
-                    ...data,
-                }
-            );
+            const updatePayload: any = {};
 
-            await fetchTask();
-            if (handleBackToTask)
-                handleBackToTask();
 
-        } catch (error) {
-            if (error instanceof AppError) {
-                Alert.alert('Tarefa', error.message);
-            } else {
-                console.log(error);
-                Alert.alert('Tarefa', 'Não foi possível editar a tarefa');
+            if (rest.name) { updatePayload.name = rest.name } else { updatePayload.name = task.name };
+            if (rest.category) { updatePayload.category = rest.category } else { updatePayload.category = task.category };
+            if (rest.priority) updatePayload.priority = rest.priority;
+            if (rest.date) { updatePayload.date = new Date(rest.date).toISOString() } else { updatePayload.date = new Date(task.date).toISOString() };
+            if (rest.status) updatePayload.status = rest.status;
+            if (rest.subCategory) updatePayload.subCategory = rest.subCategory;
+            if (rest.subTask) {
+                updatePayload.subTask = rest.subTask.map(({ _id, task, status }) => ({
+                    ...(!!_id && { _id }),
+                    task,
+                    status,
+                }));
             }
+
+            console.log(updatePayload)
+
+            await api.put(`/task/update/${_id}`, updatePayload)
+            await fetchTask();
+            await fetchTaskById(_id);
+            if (handleBackToTask) handleBackToTask();
+        } catch (error) {
+            console.log("Erro desconhecido:", error);
+
+            if (axios.isAxiosError(error)) {
+                Alert.alert("Erro:", `${error.response?.data.message}`);
+            } else {
+                console.log("Erro não Axios:", error);
+            }
+        }
+    }
+
+    async function handleSubTaskRemove(taskId: string, subTask: string, subTaskId: string) {
+        try {
+            Alert.alert("Remover", `Remover a tarefa ${subTask}?`, [
+                {
+                    text: 'Não',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Sim',
+                    onPress: async () => {
+                        try {
+                            await api.delete(`/task/deleteSubTask/${taskId}?sub=${subTaskId}`);
+
+                            fetchTaskById(taskId)
+
+                            Alert.alert("Sucesso", "Tarefa removida com sucesso!");
+                        } catch (error) {
+                            console.error(error);
+                            Alert.alert("Erro", "Não foi possível remover a tarefa.");
+                        }
+                    }
+                },
+            ]);
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Erro", "Ocorreu um problema ao tentar remover a tarefa.");
         }
     }
 
@@ -610,17 +662,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             console.error(error);
             Alert.alert("Erro", "Ocorreu um problema ao tentar remover a tarefa.");
         }
-    }
-
-    function formatDate(dateString: string): string {
-        const [year, month, day] = dateString.split("T")[0].split("-");
-        return `${day}/${month}/${year}`;
-    }
-
-    function handleTaskConclue(tasks: TaskProps) {
-        const task = { ...tasks };
-
-        handleUpdateTask(task)
     }
 
     //Annotation
@@ -827,7 +868,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     return (
         <TaskContext.Provider value={{
-            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, formatDate, handleTaskConclue, fetchAttachment, fetchAnnotationById, featchSubCategory
+            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove
 
         }}>
             {children}

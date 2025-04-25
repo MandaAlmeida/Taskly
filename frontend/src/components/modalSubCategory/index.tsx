@@ -1,0 +1,73 @@
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import Modal from 'react-native-modal';
+import { styles } from './styles';
+import { useTask } from '@/hooks/useTask';
+import { theme } from '@/styles/theme';
+import { useState } from 'react';
+import * as LucideIcons from 'lucide-react-native';
+import { iconsList } from "@/Array/icons";
+import { SubCategoryProps } from '@/@types/subCategory';
+import { TaskProps } from '@/@types/task';
+
+type Props = {
+    isVisible: boolean;
+    handleOnVisible: () => void;
+    task?: TaskProps
+};
+
+
+export function ModalSubCategory({ isVisible, handleOnVisible, task }: Props) {
+    const { setSelectedSubCategory, selectedSubCategory, subCategory, handleUpdateTask } = useTask();
+    const [active, setActive] = useState<{ [key: string]: boolean }>({});
+
+    function UpdateSetSubCategory(key: string, item: SubCategoryProps) {
+        setActive((prev) => ({
+            [key]: !prev[key],
+        }));
+        setSelectedSubCategory(item);
+    }
+
+    function UpdateSubCategory() {
+        if (task) {
+            handleUpdateTask({ _id: task._id, subCategory: selectedSubCategory?._id, task: task })
+            handleOnVisible()
+        }
+    }
+
+    return (
+        <Modal isVisible={isVisible}>
+            <View style={styles.modalContainer}>
+                <Text style={styles.title}>Sub-categorias</Text>
+                <FlatList
+                    data={subCategory}
+                    numColumns={3}
+                    keyExtractor={(item) => item._id}
+                    renderItem={({ item }) => {
+                        const Icone = iconsList[item.icon]
+                        const Icon = LucideIcons[Icone];
+
+                        return (
+                            <TouchableOpacity
+                                style={[styles.categoryBox, { backgroundColor: active[item._id] ? item.color : 'transparent', borderColor: active[item._id] ? 'transparent' : item.color }]}
+                                onPress={() => (UpdateSetSubCategory(item._id, item))}
+                            >
+                                <Icon color={active[item._id] ? theme.white : item.color} size={24} />
+                                <Text style={[styles.categoryText, { color: active[item._id] ? theme.white : item.color }]}>{item.subCategory}</Text>
+                            </TouchableOpacity>
+                        )
+                    }}
+                    contentContainerStyle={styles.grid}
+                />
+                <View style={styles.buttonsContainer}>
+                    <TouchableOpacity onPress={() => handleOnVisible()}>
+                        <Text style={styles.cancelText}>Cancelar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => UpdateSubCategory()} style={styles.confirmButton}>
+                        <Text style={styles.confirmText}>Salvar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    );
+}

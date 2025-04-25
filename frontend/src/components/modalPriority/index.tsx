@@ -5,11 +5,13 @@ import { useTask } from '@/hooks/useTask';
 import { Flag } from 'lucide-react-native';
 import { theme } from '@/styles/theme';
 import { useState } from 'react';
+import { TaskProps } from '@/@types/task';
 
 type Props = {
-    isVisible: boolean;
-    handleOnVisible: () => void;
-};
+    isVisible: boolean,
+    handleOnVisible: () => void,
+    task?: TaskProps
+}
 
 type Priority = {
     id: string;
@@ -30,18 +32,24 @@ const priorities: Priority[] = [
 ];
 
 
-export function PriorityModal({ isVisible, handleOnVisible }: Props) {
+export function ModalPriority({ isVisible, handleOnVisible, task }: Props) {
     const [active, setActive] = useState<{ [key: string]: boolean }>({})
-    const { setPriority } = useTask();
+    const { setPriority, handleUpdateTask, priority } = useTask();
 
-    function handleSelect(priority: string) {
-        setPriority(priority);
-    }
-
-    function toggleSection(key: string) {
+    function UpdateSetPriority(key: string, priority: string) {
         setActive((prev) => ({
             [key]: !prev[key],
         }));
+        setPriority(priority);
+
+    }
+
+
+    function UpdatePriority() {
+        if (task) {
+            handleUpdateTask({ _id: task._id, priority: priority, task: task })
+        }
+        handleOnVisible();
     }
 
     return (
@@ -55,7 +63,7 @@ export function PriorityModal({ isVisible, handleOnVisible }: Props) {
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             style={[styles.categoryBox, { backgroundColor: active[item.id] ? theme.blue1 : "#D7D7D7" }]}
-                            onPress={() => (handleSelect(item.name), toggleSection(item.id))}
+                            onPress={() => (UpdateSetPriority(item.id, item.name))}
                         >
                             <Flag color={active[item.id] ? "#D7D7D7" : theme.gray3} size={24} />
                             <Text style={[styles.categoryText, { color: active[item.id] ? "#D7D7D7" : theme.gray3 }]}>{item.name}</Text>
@@ -68,7 +76,7 @@ export function PriorityModal({ isVisible, handleOnVisible }: Props) {
                         <Text style={styles.cancelText}>Cancelar</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => handleOnVisible()} style={styles.confirmButton}>
+                    <TouchableOpacity onPress={() => UpdatePriority()} style={styles.confirmButton}>
                         <Text style={styles.confirmText}>Salvar</Text>
                     </TouchableOpacity>
                 </View>

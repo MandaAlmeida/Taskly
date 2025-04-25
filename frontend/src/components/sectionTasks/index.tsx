@@ -4,6 +4,7 @@ import { useTask } from "@/hooks/useTask";
 import { TextFilter } from "../textFilter";
 import { TaskProps } from "@/@types/task";
 import { theme } from "@/styles/theme";
+import { formatDate } from "@/utils/formatDate";
 
 type Section = {
     title: string;
@@ -17,7 +18,7 @@ type SectionProps = {
 };
 
 export function SectionTaks({ sections }: SectionProps) {
-    const { handleTaskConclue, formatDate, subCategory, fetchTaskById, openSections, setOpenSections } = useTask();
+    const { handleUpdateTask, subCategory, fetchTaskById, openSections, setOpenSections } = useTask();
 
 
     function toggleSection(key: string) {
@@ -27,10 +28,6 @@ export function SectionTaks({ sections }: SectionProps) {
         }));
     }
 
-    function handleOpenTask(taskId: string) {
-        fetchTaskById(taskId)
-    }
-
     return (
         <SectionList
             sections={sections}
@@ -38,9 +35,10 @@ export function SectionTaks({ sections }: SectionProps) {
             ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
             renderItem={({ item }) => (
                 <Task
+                    _id={item._id}
                     name={item.name}
-                    handleTaskConclue={() => handleTaskConclue(item)}
-                    handleOpenTask={() => handleOpenTask(item._id)}
+                    handleUpdateTask={() => handleUpdateTask({ _id: item._id, status: item.status })}
+                    handleOpenTask={() => fetchTaskById(item._id)}
                     status={item.status}
                     priority={item.priority}
                     category={
@@ -48,6 +46,9 @@ export function SectionTaks({ sections }: SectionProps) {
                     }
                     date={formatDate(item.date)}
                     color={subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
+                    subCategory={item.subCategory}
+                    subTask={item.subTask}
+                    userId={item.userId}
                 />
             )
             }

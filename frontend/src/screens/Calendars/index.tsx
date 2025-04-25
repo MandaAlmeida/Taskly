@@ -14,6 +14,7 @@ import { Header } from "@/components/header";
 import { useTask } from "@/hooks/useTask";
 import { Task } from "@/components/task";
 import { EmptyState } from "@/components/emptyState";
+import { formatDate } from "@/utils/formatDate";
 
 
 LocaleConfig.locales["pt-br"] = ptBR
@@ -27,7 +28,7 @@ export function Calendars() {
         timestamp: 0,
         dateString: "",
     })
-    const { fetchTaskByDate, tasksData, handleTaskConclue, formatDate } = useTask();
+    const { fetchTaskByDate, tasksData, handleUpdateTask, subCategory, fetchTaskById } = useTask();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
 
     function handleDayPress(item: DateData) {
@@ -69,11 +70,13 @@ export function Calendars() {
                 renderItem={({ item }) => (
                     <Task
                         name={item.name}
-                        handleTaskConclue={() => handleTaskConclue(item)}
+                        handleUpdateTask={() => handleUpdateTask(item)}
                         status={item.status}
                         priority={item.priority}
                         category={item.category}
                         date={formatDate(item.date)}
+                        handleOpenTask={() => fetchTaskById(item._id)}
+                        color={subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
                     />
                 )} /> : (
                 <EmptyState />

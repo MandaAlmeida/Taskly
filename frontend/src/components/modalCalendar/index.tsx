@@ -5,33 +5,34 @@ import { ptBR } from '@/utils/localeCalendarConfig';
 import { useTask } from '@/hooks/useTask';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modal';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { StackParamList } from '@/routes/app.routes';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { TaskProps } from '@/@types/task';
 
 LocaleConfig.locales["pt-br"] = ptBR
 LocaleConfig.defaultLocale = "pt-br"
 
 type Props = {
     isVisible: boolean,
-    handleOnVisible: () => void
+    handleOnVisible: () => void,
+    task?: TaskProps
 }
 
-type NavigationProps = StackNavigationProp<StackParamList>;
 
-export function CalendarModal({ isVisible, handleOnVisible }: Props) {
-    const { fetchTask, setDate, date } = useTask();
-    const navigation = useNavigation<NavigationProps>();
+export function ModalCalendar({ isVisible, handleOnVisible, task }: Props) {
+    const { fetchTask, setDate, date, handleUpdateTask } = useTask();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
+
     function handleDayPress(item: DateData) {
         setDate(item);
         fetchTask();
     }
 
-    function handleGoBack() {
-        navigation.navigate('tabs', { screen: 'addTask' });
-    };
+    function UpdateDay() {
+        if (task) {
+            handleUpdateTask({ _id: task._id, date: date.dateString, task: task })
+        }
+        handleOnVisible();
+    }
 
     return (
         <Modal isVisible={isVisible}>
@@ -65,7 +66,7 @@ export function CalendarModal({ isVisible, handleOnVisible }: Props) {
                         <Text style={styles.cancelText}>Cancelar</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => handleOnVisible()} style={styles.confirmButton}>
+                    <TouchableOpacity onPress={() => UpdateDay()} style={styles.confirmButton}>
                         <Text style={styles.confirmText}>Salvar</Text>
                     </TouchableOpacity>
                 </View>

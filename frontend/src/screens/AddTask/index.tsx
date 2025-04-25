@@ -8,18 +8,16 @@ import { Button } from "@/components/button";
 import { theme } from "@/styles/theme";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { StackParamList } from "@/routes/app.routes";
-import { CalendarModal } from "@/components/calendarModal";
-import { SubCategoryModal } from "@/components/subCategoryModal";
-import { PriorityModal } from "@/components/priorityModal";
+import { ModalCalendar } from "@/components/modalCalendar";
+import { ModalSubCategory } from "@/components/modalSubCategory";
+import { ModalPriority } from "@/components/modalPriority";
 
 type NavigationProps = StackNavigationProp<StackParamList>;
 
 export function AddTask() {
     const [taskName, setTaskName] = useState("");
     const navigation = useNavigation<NavigationProps>();
-    const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
-        calendar: false
-    });
+    const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
 
     const { handleAddTask, selectedSubCategory, selectedCategory, priority, date, setDate, setPriority, setSelectedSubCategory } = useTask();
 
@@ -102,13 +100,13 @@ export function AddTask() {
                 </TouchableOpacity>
             </View>
             {openSections["calendar"] ?
-                <CalendarModal isVisible={openSections["calendar"]} handleOnVisible={() => toggleSection("calendar")} />
+                <ModalCalendar isVisible={openSections["calendar"]} handleOnVisible={() => toggleSection("calendar")} />
                 : ""}
             {openSections["category"] ?
-                <SubCategoryModal isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />
+                <ModalSubCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />
                 : ""}
             {openSections["priority"] ?
-                <PriorityModal isVisible={openSections["priority"]} handleOnVisible={() => toggleSection("priority")} />
+                <ModalPriority isVisible={openSections["priority"]} handleOnVisible={() => toggleSection("priority")} />
                 : ""}
             <Button
                 text={"Adicionar tarefa"}

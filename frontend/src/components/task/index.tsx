@@ -2,19 +2,15 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { styles } from "./styles"
 import { theme } from '@/styles/theme';
 import { Check, Flag } from 'lucide-react-native';
+import { TaskProps } from '@/@types/task';
 
-type ParticipantProps = {
-    name: string;
-    date: string;
-    handleTaskConclue: () => void;
+type taskType = TaskProps & {
+    handleUpdateTask: () => void;
     handleOpenTask: () => void;
-    status: string;
-    priority: string;
-    category: string;
     color: string
 }
 
-export function Task({ name, status, priority, category, date, color, handleTaskConclue, handleOpenTask }: ParticipantProps) {
+export function Task({ name, status, priority, category, date, color, handleUpdateTask, handleOpenTask }: taskType) {
 
     return (
         <TouchableOpacity style={[styles.container, {
@@ -24,13 +20,10 @@ export function Task({ name, status, priority, category, date, color, handleTask
 
             {status === "COMPLETED" ? (
                 <View style={styles.containerCheck}>
-                    <TouchableOpacity
-                        style={[styles.conclude, {
-                            backgroundColor: color
-                        }]}
-                        onPress={handleTaskConclue}
-                    >
-                        <Check size={12} color="#F2F2F2" /></TouchableOpacity>
+                    <View style={[styles.conclude, {
+                        backgroundColor: color
+                    }]}>
+                        <Check size={12} color="#F2F2F2" /></View>
                     <View>
                         <Text style={styles.nameCheck}>{name}</Text>
                         <Text style={styles.textCheck}>{date}</Text>
@@ -38,12 +31,9 @@ export function Task({ name, status, priority, category, date, color, handleTask
                 </View>
             ) : (
                 <View style={styles.containerCheck}>
-                    <TouchableOpacity
-                        style={[styles.circle, {
-                            borderColor: color
-                        }]}
-                        onPress={handleTaskConclue}
-                    />
+                    <View style={[styles.circle, {
+                        borderColor: color
+                    }]} />
                     <View>
                         <Text style={styles.name}>{name}</Text>
                         <Text style={styles.text}>{date}</Text>
