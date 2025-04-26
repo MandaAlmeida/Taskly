@@ -69,11 +69,13 @@ export function Calendars() {
                 ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
                 renderItem={({ item }) => (
                     <Task
+                        _id={item._id}
+                        userId={item.userId}
                         name={item.name}
-                        handleUpdateTask={() => handleUpdateTask(item)}
                         status={item.status}
                         priority={item.priority}
                         category={item.category}
+                        subCategory={item.subCategory}
                         date={formatDate(item.date)}
                         handleOpenTask={() => fetchTaskById(item._id)}
                         color={subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}

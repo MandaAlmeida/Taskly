@@ -5,12 +5,11 @@ import { Check, Flag } from 'lucide-react-native';
 import { TaskProps } from '@/@types/task';
 
 type taskType = TaskProps & {
-    handleUpdateTask: () => void;
     handleOpenTask: () => void;
     color: string
 }
 
-export function Task({ name, status, priority, category, date, color, handleUpdateTask, handleOpenTask }: taskType) {
+export function Task({ name, status, priority, category, date, color, handleOpenTask }: taskType) {
 
     return (
         <TouchableOpacity style={[styles.container, {

@@ -7,15 +7,10 @@ import * as LucideIcons from 'lucide-react-native';
 import { iconsList } from "@/Array/icons";
 import { styles } from './styles';
 import { CategoryProps } from '@/@types/category';
-import { TaskProps } from '@/@types/task';
+import { ModalProps } from '../modalSubTask';
+import { ButtonModal } from '../buttonModal';
 
-type Props = {
-    isVisible: boolean;
-    handleOnVisible: () => void;
-    task?: TaskProps
-};
-
-export function ModalCategory({ isVisible, handleOnVisible, task }: Props) {
+export function ModalCategory({ isVisible, handleOnVisible, task }: ModalProps) {
     const { setSelectedCategory, selectedCategory, category, handleUpdateTask } = useTask();
     const [active, setActive] = useState<{ [key: string]: boolean }>({});
 
@@ -57,15 +52,7 @@ export function ModalCategory({ isVisible, handleOnVisible, task }: Props) {
                     }}
                     contentContainerStyle={styles.grid}
                 />
-                <View style={styles.buttonsContainer}>
-                    <TouchableOpacity onPress={() => handleOnVisible()}>
-                        <Text style={styles.cancelText}>Cancelar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={() => UpdateCategory()} style={styles.confirmButton}>
-                        <Text style={styles.confirmText}>Salvar</Text>
-                    </TouchableOpacity>
-                </View>
+                <ButtonModal color={task?.color || theme.blue1} CreateItem={() => UpdateCategory()} handleOnVisible={() => handleOnVisible()} />
             </View>
         </Modal>
     );

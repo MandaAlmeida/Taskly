@@ -5,37 +5,41 @@ import { InputForm } from "@/components/inputForm";
 import { useRef } from "react";
 
 import { AccountProps } from "@/@types/account";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { Button } from "@/components/button";
 
 import { styles } from "./styles";
 import { theme } from '@/styles/theme';
 import { Feather } from '@expo/vector-icons';
 import { useTask } from "@/hooks/useTask";
+import { Progress } from "@/components/progress";
 
-export function SignUp() {
-    const { createUser, error } = useTask();
-    const { control, handleSubmit, formState: { errors }, getValues, watch } = useForm<AccountProps>();
+export function SignUp2() {
+    const { error } = useTask();
+    const { control, formState: { errors }, getValues, watch, handleSubmit } = useFormContext<AccountProps>();
     const emailRef = useRef<TextInput>(null);
     const passwordRef = useRef<TextInput>(null);
     const passwordConfirmationRef = useRef<TextInput>(null);
 
     const { navigate } = useNavigation();
 
-    const name = watch("name");
     const email = watch("email");
     const password = watch("password");
     const passwordConfirmation = watch("passwordConfirmation");
-    const isDisabled = !email || !password || !name || !passwordConfirmation
+    const isDisabled = !email || !password || !passwordConfirmation
 
     function handleLogin() {
         navigate("signIn");
     }
 
-    async function handleNextStep(data: AccountProps) {
-        await createUser(data.name, data.email, data.password, data.passwordConfirmation, handleLogin);
-
+    function handleNextPage() {
+        navigate("signUp3");
     }
+
+    function handlePreviousPage() {
+        navigate("signUp1");
+    }
+
 
 
     function validationPasswordConfirmation(passwordConfirmation: string) {
@@ -54,25 +58,8 @@ export function SignUp() {
                 <Feather name="chevron-left" size={30} color={theme.gray4} />
             </TouchableOpacity>
             <ScrollView contentContainerStyle={styles.form}>
-                <Text style={styles.title}>Registro</Text>
 
-                <InputForm
-                    text="Nome"
-                    formProps={{
-                        name: "name",
-                        control,
-                        rules: {
-                            required: "Nome é obrigatório"
-                        }
-                    }}
-                    inputProps={{
-                        placeholder: "Nome",
-                        placeholderTextColor: theme.gray2,
-                        onSubmitEditing: () => emailRef.current?.focus(),
-                        returnKeyType: "next",
-                    }}
-                    error={errors.name?.message}
-                />
+                <Text style={styles.title}>Registro</Text>
                 <InputForm
                     ref={emailRef}
                     text="Email"
@@ -94,6 +81,7 @@ export function SignUp() {
                     }}
                     error={errors.email?.message}
                 />
+
                 <InputForm
                     ref={passwordRef}
                     text="Senha"
@@ -117,6 +105,7 @@ export function SignUp() {
                     }}
                     error={errors.password?.message}
                 />
+
                 <InputForm
                     ref={passwordConfirmationRef}
                     text="Confirmar senha"
@@ -131,13 +120,17 @@ export function SignUp() {
                     inputProps={{
                         placeholder: "Confirme sua senha",
                         placeholderTextColor: theme.gray2,
-                        onSubmitEditing: handleSubmit(handleNextStep),
                         secureTextEntry: true
                     }}
                     error={errors.passwordConfirmation?.message}
                 />
                 {error && <Text style={styles.error}>Usuario ja cadastrado</Text>}
-                <Button text="Criar conta" onPress={handleSubmit(handleNextStep)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1 }]} disabled={isDisabled} />
+                <View style={styles.containerButton}>
+                    <Button text="VOLTAR" onPress={() => handlePreviousPage()} style={[styles.button, { width: 150 }]} />
+                    <Button text="CONTINUAR" onPress={handleSubmit(handleNextPage)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1, width: 150 }]} disabled={isDisabled} />
+                </View>
+                <Progress count={2} />
+
             </ScrollView>
             <View style={styles.register}>
                 <Text style={styles.text}>Já tem uma conta?</Text>

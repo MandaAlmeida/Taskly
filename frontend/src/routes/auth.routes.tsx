@@ -1,10 +1,12 @@
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SignIn } from "../screens/SignIn";
-import { SignUp } from "../screens/SignUp";
+import { SignUp1 } from "../screens/SignUp-1";
 import { Onboading1 } from "@/screens/Onboading-1";
 import { Onboading2 } from "@/screens/Onboading-2";
 import { Onboading3 } from "@/screens/Onboading-3";
 import { Welcome } from "@/screens/Welcome";
+import { SignUp3 } from "@/screens/SignUp-3";
+import { SignUp2 } from "@/screens/SignUp-2";
 
 
 type AuthRoutes = {
@@ -13,7 +15,9 @@ type AuthRoutes = {
     onboading3: undefined;
     welcome: undefined;
     signIn: undefined;
-    signUp: undefined;
+    signUp1: undefined;
+    signUp2: undefined;
+    signUp3: undefined;
 }
 
 export type AuthNavidatorRoutesProps = NativeStackNavigationProp<AuthRoutes>
@@ -28,7 +32,9 @@ export function AuthRoutes() {
             <Screen name="onboading3" component={Onboading3} />
             <Screen name="welcome" component={Welcome} />
             <Screen name="signIn" component={SignIn} />
-            <Screen name="signUp" component={SignUp} />
+            <Screen name="signUp1" component={SignUp1} />
+            <Screen name="signUp2" component={SignUp2} />
+            <Screen name="signUp3" component={SignUp3} />
         </Navigator>
 
     )

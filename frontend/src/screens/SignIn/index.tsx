@@ -24,7 +24,7 @@ export function SignIn() {
     const isDisabled = !email || !password;
 
     function handleRegister() {
-        navigate("signUp");
+        navigate("signUp1");
     }
 
 

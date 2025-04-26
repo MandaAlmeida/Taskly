@@ -126,7 +126,7 @@ export function ModalTask(task: taskType) {
                                                 <Text style={styles.name}>{subTask.task}</Text>
                                             </>
                                         )}
-                                        <TouchableOpacity onPress={() => handleSubTaskRemove(task._id, subTask.task, subTask._id)}>
+                                        <TouchableOpacity onPress={() => handleSubTaskRemove(task._id, subTask.task, subTask?._id)}>
                                             <Trash2 color={theme.red} size={20} />
                                         </TouchableOpacity>
                                     </View>

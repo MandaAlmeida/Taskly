@@ -18,7 +18,7 @@ export type TaskProps = {
     name: string;
     category: string;
     subCategory: string;
-    subTask?: subTaskProps[]
+    subTask?: CreateSubTaskProps[]
     priority: string;
     date: string;
     status: string;

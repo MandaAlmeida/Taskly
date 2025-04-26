@@ -10,6 +10,7 @@ import { CategoryProps } from "@/@types/category";
 import api from "@/api/axios";
 import { AnnotationProps, attachmentProps, CreateAnnotationProps } from "@/@types/annotation";
 import { SubCategoryProps } from "@/@types/subCategory";
+import { AccountProps } from "@/@types/account";
 
 type User = {
     _id: string;
@@ -46,6 +47,7 @@ interface TaskContextProps {
     taskById: TaskProps | undefined;
     isTaskOpen: boolean;
     openSections: { [key: string]: boolean };
+    logado: boolean;
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
     setAnnotation: React.Dispatch<React.SetStateAction<AnnotationProps[]>>;
@@ -77,7 +79,7 @@ interface TaskContextProps {
     fetchTask: () => void;
     fetchTaskBySearch: (item: string) => void;
     fetchTaskByDate: (date: string) => void;
-    createUser: (name: string, email: string, password: string, confirmPassword: string, handleBackToLogin: () => void) => void;
+    createUser: (user: FormData, handleBackToLogin: () => void) => void;
     login: (email: string, password: string) => void;
     deslogar: () => void;
     fetchAnnotation: () => void
@@ -85,7 +87,7 @@ interface TaskContextProps {
     fetchAnnotationById: (id: string) => void;
     featchSubCategory: () => void;
     fetchTaskById: (taskId: string) => void;
-    handleSubTaskRemove: (taskId: string, subTask: string, subTaskId: string) => void
+    handleSubTaskRemove: (taskId: string, subTask: string, subTaskId?: string) => void
 }
 
 export const TaskContext = createContext({} as TaskContextProps);
@@ -126,6 +128,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<CategoryProps | undefined>();
     const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategoryProps | undefined>();
+    const [logado, setLogado] = useState(false)
 
     const [token, setToken] = useState<string>("");
     const [user, setUser] = useState<User | null>(null);
@@ -147,32 +150,22 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     });
 
     // USER
-    async function createUser(name: string, email: string, password: string, passwordConfirm: string, handleBackToLogin: () => void) {
+    async function createUser(formData: FormData, handleBackToLogin: () => void) {
+        console.log(formData)
         try {
-            const response = await api.post("/user/register", {
-                name,
-                email,
-                password,
-                passwordConfirm
-            }, {
+            const response = await api.post("/user/register", formData, {
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "multipart/form-data",
                 },
             });
-
-            if (response.status === 201) {
-                console.log("Usuário criado com sucesso!");
-                setError(false)
-                handleBackToLogin();
-            } else {
-                console.log("Erro ao criar usuário:", response.data.message);
-                setError(true)
-            }
+            console.log(response.data);
         } catch (error: any) {
-            console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
-            setError(true)
+            console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+            alert(`Erro: ${error.message}`);
         }
     }
+
+
 
     async function login(email: string, password: string) {
         try {
@@ -219,8 +212,10 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 birth: response.data.birth
             };
 
+
             setUser(user);
             featchCategory();
+            setLogado(true);
         } catch (error: any) {
             console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
         }
@@ -238,6 +233,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function deslogar() {
         addToken("");
         setToken("");
+        setLogado(false)
     }
 
     // CATEGORY
@@ -564,7 +560,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-
     async function handleUpdateTask({
         _id,
         handleBackToTask,
@@ -606,7 +601,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function handleSubTaskRemove(taskId: string, subTask: string, subTaskId: string) {
+    async function handleSubTaskRemove(taskId: string, subTask: string, subTaskId?: string) {
         try {
             Alert.alert("Remover", `Remover a tarefa ${subTask}?`, [
                 {
@@ -868,7 +863,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     return (
         <TaskContext.Provider value={{
-            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove
+            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, logado, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove
 
         }}>
             {children}

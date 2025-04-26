@@ -74,12 +74,12 @@ export const styles = StyleSheet.create({
     name: {
         fontSize: 14,
         color: theme.gray3,
-        width: 280
+        width: 250
     },
     nameCheck: {
         color: theme.gray2,
         textDecorationLine: "line-through",
-        width: 280
+        width: 250
     },
     footer: {
         flexDirection: 'row',

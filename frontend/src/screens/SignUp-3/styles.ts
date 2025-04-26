@@ -46,6 +46,29 @@ export const styles = StyleSheet.create({
         fontSize: 14,
         marginTop: 5,
         color: theme.red,
+    },
+    containerImage: {
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    inputImage: {
+        backgroundColor: "transparent",
+        width: 200,
+        height: 200,
+        marginTop: 20,
+        borderRadius: 100,
+        borderWidth: 1,
+        borderColor: theme.gray1,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    textImage: {
+        fontSize: 16,
+        color: theme.gray2
+    },
+    containerButton: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center"
     }
-
 })

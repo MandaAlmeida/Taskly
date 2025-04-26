@@ -16,7 +16,7 @@ export function Welcome() {
     }
 
     function handleRegister() {
-        navigate("signUp");
+        navigate("signUp1");
     }
 
     return (

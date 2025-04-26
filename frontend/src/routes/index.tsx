@@ -7,11 +7,11 @@ import { AuthRoutes } from "./auth.routes";
 import { Loading } from "@/components/loading";
 
 export function Routes() {
-    const { loading, token } = useTask();
+    const { loading, logado } = useTask();
 
     return (
         <NavigationContainer>
-            {loading ? <Loading /> : token ? <AppRoutes /> : <AuthRoutes />}
+            {loading ? <Loading /> : logado ? <AppRoutes /> : <AuthRoutes />}
         </NavigationContainer>
     );
 }

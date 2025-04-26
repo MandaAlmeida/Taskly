@@ -5,13 +5,8 @@ import { useTask } from '@/hooks/useTask';
 import { Flag } from 'lucide-react-native';
 import { theme } from '@/styles/theme';
 import { useState } from 'react';
-import { TaskProps } from '@/@types/task';
-
-type Props = {
-    isVisible: boolean,
-    handleOnVisible: () => void,
-    task?: TaskProps
-}
+import { ButtonModal } from '../buttonModal';
+import { ModalProps } from '../modalSubTask';
 
 type Priority = {
     id: string;
@@ -32,7 +27,7 @@ const priorities: Priority[] = [
 ];
 
 
-export function ModalPriority({ isVisible, handleOnVisible, task }: Props) {
+export function ModalPriority({ isVisible, handleOnVisible, task }: ModalProps) {
     const [active, setActive] = useState<{ [key: string]: boolean }>({})
     const { setPriority, handleUpdateTask, priority } = useTask();
 
@@ -71,15 +66,7 @@ export function ModalPriority({ isVisible, handleOnVisible, task }: Props) {
                     )}
                     contentContainerStyle={styles.grid}
                 />
-                <View style={styles.buttonsContainer}>
-                    <TouchableOpacity onPress={() => handleOnVisible()}>
-                        <Text style={styles.cancelText}>Cancelar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={() => UpdatePriority()} style={styles.confirmButton}>
-                        <Text style={styles.confirmText}>Salvar</Text>
-                    </TouchableOpacity>
-                </View>
+                <ButtonModal color={task?.color || theme.blue1} CreateItem={() => UpdatePriority()} handleOnVisible={() => handleOnVisible()} />
             </View>
         </Modal>
     );

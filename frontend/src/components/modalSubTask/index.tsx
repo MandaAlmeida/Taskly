@@ -6,16 +6,20 @@ import { CreateSubTaskProps, TaskProps } from '@/@types/task';
 import { useState } from 'react';
 import { Plus } from 'lucide-react-native';
 import { theme } from '@/styles/theme';
+import { ButtonModal } from '../buttonModal';
 
-type Props = {
+type TasksProps = TaskProps & {
+    color: string
+}
+
+export type ModalProps = {
     isVisible: boolean;
     handleOnVisible: () => void;
-    subTasks?: CreateSubTaskProps[];
-    task?: TaskProps
+    task?: TasksProps
 };
 
-export function ModalSubTask({ isVisible, handleOnVisible, subTasks = [], task }: Props) {
-    const [localSubTasks, setLocalSubTasks] = useState(subTasks);
+export function ModalSubTask({ isVisible, handleOnVisible, task }: ModalProps) {
+    const [localSubTasks, setLocalSubTasks] = useState<CreateSubTaskProps[]>(task?.subTask || []);
     const { handleUpdateTask } = useTask()
 
     function handleSubTaskChange(text: string, index: number) {
@@ -72,17 +76,7 @@ export function ModalSubTask({ isVisible, handleOnVisible, subTasks = [], task }
                     </TouchableOpacity>
                 )}
 
-                <View style={styles.buttonsContainer}>
-                    <TouchableOpacity onPress={handleOnVisible}>
-                        <Text style={styles.cancelText}>Cancelar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={() => {
-                        CreateEditSubTask()
-                    }} style={styles.confirmButton}>
-                        <Text style={styles.confirmText}>Salvar</Text>
-                    </TouchableOpacity>
-                </View>
+                <ButtonModal color={task?.color || theme.blue1} CreateItem={() => CreateEditSubTask()} handleOnVisible={() => handleOnVisible()} />
             </View>
         </Modal>
     );
