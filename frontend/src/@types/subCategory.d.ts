@@ -8,8 +8,9 @@ export type CreateSubCategoryProps = {
 export type SubCategoryProps = {
     _id: string;
     subCategory: string;
-    category: string;
+    categoryName?: string;
+    categoryId?: string;
     icon: number;
     color: string;
-    userId: string;
+    userId: string | undefined;
 }

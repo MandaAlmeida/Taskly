@@ -8,28 +8,14 @@ import { useNavigation } from "@react-navigation/native";
 
 import { theme } from '@/styles/theme';
 import { AddCategory } from "@/components/addCategory";
-
-type category = {
-    name: string,
-    icon: string,
-    color: string
-}
+import { Trash2 } from "lucide-react-native";
 
 export function Category() {
     const { setIsCreateCategoryOpen } = useTask()
-    const [addCategory, setAddCategory] = useState<category>({
-        name: "",
-        icon: "",
-        color: ""
-    });
     const navigate = useNavigation();
-    const { category, handleAddCategory, removeCategory } = useTask();
+    const { category, removeCategory } = useTask();
     function handleBackToTask() {
         navigate.goBack()
-    }
-
-    function handleCategory(name: string, icon: number, color: string) {
-        handleAddCategory(name, icon, color);
     }
 
     return (
@@ -43,22 +29,17 @@ export function Category() {
             <FlatList
                 data={category.filter(item => item.category !== 'Todas')}
                 keyExtractor={(item) => item._id!}
-                ListHeaderComponent={
-                    <View style={[styles.category, { paddingHorizontal: 10 }]}>
-                        <Text style={styles.text}>Todas</Text>
-                    </View>
-                }
                 renderItem={({ item }) => (
-                    <View style={[styles.category, { paddingHorizontal: 10 }]}>
+                    <View style={[styles.category, { paddingHorizontal: 10, backgroundColor: `${item.color}50`, borderWidth: 1, borderColor: item.color }]}>
                         <Text style={styles.text}>{item.category}</Text>
                         <TouchableOpacity onPress={() => removeCategory(item.category, item._id)}>
-                            <Feather name="trash-2" color={theme.gray2} />
+                            <Trash2 size={16} color={theme.red} />
                         </TouchableOpacity>
                     </View>
                 )}
                 showsVerticalScrollIndicator={false}
                 ListFooterComponent={
-                    <View style={[styles.category, { paddingLeft: 10 }]}>
+                    <View style={[styles.category, { paddingLeft: 10, alignSelf: "center" }]}>
                         <Button
                             text="Adicionar categoria"
                             style={{ paddingHorizontal: 15 }}

@@ -74,14 +74,14 @@ export function Calendars() {
                         name={item.name}
                         status={item.status}
                         priority={item.priority}
-                        category={item.category}
-                        subCategory={item.subCategory}
+                        subCategory={subCategory.find((subCategory) => subCategory._id === item.subCategory)?.subCategory || "Sem sub categoria"}
+                        category={item.subCategory}
                         date={formatDate(item.date)}
                         handleOpenTask={() => fetchTaskById(item._id)}
                         color={subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
                     />
                 )} /> : (
-                <EmptyState />
+                <EmptyState text="tarefas" title="O que você quer fazer hoje?" />
             )}
 
         </View>

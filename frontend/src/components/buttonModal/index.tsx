@@ -4,7 +4,7 @@ import { styles } from "./styles"
 type Props = {
     color: string;
     CreateItem: () => void;
-    handleOnVisible: () => void
+    handleOnVisible?: () => void
 }
 
 export function ButtonModal({ color, CreateItem, handleOnVisible }: Props) {

@@ -8,7 +8,7 @@ import { useTask } from "@/hooks/useTask";
 
 import { Header } from "@/components/header";
 import { Search } from "@/components/search";
-import { SectionTaks } from "@/components/sectionTasks";
+import { SectionTask } from "@/components/sectionTasks";
 import { EmptyState } from "@/components/emptyState";
 import { ModalTask } from "@/components/modalTask";
 import { formatDate } from "@/utils/formatDate";
@@ -59,10 +59,10 @@ export function PageTasks() {
             {tasks.length > 0 ? (
                 <>
                     <Search />
-                    <SectionTaks sections={sections} />
+                    <SectionTask sections={sections} />
                 </>
             ) : (
-                <EmptyState />
+                <EmptyState text="tarefas" title="O que você quer fazer hoje?" />
             )
             }
         </View >

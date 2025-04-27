@@ -19,18 +19,14 @@ export const styles = StyleSheet.create({
     },
     category: {
         flexDirection: 'row',
-        borderColor: theme.blue1,
-        borderWidth: 1,
-        borderStyle: "solid",
         borderRadius: 6,
         height: 50,
         alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: 20,
-        color: theme.gray2,
     },
     text: {
         fontSize: 16,
-        color: theme.gray2,
+        color: theme.gray4,
     }
 })

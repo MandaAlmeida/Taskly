@@ -8,9 +8,14 @@ type members = {
     accessType: string
 }
 
+type content = {
+    type: string,
+    value: string | attachmentProps
+}
+
 export type CreateAnnotationProps = {
     title: string;
-    content: string;
+    content: content[];
     category: string;
     attachment?: attachmentProps[];
     members?: members[];
@@ -20,11 +25,10 @@ export type CreateAnnotationProps = {
 export type AnnotationProps = {
     _id: string;
     title: string;
-    content: string;
+    content: content[];
     category: string;
     createdAt: string;
     updatedAt: string;
-    attachment?: attachmentProps[];
     members?: members[];
     groupId?: string[];
     createdUserId: string;

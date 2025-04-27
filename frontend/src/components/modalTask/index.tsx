@@ -12,6 +12,7 @@ import { ModalCategory } from "../modalCategory";
 import { ModalSubTask } from "../modalSubTask";
 import { ModalTaskName } from "../modalTaskName";
 import { formatDate } from "@/utils/formatDate";
+import { CalendarUtils, DateData } from "react-native-calendars";
 
 type taskType = TaskProps & {
     color: string,

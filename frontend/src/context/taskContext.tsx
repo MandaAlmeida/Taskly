@@ -43,11 +43,12 @@ interface TaskContextProps {
     annotation: AnnotationProps[];
     annotationById: AnnotationProps | undefined;
     isAnnotationOpen: boolean;
-    attachment: string[];
+    attachment: image[];
     taskById: TaskProps | undefined;
     isTaskOpen: boolean;
     openSections: { [key: string]: boolean };
     logado: boolean;
+    createUserAnnotation: userCreate | undefined
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
     setAnnotation: React.Dispatch<React.SetStateAction<AnnotationProps[]>>;
@@ -68,7 +69,7 @@ interface TaskContextProps {
     }>>
 
     handleTaskRemove: (id: string, name: string) => void;
-    handleAddCategory: (name: string, icon: number, color: string) => void;
+    handleAddCategory: (name: string, icon: string, color: string) => void;
     removeCategory: (category: string, id?: string) => void;
     handleAddTask: (data: CreateTaskProps, handleBackToTask: () => void) => void;
     handleUpdateTask: ({
@@ -79,15 +80,18 @@ interface TaskContextProps {
     fetchTask: () => void;
     fetchTaskBySearch: (item: string) => void;
     fetchTaskByDate: (date: string) => void;
-    createUser: (user: FormData, handleBackToLogin: () => void) => void;
+    createUser: (formData: FormData, handleBackToLogin: () => void) => void
     login: (email: string, password: string) => void;
     deslogar: () => void;
     fetchAnnotation: () => void
-    fetchAttachment: (fileName: attachmentProps[]) => void;
+    fetchAttachment: (fileName: attachmentProps) => void;
     fetchAnnotationById: (id: string) => void;
     featchSubCategory: () => void;
     fetchTaskById: (taskId: string) => void;
     handleSubTaskRemove: (taskId: string, subTask: string, subTaskId?: string) => void
+    handleAddAnnotation: (data: FormData) => void
+    handleAddSubCategory: (name: string, icon: string, color: string) => void
+    getNameUser: (userId: string) => void
 }
 
 export const TaskContext = createContext({} as TaskContextProps);
@@ -108,6 +112,16 @@ type UpdateTaskParams = Partial<{
 }> & { _id: string; handleBackToTask?: () => void, task: TaskProps };
 
 
+type image = {
+    title: string;
+    url: any;
+}
+
+type userCreate = {
+    _id: string,
+    userName: string
+}
+
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [tasks, setTasks] = useState<TaskProps[]>([]);
     const [taskById, setTaskById] = useState<TaskProps | undefined>();
@@ -117,9 +131,11 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [tasksData, setTasksData] = useState<TaskProps[]>([]);
 
     const [taskName, setTaskName] = useState('');
+    const [createUserAnnotation, setCreateUserAnnotation] = useState<userCreate | undefined>();
+
     const [category, setCategory] = useState<CategoryProps[]>([]);
     const [subCategory, setSubCategory] = useState<SubCategoryProps[]>([]);
-    const [attachment, setAttachment] = useState<string[]>([]);
+    const [attachment, setAttachment] = useState<image[]>([]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [isAnnotationOpen, setIsAnnotationOpen] = useState(false);
@@ -150,12 +166,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     });
 
     // USER
-    async function createUser(formData: FormData, handleBackToLogin: () => void) {
-        console.log(formData)
+    async function createUser(formData: FormData, handleBackToLogin: () => void,) {
         try {
+            console.log(formData)
             const response = await api.post("/user/register", formData, {
                 headers: {
-                    "Content-Type": "multipart/form-data",
+                    "Content-Type": `multipart/form-data`,
                 },
             });
             console.log(response.data);
@@ -183,6 +199,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 setError(false)
                 addToken(response.data.token);
                 setToken(response.data.token);
+                getUser()
             }
             else {
                 setError(true)
@@ -221,6 +238,16 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+    async function getNameUser(userId: string) {
+        try {
+            const response = await api.get(`/user/fetch/${userId}`);
+
+            setCreateUserAnnotation(response.data)
+        } catch (error: any) {
+            console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+        }
+    }
+
     async function fetchImageUser(fileName: string) {
         try {
             const response = await api.get(`/annotation/fetchAttachment?attachment=${fileName}`);
@@ -237,7 +264,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     }
 
     // CATEGORY
-    async function handleAddCategory(name: string, icon: number, color: string) {
+    async function handleAddCategory(name: string, icon: string, color: string) {
         try {
             if (name.length === 0) {
                 return Alert.alert("Nova categoria", "Informe o nome da categoria")
@@ -256,22 +283,14 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             } else {
                 console.error("Erro ao tentar criar a categoria", response.data.message);
             }
-        } catch (error) {
-            if (error instanceof AppError) {
-                Alert.alert("Novo categoria", error.message)
+        } catch (error: any) {
+            Alert.alert("Novo categoria", error.messag)
+            if (axios.isAxiosError(error)) {
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                Alert.alert("Novo categoria", "Não foi possível criar uma nova categoria.")
-                console.error("Erro desconhecido:", error);
-
-                if (axios.isAxiosError(error)) {
-                    console.error("Erro Axios:", error.response?.data || error.message);
-                } else {
-                    console.error("Erro não Axios:", error);
-                }
+                console.log("Erro não Axios:", error);
             }
-
         }
-
     }
 
     async function featchCategory() {
@@ -283,11 +302,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     return;
                 }
 
-                if (response.status === 200) {
-                    const fetchedCategories = response.data;
-                    setCategory(fetchedCategories);
-                    featchSubCategory();
-                }
+                setCategory(response.data);
+                featchSubCategory();
             }
         } catch (error) {
             console.error("Erro desconhecido:", error);
@@ -338,41 +354,29 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     }
 
     // SUB CATEGORY
-    async function handleAddSubCategory(name: string, icon: number, color: string) {
+    async function handleAddSubCategory(name: string, icon: string, color: string) {
         try {
-            if (name.length === 0) {
-                return Alert.alert("Nova categoria", "Informe o nome da categoria")
-            }
 
-
-            const response = await api.post("/categories/create", {
-                category: name,
+            const subCategory = {
+                subCategory: name,
+                categoryName: selectedCategory?.category,
                 icon,
                 color
-            });
 
-            if (response.status === 201) {
-                console.log("Categoria criada com sucesso!");
-                featchCategory()
-            } else {
-                console.error("Erro ao tentar criar a categoria", response.data.message);
             }
-        } catch (error) {
-            if (error instanceof AppError) {
-                Alert.alert("Novo categoria", error.message)
-            } else {
-                Alert.alert("Novo categoria", "Não foi possível criar uma nova categoria.")
-                console.error("Erro desconhecido:", error);
+            await api.post("/sub-category/create", subCategory);
+            console.log("Categoria criada com sucesso!");
+            featchCategory()
 
-                if (axios.isAxiosError(error)) {
-                    console.error("Erro Axios:", error.response?.data || error.message);
-                } else {
-                    console.error("Erro não Axios:", error);
-                }
+        } catch (error: any) {
+            Alert.alert("Nova categoria", error.message)
+            if (axios.isAxiosError(error)) {
+                console.error("Erro Axios:", error.response?.data || error.message);
+            } else {
+                console.error("Erro não Axios:", error);
             }
 
         }
-
     }
 
     async function featchSubCategory() {
@@ -386,7 +390,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     return;
                 }
 
-
+                console.log(response.data)
                 setSubCategory(response.data)
             }
         } catch (error) {
@@ -411,7 +415,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     text: 'Sim',
                     onPress: async () => {
                         try {
-                            await api.delete(`/categories/delete/${id}`);
+                            await api.delete(`/sub-category/delete/${id}`);
 
                             setCategory(prevTasks => prevTasks.filter(task => task._id !== id));
 
@@ -449,6 +453,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     name: data.name,
                     category: data.category,
                     subCategory: data.subCategory,
+                    subTask: data.subTask,
                     priority: data.priority,
                     date: data.date,
                 },
@@ -661,51 +666,49 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     //Annotation
 
-    async function handleAddAnnotation(data: CreateAnnotationProps, handleBackToTask: () => void) {
-        if (data.title.trim().length === 0) {
-            return Alert.alert("Nova Tarefa", "Informe nome da nova tarefa para adicionar");
-        }
+    async function handleAddAnnotation(data: FormData) {
 
         try {
-            const response = await api.post("/annotation/create",
-                {
-                    title: data.title,
-                    content: data.content,
-                    category: data.category,
-                    attachment: data.attachment,
-                    members: data.members,
-                    groupId: data.groupId
+            const response = await api.post("/annotation/create", data, {
+                headers: {
+                    "Content-Type": `multipart/form-data`,
                 },
-            );
+            });
 
-            fetchTask();
+            fetchAnnotation();
             if (response.status === 201) {
                 console.log("Anotacao criado com sucesso!");
-                handleBackToTask();
             } else {
                 console.error("Erro ao criar anotacao:", response.data.message);
             }
 
-        } catch (error) {
-            if (error instanceof AppError) {
+        } catch (error: any) {
+            if (error.response) {
+                // Aqui você consegue acessar a resposta completa do erro.
+                console.log("Erro do back-end:", error.response.data);
+                Alert.alert('Nova Anotacao', error.response.data.message);
+            } else if (error instanceof AppError) {
                 Alert.alert('Nova Anotacao', error.message);
             } else {
                 console.log(error);
                 Alert.alert('Nova Anotacao', 'Não foi possível adicionar');
             }
         }
+
     }
 
-    async function fetchAttachment(fileNames: attachmentProps[]) {
+    async function fetchAttachment(file: attachmentProps) {
         try {
-            const responses = await Promise.all(
-                fileNames.map(async (fileName) => {
-                    const response = await api.get(`/annotation/fetchAttachment?attachment=${fileName.url}`);
-                    return response.data;
-                })
-            );
+            const response = await api.get(`/annotation/fetchAttachment?attachment=${file.url}`);
 
-            setAttachment(responses);
+            const image = {
+                title: file.title,
+                url: response.data // A URL da imagem retornada da API
+            };
+
+            // Atualiza o estado com a nova imagem ou armazena várias imagens
+            setAttachment(prevAttachment => [...prevAttachment, image]);
+
         } catch (error) {
             console.error("Erro ao buscar os arquivos:", error);
         }
@@ -720,18 +723,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 return;
             }
 
-            const annotations = response.data.map((annotation: AnnotationProps) => ({
-                _id: annotation._id,
-                title: annotation.title,
-                content: annotation.content,
-                category: annotation.category,
-                createdAt: annotation.createdAt,
-                updatedAt: annotation.updatedAt,
-                attachment: annotation.attachment,
-                members: annotation.members,
-                groupId: annotation.groupId,
-                createdUserId: annotation.createdUserId
-            }))
+            const annotations = response.data
 
             setAnnotation(annotations);
         } catch (error) {
@@ -744,7 +736,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             }
         }
     }
-
 
     async function fetchAnnotationBySearch(item: string) {
         try {
@@ -863,7 +854,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     return (
         <TaskContext.Provider value={{
-            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, logado, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove
+            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, logado, createUserAnnotation, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser
 
         }}>
             {children}

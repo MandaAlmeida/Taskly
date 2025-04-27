@@ -66,6 +66,43 @@ export const styles = StyleSheet.create({
     textInput: {
         fontSize: 16,
         color: theme.gray4
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 20,
+        width: '90%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold'
+    },
+    modalSave: {
+        color: theme.blue1,
+        fontWeight: 'bold'
+    },
+    monthYearPicker: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    monthYearText: {
+        fontSize: 16,
+        fontWeight: '500'
     }
+
 
 })

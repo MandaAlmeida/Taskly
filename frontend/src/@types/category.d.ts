@@ -9,5 +9,5 @@ export type CategoryProps = {
     category: string;
     icon: number;
     color: string;
-    userId: string;
+    userId: string | undefined;
 }

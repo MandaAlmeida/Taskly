@@ -1,17 +1,23 @@
 import { Text, View } from "react-native";
 import { useTask } from "@/hooks/useTask";
 import { Loading } from "@/components/loading";
-import { SectionTaks } from "@/components/sectionTasks";
+import { SectionTask } from "@/components/sectionTasks";
 import { ModalTask } from "@/components/modalTask";
 import { theme } from "@/styles/theme";
+import { useEffect } from "react";
 
 export function Home() {
-    const { loading, user, tasks, tasksSearch, openSections, taskById, category, subCategory, handleUpdateTask } = useTask();
+    const { loading, user, tasks, tasksSearch, openSections, taskById, category, subCategory, fetchTask } = useTask();
 
 
     if (loading) {
         return <Loading />;
     }
+
+
+    useEffect(() => {
+        fetchTask();
+    }, []);
 
 
     const sections = [
@@ -27,7 +33,7 @@ export function Home() {
         <View style={{ flex: 1 }}>
             <Text>Bem-vindo(a) {user?.name}</Text>
             <View>
-                <SectionTaks sections={sections} />
+                <SectionTask sections={sections} />
             </View>
             {taskById && <ModalTask
                 _id={taskById._id}

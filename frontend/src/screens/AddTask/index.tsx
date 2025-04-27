@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, TextInput, Modal } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, FlatList } from "react-native";
 import { Feather } from '@expo/vector-icons';
 import { styles } from "./styles";
 import { useTask } from "@/hooks/useTask";
@@ -11,6 +11,10 @@ import { StackParamList } from "@/routes/app.routes";
 import { ModalCalendar } from "@/components/modalCalendar";
 import { ModalSubCategory } from "@/components/modalSubCategory";
 import { ModalPriority } from "@/components/modalPriority";
+import { ModalCategory } from "@/components/modalCategory";
+import { CreateSubTaskProps } from "@/@types/task";
+import { Keyboard } from "react-native";
+import { Plus } from "lucide-react-native";
 
 type NavigationProps = StackNavigationProp<StackParamList>;
 
@@ -19,7 +23,25 @@ export function AddTask() {
     const navigation = useNavigation<NavigationProps>();
     const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
 
-    const { handleAddTask, selectedSubCategory, selectedCategory, priority, date, setDate, setPriority, setSelectedSubCategory } = useTask();
+    const { handleAddTask, selectedSubCategory, selectedCategory, priority, date, setDate, setPriority, setSelectedSubCategory, setSelectedCategory, setIsCreateCategoryOpen } = useTask();
+    const [showSubTasks, setShowSubTasks] = useState(false);
+    const [localSubTasks, setLocalSubTasks] = useState<CreateSubTaskProps[]>([]);
+
+    const hasEmptyTask = localSubTasks.some(sub => sub.task.trim() === '');
+
+    function handleSubTaskChange(text: string, index: number) {
+        const updatedSubTasks = [...localSubTasks];
+        updatedSubTasks[index] = {
+            ...updatedSubTasks[index],
+            task: text,
+            status: "PENDING",
+        };
+        setLocalSubTasks(updatedSubTasks);
+    };
+
+    function addNewSubTask() {
+        setLocalSubTasks([...localSubTasks, { task: '', status: 'PENDING' }]);
+    };
 
     function toggleSection(key: string) {
         setOpenSections((prev) => ({
@@ -29,7 +51,17 @@ export function AddTask() {
     }
 
     function handleBackToTask() {
-        navigation.navigate('tabs', { screen: 'tasks' });
+        navigation.navigate('tabs', { screen: 'tasks' })
+        setDate({
+            year: 0,
+            month: 0,
+            day: 0,
+            timestamp: 0,
+            dateString: "",
+        })
+        setSelectedSubCategory(undefined)
+        setPriority("")
+        setSelectedCategory(undefined);
     };
 
     function handleSaveTask() {
@@ -38,11 +70,13 @@ export function AddTask() {
         }
         const task = {
             name: taskName,
-            priority: priority,
+            priority,
             category: selectedCategory?._id,
             subCategory: selectedSubCategory?._id,
             date: date.dateString,
+            subTask: localSubTasks,
         };
+
 
         handleAddTask(task, handleBackToTask);
         setDate({
@@ -55,7 +89,18 @@ export function AddTask() {
         setSelectedSubCategory(undefined)
         setPriority("")
         setTaskName("")
+        setSelectedCategory(undefined)
     }
+
+    useEffect(() => {
+        const keyboardHideListener = Keyboard.addListener("keyboardDidHide", () => {
+            if (taskName.trim() !== "") {
+                setShowSubTasks(true);
+            }
+        });
+
+        return () => keyboardHideListener.remove();
+    }, [taskName]);
 
 
     return (
@@ -66,17 +111,44 @@ export function AddTask() {
                     <Feather name="x" size={30} color={theme.gray4} />
                 </TouchableOpacity>
             </View>
-
             <View style={{ flex: 1 }}>
                 <TextInput
                     style={styles.input}
-                    multiline={true}
+                    multiline
                     numberOfLines={3}
                     placeholder="Escreva uma nova tarefa..."
                     value={taskName}
                     onChangeText={setTaskName}
                 />
+
+                {showSubTasks && (
+                    <FlatList
+                        data={localSubTasks}
+                        keyExtractor={(_, index) => index.toString()}
+                        renderItem={({ item, index }) => (
+                            <View style={styles.containerItem}>
+                                <View style={styles.circle} />
+                                <TextInput
+                                    style={styles.input}
+                                    multiline
+                                    numberOfLines={3}
+                                    placeholder="Digite a subtarefa..."
+                                    value={item.task}
+                                    onChangeText={(text) => handleSubTaskChange(text, index)}
+                                />
+                            </View>
+                        )} ListFooterComponent={
+                            !hasEmptyTask ? (
+                                <TouchableOpacity onPress={addNewSubTask} style={styles.addButton}>
+                                    <Plus color={theme.blue1} size={20} />
+                                    <Text style={styles.addButtonText}>Nova sub-tarefa</Text>
+                                </TouchableOpacity>
+                            ) : null
+                        }
+                    />
+                )}
             </View>
+
             <View style={styles.containerButton}>
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("calendar")}>
                     <Feather name="clock" size={24} color={theme.gray4} />
@@ -90,10 +162,21 @@ export function AddTask() {
 
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("category")}>
+                <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("category"),
+                setIsCreateCategoryOpen(false)
+                ]}>
                     <Feather name="tag" size={24} color={theme.gray4} />
-                    {selectedSubCategory !== undefined ? <Text>{selectedSubCategory?.subCategory}</Text> : ""}
+                    {selectedCategory !== undefined ? <Text>{selectedCategory?.category}</Text> : ""}
                 </TouchableOpacity>
+                {selectedCategory &&
+                    <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("subCategory"),
+                    setIsCreateCategoryOpen(false)
+                    ]}>
+                        <Feather name="tag" size={24} color={theme.gray4} />
+                        {selectedSubCategory !== undefined ? <Text>{selectedSubCategory?.subCategory}</Text> : ""}
+                    </TouchableOpacity>
+                }
+
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("priority")}>
                     <Feather name="flag" size={24} color={theme.gray4} />
                     {priority ? <Text>{priority}</Text> : ""}
@@ -103,7 +186,10 @@ export function AddTask() {
                 <ModalCalendar isVisible={openSections["calendar"]} handleOnVisible={() => toggleSection("calendar")} />
                 : ""}
             {openSections["category"] ?
-                <ModalSubCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />
+                <ModalCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />
+                : ""}
+            {openSections["subCategory"] ?
+                <ModalSubCategory isVisible={openSections["subCategory"]} handleOnVisible={() => toggleSection("subCategory")} />
                 : ""}
             {openSections["priority"] ?
                 <ModalPriority isVisible={openSections["priority"]} handleOnVisible={() => toggleSection("priority")} />

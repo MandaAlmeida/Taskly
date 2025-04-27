@@ -1,34 +1,32 @@
-import React from "react";
-import { View } from "react-native";
-import Modal from "react-native-modal";
-import {
-    Calendar as CalentarDate,
-    CalendarUtils,
-    DateData,
-} from "react-native-calendars";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { theme } from '@/styles/theme';
+import { Calendar as CalentarDate, CalendarUtils, DateData, LocaleConfig } from 'react-native-calendars';
+import { styles } from './styles';
+import { ptBR } from '@/utils/localeCalendarConfig';
+import { useTask } from '@/hooks/useTask';
+import { View, Text, TouchableOpacity } from 'react-native';
+import Modal from 'react-native-modal';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { TaskProps } from '@/@types/task';
+import { ModalProps } from '../modalSubTask';
 
-import { styles } from "./styles"; // ajuste conforme o caminho real no seu projeto
-import { theme } from "@/styles/theme"; // ajuste conforme o caminho real no seu projeto
+LocaleConfig.locales["pt-br"] = ptBR
+LocaleConfig.defaultLocale = "pt-br"
 
-// Tipagem das props
-type ModalCalendarProps = {
-    isVisible: boolean;
-    handleOnVisible: () => void;
-    onDateSelected: (date: DateData) => void;
-    selectedDate: DateData;
-};
 
-export function ModalCalendar({
-    isVisible,
-    handleOnVisible,
-    onDateSelected,
-    selectedDate,
-}: ModalCalendarProps) {
+
+export function ModalCalendar({ isVisible, handleOnVisible, task }: ModalProps) {
+    const { fetchTask, setDate, date, handleUpdateTask } = useTask();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
 
     function handleDayPress(item: DateData) {
-        onDateSelected(item);
+        setDate(item);
+        fetchTask();
+    }
+
+    function UpdateDay() {
+        if (task) {
+            handleUpdateTask({ _id: task._id, date: date.dateString, task: task })
+        }
         handleOnVisible();
     }
 
@@ -38,13 +36,9 @@ export function ModalCalendar({
                 <CalentarDate
                     current={INITIAL_DATE}
                     style={styles.calendar}
-                    renderArrow={(direction: "left" | "right") =>
-                        direction === "left" ? (
-                            <ChevronLeft size={24} color={theme.blue1} />
-                        ) : (
-                            <ChevronRight size={24} color={theme.blue1} />
-                        )
-                    }
+                    renderArrow={(direction: "left" | "right") => (
+                        direction === "left" ?
+                            <ChevronLeft size={24} color={theme.blue1} /> : <ChevronRight size={24} color={theme.blue1} />)}
                     theme={{
                         textMonthFontSize: 18,
                         textSectionTitleColor: theme.blue1,
@@ -58,11 +52,21 @@ export function ModalCalendar({
                         textDisabledColor: theme.gray2,
                     }}
                     onDayPress={handleDayPress}
-                    markedDates={{
-                        [selectedDate.dateString]: { selected: true },
+                    markedDates={date && {
+                        [date.dateString]: { selected: true }
                     }}
                 />
+
+                <View style={styles.buttonsContainer}>
+                    <TouchableOpacity onPress={() => handleOnVisible()}>
+                        <Text style={styles.cancelText}>Cancelar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => UpdateDay()} style={styles.confirmButton}>
+                        <Text style={styles.confirmText}>Salvar</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-        </Modal>
+        </Modal >
     );
 }

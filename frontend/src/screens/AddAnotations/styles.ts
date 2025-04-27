@@ -26,6 +26,12 @@ export const styles = StyleSheet.create({
         fontSize: 24,
         color: theme.gray4,
     },
+    inputContent: {
+        fontSize: 20,
+        color: theme.gray2,
+        padding: 10,
+        minHeight: 80
+    },
     priority: {
         gap: 10,
         borderColor: theme.blue1,

@@ -7,23 +7,26 @@ import * as LucideIcons from 'lucide-react-native';
 import chroma from 'chroma-js';
 import { colors } from "@/Array/colors";
 import { iconsList } from "@/Array/icons";
-import { useNavigation } from "@react-navigation/native";
 
 type CategoryProps = {
     title: string
 }
 
 export function AddCategory({ title }: CategoryProps) {
-    const { isCreateCategoryOpen, setIsCreateCategoryOpen, handleAddCategory } = useTask();
-    const navigate = useNavigation();
+    const { isCreateCategoryOpen, setIsCreateCategoryOpen, handleAddCategory, handleAddSubCategory } = useTask();
     const [selectedName, setSelectedName] = useState("")
     const [selectedIcon, setSelectedIcon] = useState<number>(0);
     const [selectedColor, setSelectedColor] = useState<number>(0);
 
 
     function CreateCategory() {
-        handleAddCategory(selectedName, selectedIcon, chroma(colors[selectedColor]).hex())
-        navigate.goBack()
+        handleAddCategory(selectedName, selectedIcon.toString(), chroma(colors[selectedColor]).hex())
+        setIsCreateCategoryOpen(false)
+    }
+
+    function CreateSubCategory() {
+        handleAddSubCategory(selectedName, selectedIcon.toString(), chroma(colors[selectedColor]).hex())
+        setIsCreateCategoryOpen(false)
     }
 
 
@@ -36,8 +39,8 @@ export function AddCategory({ title }: CategoryProps) {
                         <Text style={styles.text}>Nome:</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="Nome da categoria"
-                            placeholderTextColor={theme.white}
+                            placeholder={`Nome da ${title}`}
+                            placeholderTextColor={theme.gray1}
                             value={selectedName}
                             onChangeText={(text) => { setSelectedName(text) }}
                         />
@@ -98,8 +101,8 @@ export function AddCategory({ title }: CategoryProps) {
                         <Text style={styles.cancelText}>Cancelar</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => CreateCategory()} style={[styles.button, { backgroundColor: theme.blue1 }]}>
-                        <Text style={styles.confirmText}>Criar Categoria</Text>
+                    <TouchableOpacity onPress={() => title === "Categoria" ? CreateCategory() : CreateSubCategory()} style={[styles.button, { backgroundColor: theme.blue1 }]}>
+                        <Text style={styles.confirmText}>Criar {title}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

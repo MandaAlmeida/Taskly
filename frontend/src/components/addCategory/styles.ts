@@ -26,11 +26,12 @@ export const styles = StyleSheet.create({
     },
     input: {
         fontSize: 16,
-        backgroundColor: theme.blue1,
-        color: theme.white,
+        color: theme.gray4,
         padding: 12,
         borderRadius: 10,
-        height: 48
+        height: 48,
+        borderWidth: 1,
+        borderColor: theme.blue1
     },
     containerColor: {
         paddingVertical: 16,

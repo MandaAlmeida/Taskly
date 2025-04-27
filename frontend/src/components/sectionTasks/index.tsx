@@ -17,7 +17,7 @@ type SectionProps = {
     sections: Section[];
 };
 
-export function SectionTaks({ sections }: SectionProps) {
+export function SectionTask({ sections }: SectionProps) {
     const { handleUpdateTask, subCategory, fetchTaskById, openSections, setOpenSections } = useTask();
 
 
@@ -37,16 +37,15 @@ export function SectionTaks({ sections }: SectionProps) {
                 <Task
                     _id={item._id}
                     name={item.name}
-                    handleUpdateTask={() => handleUpdateTask({ _id: item._id, status: item.status })}
                     handleOpenTask={() => fetchTaskById(item._id)}
                     status={item.status}
                     priority={item.priority}
-                    category={
+                    subCategory={
                         subCategory.find((subCategory) => subCategory._id === item.subCategory)?.subCategory || "Sem sub categoria"
                     }
                     date={formatDate(item.date)}
                     color={subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
-                    subCategory={item.subCategory}
+                    category={item.subCategory}
                     subTask={item.subTask}
                     userId={item.userId}
                 />

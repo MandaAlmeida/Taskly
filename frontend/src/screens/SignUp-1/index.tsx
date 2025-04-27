@@ -1,7 +1,6 @@
-import { Text, View, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { Text, View, TextInput, TouchableOpacity, ScrollView, Modal } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { DateData, CalendarUtils } from "react-native-calendars";
-import { ModalCalendar } from "@/components/modalCalendar";
+import { DateData, CalendarUtils, Calendar } from "react-native-calendars";
 
 import { InputForm } from "@/components/inputForm";
 import { useRef, useState } from "react";
@@ -13,12 +12,10 @@ import { Button } from "@/components/button";
 import { styles } from "./styles";
 import { theme } from "@/styles/theme";
 import { Feather } from "@expo/vector-icons";
-import { useTask } from "@/hooks/useTask";
 import { Progress } from "@/components/progress";
 import { formatDate } from "@/utils/formatDate";
 
 export function SignUp1() {
-    const { error } = useTask();
     const { control, formState: { errors }, watch, handleSubmit, setValue } = useFormContext<AccountProps>();
 
     const nameRef = useRef<TextInput>(null);
@@ -45,10 +42,31 @@ export function SignUp1() {
     const handleNextPage = () => navigate("signUp2");
     const handleNextWelcome = () => navigate("welcome");
 
-    const handleDayPress = (day: { dateString: string }) => {
-        setShowCalendar(false);
+    const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i); // últimos 100 anos
+    const months = [
+        { label: "Janeiro", value: 1 },
+        { label: "Fevereiro", value: 2 },
+        { label: "Março", value: 3 },
+        { label: "Abril", value: 4 },
+        { label: "Maio", value: 5 },
+        { label: "Junho", value: 6 },
+        { label: "Julho", value: 7 },
+        { label: "Agosto", value: 8 },
+        { label: "Setembro", value: 9 },
+        { label: "Outubro", value: 10 },
+        { label: "Novembro", value: 11 },
+        { label: "Dezembro", value: 12 },
+    ];
+
+    const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+    const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+    const handleSelectDate = (day: DateData) => {
+        setSelectedDate(day);
         setValue("birth", day.dateString);
+        setShowCalendar(false);
     };
+
 
     return (
         <View style={styles.container}>
@@ -104,15 +122,68 @@ export function SignUp1() {
 
                     {errors.birth && <Text style={{ color: "red" }}>{errors.birth.message}</Text>}
 
-                    <ModalCalendar
-                        isVisible={showCalendar}
-                        handleOnVisible={() => setShowCalendar(false)}
-                        onDateSelected={(dateData) => {
-                            setSelectedDate(dateData);
-                            setValue("birth", dateData.dateString);
-                        }}
-                        selectedDate={selectedDate}
-                    />
+                    <Modal
+                        visible={showCalendar}
+                        transparent
+                        animationType="slide"
+                        onRequestClose={() => setShowCalendar(false)}
+                    >
+                        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+                            <View style={{ backgroundColor: '#fff', borderRadius: 10, padding: 20, width: '90%' }}>
+                                {/* Header com seleção de mês/ano */}
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                    <TouchableOpacity onPress={() => setShowCalendar(false)}>
+                                        <Feather name="x" size={24} color="black" />
+                                    </TouchableOpacity>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <TouchableOpacity onPress={() => setCurrentYear(prev => prev - 1)}>
+                                            <Feather name="chevron-left" size={24} color="black" />
+                                        </TouchableOpacity>
+                                        <Text style={{ marginHorizontal: 10 }}>{currentYear}</Text>
+                                        <TouchableOpacity onPress={() => setCurrentYear(prev => prev + 1)}>
+                                            <Feather name="chevron-right" size={24} color="black" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                {/* Seleção de mês */}
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+                                    {months.map(month => (
+                                        <TouchableOpacity
+                                            key={month.value}
+                                            style={{
+                                                padding: 8,
+                                                marginHorizontal: 5,
+                                                borderRadius: 5,
+                                                backgroundColor: currentMonth === month.value ? theme.blue1 : theme.gray1,
+                                            }}
+                                            onPress={() => setCurrentMonth(month.value)}
+                                        >
+                                            <Text style={{ color: currentMonth === month.value ? '#fff' : '#000' }}>{month.label}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+
+                                {/* Calendário */}
+                                <Calendar
+                                    current={`${currentYear}-${String(currentMonth).padStart(2, '0')}-01`}
+                                    onDayPress={handleSelectDate}
+                                    markedDates={{
+                                        [selectedDate.dateString]: { selected: true, selectedColor: theme.blue1 },
+                                    }}
+                                    theme={{
+                                        todayTextColor: theme.blue1,
+                                        arrowColor: theme.blue1,
+                                    }}
+                                    hideExtraDays
+                                />
+
+                                {/* Botão de fechar */}
+                                <Button text="Fechar" onPress={() => setShowCalendar(false)} style={{ marginTop: 10 }} />
+                            </View>
+                        </View>
+                    </Modal>
+
 
                 </View>
 

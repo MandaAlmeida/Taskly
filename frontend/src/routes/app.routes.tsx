@@ -1,8 +1,8 @@
 import React from "react";
 import { TouchableOpacity, View, Text } from "react-native";
-import { FontAwesome, Octicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { getFocusedRouteNameFromRoute, NavigatorScreenParams } from "@react-navigation/native";
 import { theme } from '@/styles/theme';
 import { Home } from "@/screens/Home";
 import { PageTasks } from "@/screens/PageTasks";
@@ -10,15 +10,16 @@ import { AddTask } from "@/screens/AddTask";
 import { Category } from "@/screens/Category";
 import { Calendars } from "@/screens/Calendars";
 import { Profile } from "@/screens/Profile";
-import { styles } from "./styles";
-import { NavigatorScreenParams, useNavigation } from "@react-navigation/native";
 import { Anotations } from "@/screens/Anotations";
-
-import { CalendarDays, House, ListChecks, NotepadText, Plus } from "lucide-react-native"
+import { AddAnnotations } from "@/screens/AddAnotations";
+import { FloatingActionButton } from "@/components/FloatingActionButton"; // ajuste o caminho se necessário
+import { CalendarDays, House, ListChecks, NotepadText } from "lucide-react-native";
+import { styles } from "./styles";
 
 export type StackParamList = {
     tabs: NavigatorScreenParams<TabParamList>;
     addTask: undefined;
+    addAnnotations: undefined;
     category: undefined;
     profile: undefined;
 };
@@ -29,21 +30,21 @@ export type TabParamList = {
     calendar: undefined;
     anotation: undefined;
     addTask: undefined;
+    addAnnotations: undefined;
 };
 
+const Stack = createNativeStackNavigator<StackParamList>();
+const Tab = createBottomTabNavigator<TabParamList>();
 
+function BottomTabs({ route }: { route: any }) {
+    const routeName = getFocusedRouteNameFromRoute(route) ?? 'home';
 
-const Stack = createNativeStackNavigator<StackParamList>()
-const Tab = createBottomTabNavigator<TabParamList>()
-
-function BottomTabs() {
-    const navigation = useNavigation();
     return (
         <Tab.Navigator
             screenOptions={{
                 headerShown: false,
                 tabBarHideOnKeyboard: true,
-                tabBarStyle: styles.tabBar,
+                tabBarStyle: [styles.tabBar],
                 tabBarShowLabel: false,
             }}
         >
@@ -72,17 +73,10 @@ function BottomTabs() {
                 }}
             />
             <Tab.Screen
-                name="addTask"
-                component={AddTask}
+                name={routeName === "anotation" ? "addTask" : "addAnnotations"}
+                component={routeName === "anotation" ? AddTask : AddAnnotations}
                 options={{
-                    tabBarButton: () => (
-                        <TouchableOpacity
-                            style={styles.addButton}
-                            onPress={() => navigation.navigate("addTask")}
-                        >
-                            <Plus size={24} color="white" />
-                        </TouchableOpacity>
-                    ),
+                    tabBarButton: () => <FloatingActionButton />,
                 }}
             />
             <Tab.Screen
@@ -110,7 +104,7 @@ function BottomTabs() {
                 }}
             />
         </Tab.Navigator>
-    )
+    );
 }
 
 export function AppRoutes() {
@@ -118,8 +112,9 @@ export function AppRoutes() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="tabs" component={BottomTabs} />
             <Stack.Screen name="addTask" component={AddTask} />
+            <Stack.Screen name="addAnnotations" component={AddAnnotations} />
             <Stack.Screen name="category" component={Category} />
             <Stack.Screen name="profile" component={Profile} />
         </Stack.Navigator>
-    )
+    );
 }

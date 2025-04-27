@@ -17,11 +17,11 @@ import { Progress } from "@/components/progress";
 export function SignUp3() {
     const { createUser } = useTask();
     const { handleSubmit } = useFormContext<AccountProps>();
-    const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+    const [image, setImage] = useState<ImagePicker.ImagePickerAsset>();
 
     const { navigate } = useNavigation();
 
-    const isDisabled = !image;
+    // const isDisabled = !image;
 
     async function pickerImage() {
         const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -33,7 +33,7 @@ export function SignUp3() {
         const result = await ImagePicker.launchImageLibraryAsync({
             allowsEditing: true,
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            base64: false,
+            base64: true,
             aspect: [4, 4],
             quality: 1,
         });
@@ -58,30 +58,38 @@ export function SignUp3() {
     }
 
     async function handleNextPage(user: AccountProps) {
-        if (!image) return; // Verifica se a imagem foi selecionada.
+        if (!image) return;
 
         const formData = new FormData();
-        formData.append("nameUser", user.userName); // ou "nameUser" se for assim no DTO
+
+        formData.append("userName", user.userName);
         formData.append("name", user.name);
         formData.append("birth", user.birth);
         formData.append("email", user.email);
         formData.append("password", user.password);
         formData.append("passwordConfirmation", user.passwordConfirmation);
 
-        // A imagem deve ser um objeto no formato correto
-        formData.append("file", {
-            uri: image.uri,
-            name: image.fileName ?? "image.jpg",
-            type: image.type ?? "image/jpeg",
-        } as any);
+        if (image.uri) {
+            const fileName = image.uri.split('/').pop() || 'photo.jpg';
+            const match = /\.(\w+)$/.exec(fileName);
+            const ext = match?.[1];
+            const mimeType = ext ? `image/${ext}` : `image`;
 
+            formData.append('file', {
+                uri: image.uri,
+                name: fileName,
+                type: mimeType
+            } as any);
+        }
 
         try {
-            createUser(formData, handleLogin); // Passando formData para o backend
+            createUser(formData, handleLogin);
+            navigate("signIn")
         } catch (error) {
             console.error("Erro ao criar usuário:", error);
         }
     }
+
 
 
     return (
@@ -110,7 +118,7 @@ export function SignUp3() {
                 </View>
                 <View style={styles.containerButton}>
                     <Button text="VOLTAR" onPress={handlePreviousPage} style={[styles.button, { width: 150 }]} />
-                    <Button text="CONTINUAR" onPress={handleSubmit(handleNextPage)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1, width: 150 }]} disabled={isDisabled} />
+                    <Button text="CONTINUAR" onPress={handleSubmit(handleNextPage)} style={[styles.button, { width: 150 }]} />
                 </View>
                 <Progress count={3} />
             </ScrollView>

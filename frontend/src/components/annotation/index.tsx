@@ -8,12 +8,20 @@ import { styles } from "./styles";
 import { formatDatePTBR } from "@/utils/formatDate";
 
 export function Annotation() {
-    const { annotationById, fetchAttachment, isAnnotationOpen, attachment, setIsAnnotationOpen } = useTask();
+    const { annotationById, fetchAttachment, isAnnotationOpen, attachment, setIsAnnotationOpen, category, getNameUser, createUserAnnotation } = useTask();
 
     useEffect(() => {
-        if (!annotationById?.attachment) return;
-        fetchAttachment(annotationById.attachment)
+        if (annotationById) {
+            annotationById.content.map(item => {
+                if (item.type !== "image") return;
+                if (item.type === "image" && typeof item.value !== "string") {
+                    fetchAttachment(item.value)
+                }
 
+            })
+
+            getNameUser(annotationById.createdUserId)
+        }
     }, [annotationById]);
 
     return (
@@ -30,22 +38,46 @@ export function Annotation() {
                             <X size={24} color={theme.gray4} />
                         </TouchableOpacity>
                     </View>
-                    <View style={styles.containerContent}>
-                        <Text style={styles.content}>{annotationById.content}</Text>
 
-                        {attachment?.map((url, index) => (
-                            <Image
-                                key={index}
-                                source={{ uri: url }}
-                                style={styles.image}
-                            />
-                        ))}
-                    </View>
+                    {annotationById.content.map((item, index) => {
+                        if (item.type === "text" && typeof item.value === "string") {
+                            return (
+                                <Text
+                                    key={index}
+                                    style={{ fontSize: 16, color: '#333', marginBottom: 16 }}
+                                >
+                                    {item.value}
+                                </Text>
+                            );
+                        } else if (item.type === "image" && typeof item.value !== "string") {
+
+                            const foundImage = attachment.find(image => image.title === item.value.title);
+
+                            if (foundImage) {
+                                return (
+                                    <Image
+                                        key={index}
+                                        source={{ uri: foundImage.url }}
+                                        style={{
+                                            width: '100%',
+                                            height: 200,
+                                            borderRadius: 8,
+                                            marginBottom: 16,
+                                        }}
+                                        resizeMode="cover"
+                                    />
+                                );
+                            } else {
+                                return null; // Se não achou imagem, não renderiza nada
+                            }
+                        }
+                    })}
+
                     <View style={styles.footer}>
                         {annotationById.groupId && <Text style={styles.textFooter}>Grupo: {annotationById.groupId}</Text>}
-                        <Text style={styles.textFooter}>Criado por: {annotationById.createdUserId}</Text>
+                        <Text style={styles.textFooter}>Criado por: {createUserAnnotation?.userName}</Text>
                         <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                            <Text style={styles.textFooter}>Categoria: {annotationById.category}</Text>
+                            <Text style={styles.textFooter}>Categoria: {category.find((category) => category._id === annotationById.category)?.category || "Sem categoria"}</Text>
                             <Text style={styles.textFooter}>Data de criação: {formatDatePTBR(annotationById.createdAt)}</Text>
                         </View>
                     </View>
