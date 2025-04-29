@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, Text, TouchableOpacity, TextInput, FlatList } from "react-native";
 import { Feather } from '@expo/vector-icons';
 import { styles } from "./styles";
@@ -41,6 +41,7 @@ export function AddTask() {
 
     function addNewSubTask() {
         setLocalSubTasks([...localSubTasks, { task: '', status: 'PENDING' }]);
+        focusOnNewInput(localSubTasks.length);
     };
 
     function toggleSection(key: string) {
@@ -62,6 +63,15 @@ export function AddTask() {
         setSelectedSubCategory(undefined)
         setPriority("")
         setSelectedCategory(undefined);
+    };
+
+
+    const inputRefs = useRef<TextInput[]>([]); // Aqui armazenamos as refs
+
+    const focusOnNewInput = (index: number) => {
+        setTimeout(() => {
+            inputRefs.current[index]?.focus(); // Foca no input novo
+        }, 100); // Pequeno delay para garantir que o input existe
     };
 
     function handleSaveTask() {
@@ -115,10 +125,22 @@ export function AddTask() {
                 <TextInput
                     style={styles.input}
                     multiline
-                    numberOfLines={3}
+                    numberOfLines={2}
                     placeholder="Escreva uma nova tarefa..."
                     value={taskName}
-                    onChangeText={setTaskName}
+                    onChangeText={(text) => {
+                        if (text.includes('\n')) {
+                            setTaskName(text.replace('\n', '')); // remove o Enter
+                            if (!showSubTasks) {
+                                setShowSubTasks(true); // Mostra subtarefas
+                            }
+                            if (localSubTasks.length === 0) {
+                                addNewSubTask(); // Se não existe nenhuma subtarefa, cria
+                            }
+                        } else {
+                            setTaskName(text);
+                        }
+                    }}
                 />
 
                 {showSubTasks && (
@@ -129,12 +151,22 @@ export function AddTask() {
                             <View style={styles.containerItem}>
                                 <View style={styles.circle} />
                                 <TextInput
+                                    ref={(ref) => {
+                                        if (ref) inputRefs.current[index] = ref;
+                                    }}
                                     style={styles.input}
                                     multiline
                                     numberOfLines={3}
                                     placeholder="Digite a subtarefa..."
                                     value={item.task}
-                                    onChangeText={(text) => handleSubTaskChange(text, index)}
+                                    onChangeText={(text) => {
+                                        if (text.includes('\n')) {
+                                            handleSubTaskChange(text.replace('\n', ''), index);
+                                            addNewSubTask();
+                                        } else {
+                                            handleSubTaskChange(text, index);
+                                        }
+                                    }}
                                 />
                             </View>
                         )} ListFooterComponent={

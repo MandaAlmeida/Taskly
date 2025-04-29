@@ -86,7 +86,7 @@ export function SignUp3() {
             createUser(formData, handleLogin);
             navigate("signIn")
         } catch (error) {
-            console.error("Erro ao criar usuário:", error);
+            console.log("Erro ao criar usuário:", error);
         }
     }
 

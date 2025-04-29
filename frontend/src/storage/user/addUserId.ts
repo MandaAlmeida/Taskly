@@ -5,7 +5,7 @@ export async function addUserID(user: string) {
     try {
         await AsyncStorage.setItem(USER, JSON.stringify(user));
     } catch (error) {
-        console.error("Erro ao recuperar o user:", error);
+        console.log("Erro ao recuperar o user:", error);
         throw error;
     }
 }

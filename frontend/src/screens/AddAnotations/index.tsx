@@ -1,55 +1,107 @@
 import { View, TextInput, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { Paperclip, Tag, User, UserPlus, Users, X } from 'lucide-react-native';
+import * as DocumentPicker from 'expo-document-picker';
+
+import { ImagePlus, Paperclip, Tag, UserPlus, Users, X } from 'lucide-react-native';
 import { theme } from '@/styles/theme';
 import { styles } from './styles';
 import { Button } from '@/components/button';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { StackParamList } from '@/routes/app.routes';
 import { ModalCategory } from '@/components/modalCategory';
 import { useTask } from '@/hooks/useTask';
+import { AnnotationProps, contentProps } from '@/@types/annotation';
 
 type NavigationProps = StackNavigationProp<StackParamList>;
-
+type AddAnnotationsRouteProp = RouteProp<StackParamList, 'addAnnotations'>;
 
 export function AddAnnotations() {
-    const [title, setTitle] = useState('');
+    const route = useRoute<AddAnnotationsRouteProp>();
+    const annotation = route.params?.annotation;
+    const [title, setTitle] = useState(annotation?.title ?? '');
     const navigation = useNavigation<NavigationProps>();
     const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
+    const { selectedCategory, handleAddAnnotation, fetchAttachment, attachment, handleUpdateAnnotation } = useTask();
 
-    const { selectedCategory, handleAddAnnotation } = useTask();
+    const [content, setContent] = useState<contentProps[]>(annotation?.content ?? [{ type: 'text', value: '' }]);
 
-    const [content, setContent] = useState<{ type: 'text' | 'image'; value: string }[]>([
-        { type: 'text', value: '' }
-    ]);
+    useEffect(() => {
+        async function fetchImageContent() {
+            if (!annotation) return;
 
-    const isDisabled = !selectedCategory || title === ""
+            const updatedContent = await Promise.all(annotation.content.map(async (item) => {
+                if (item.type === "image") {
+                    if (typeof item.value === 'string' && !item.value.startsWith("http")) {
+                        const uri = fetchAttachment(item.value);
+                        return { ...item, value: uri };
+                    }
+                }
+                return item;
+            }));
+
+            setContent(updatedContent);
+        }
+
+        fetchImageContent();
+    }, [annotation]);
+
+
+    const image = content.filter(cont => cont.type === "image").length;
+    const [otherFiles, setOtherFiles] = useState<DocumentPicker.DocumentPickerAsset[]>(
+        annotation?.attachments
+            ? annotation.attachments.map((file) => ({
+                uri: file.url,
+                name: file.title,
+                mimeType: file.type,
+                file: undefined,
+            }))
+            : []
+    );
+
+    const isDisabled = !selectedCategory || title === "";
 
     async function addImageBlock() {
         const result = await ImagePicker.launchImageLibraryAsync();
         if (!result.canceled) {
             const updatedContent = [...content];
-            updatedContent.push(
-                { type: 'image', value: result.assets[0].uri },
-                { type: 'text', value: '' }
-            );
+            updatedContent.push({ type: 'image', value: result.assets[0].uri }, { type: 'text', value: '' });
             setContent(updatedContent);
         }
     }
 
-    function toggleSection(key: string) {
-        setOpenSections((prev) => ({
-            ...prev,
-            [key]: !prev[key],
-        }));
+    async function replaceImage(index: number) {
+        const result = await ImagePicker.launchImageLibraryAsync();
+        if (!result.canceled) {
+            const updatedContent = [...content];
+            updatedContent[index] = { type: 'image', value: result.assets[0].uri };
+            setContent(updatedContent);
+        }
     }
 
+    async function pickDocument() {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+                multiple: false,
+            });
+
+            if (!result.canceled) {
+                setOtherFiles(prev => [...prev, ...result.assets]);
+            }
+        } catch (err) {
+            console.log('Error picking document:', err);
+        }
+    }
+
+    function toggleSection(key: string) {
+        setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+    }
 
     function updateTextBlock(index: number, newText: string) {
         const updatedContent = [...content];
-        updatedContent[index].value = newText;
+        updatedContent[index] = { ...updatedContent[index], value: newText };
         setContent(updatedContent);
     }
 
@@ -57,21 +109,21 @@ export function AddAnnotations() {
         const formData = new FormData();
 
         formData.append("title", title);
-        if (selectedCategory) formData.append("category", selectedCategory?._id);
+        if (selectedCategory) formData.append("category", selectedCategory._id);
 
-        const contentData = content.filter((item) => item.value !== "")
-
+        const contentData = content.filter((item) => item.value !== "");
         formData.append("content", JSON.stringify(contentData));
 
+        // Adiciona imagens, verificando se são novas
         content.forEach((block, index) => {
-            if (block.type === 'image') {
-                const uri = block.value as string;
+            if (block.type === 'image' && typeof block.value === 'string' && block.value.startsWith("file://")) {
+                const uri = block.value;
                 const fileName = uri.split('/').pop() || `photo_${index}.jpg`;
                 const match = /\.(\w+)$/.exec(fileName);
                 const ext = match?.[1];
-                const mimeType = ext ? `image/${ext}` : `image`;
+                const mimeType = ext ? `image/${ext}` : `image/jpeg`;
 
-                formData.append('image', {
+                formData.append('files', {
                     uri,
                     name: fileName,
                     type: mimeType,
@@ -79,20 +131,47 @@ export function AddAnnotations() {
             }
         });
 
-        handleAddAnnotation(formData)
-        handleBackToAnnotation()
 
+        // Adicionar documentos (attachments), verificando se são novos
+        otherFiles.forEach((block, index) => {
+            const uri = block.uri;
+            const fileName = uri.split('/').pop() || `document_${index}.jpg`;
+            const mimeType = block.mimeType;
+
+            // Verificar se o arquivo já está na anotação
+            const alreadyAttached = annotation?.attachments?.some(att => att.url === fileName);
+
+            console.log(!alreadyAttached)
+
+            // Só adiciona se não estiver na anotação
+            if (!alreadyAttached) {
+                formData.append('attachments', {
+                    uri,
+                    name: fileName,
+                    type: mimeType,
+                } as any);
+            }
+        });
+
+        setContent([{ type: 'text', value: '' }]);
+
+        if (annotation) {
+            handleUpdateAnnotation(annotation._id, formData);
+        } else {
+            handleAddAnnotation(formData);
+        }
+
+        handleBackToAnnotation();
     }
 
     function handleBackToAnnotation() {
         navigation.navigate('tabs', { screen: 'anotation' });
-    };
-
+    }
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.title}>Adicionar Anotação</Text>
+                <Text style={styles.title}>{annotation ? "Editar Anotação" : "Adicionar Anotação"}</Text>
                 <TouchableOpacity onPress={handleBackToAnnotation}>
                     <X size={30} color={theme.gray4} />
                 </TouchableOpacity>
@@ -106,45 +185,78 @@ export function AddAnnotations() {
                 />
 
                 {content.map((block, index) => {
+                    if (!block || !block.type) {
+                        console.warn(`Invalid block at index ${index}:`, block);
+                        return null;
+                    }
+
                     if (block.type === 'text') {
                         return (
                             <View key={index} style={{ marginBottom: 20 }}>
                                 <TextInput
                                     placeholder="Digite aqui..."
-                                    value={block.value}
-                                    onChangeText={(text) => updateTextBlock(index, text)}
+                                    value={typeof block.value === 'string' ? block.value : ''}
+                                    onChangeText={text => updateTextBlock(index, text)}
                                     multiline
                                     style={styles.inputContent}
                                 />
                             </View>
                         );
-                    } else if (block.type === 'image') {
-                        return (
-                            <Image
-                                key={index}
-                                source={{ uri: block.value }}
-                                style={{
-                                    width: '100%',
-                                    height: 200,
-                                    marginBottom: 20,
-                                    borderRadius: 10,
-                                }}
-                            />
-                        );
                     }
+
+                    if (block.type === 'image') {
+                        // Verifica se é uma imagem que já existe no servidor (via attachment)
+                        const foundImage = attachment.find(image => {
+                            if (typeof block.value !== 'string') {
+                                return image.title === block.value.title;
+                            }
+                            return false;
+                        });
+
+                        const imageUri = foundImage?.url ?? (typeof block.value === 'string' ? block.value : null);
+
+                        if (imageUri) {
+                            return (
+                                <TouchableOpacity key={index} onPress={() => replaceImage(index)}>
+                                    <Image
+                                        source={{ uri: imageUri }}
+                                        style={{
+                                            width: '100%',
+                                            height: 200,
+                                            borderRadius: 8,
+                                            marginBottom: 16,
+                                        }}
+                                        resizeMode="cover"
+                                    />
+                                    <Text style={{ textAlign: 'center', color: 'gray' }}>Toque para substituir</Text>
+                                </TouchableOpacity>
+                            );
+                        }
+                    }
+
+                    return null;
                 })}
 
+
+
                 <View style={styles.containerButton}>
-                    <TouchableOpacity onPress={addImageBlock}><Paperclip size={24} color={theme.gray4} /></TouchableOpacity>
+                    <TouchableOpacity style={styles.buttonSelect} onPress={addImageBlock}>
+                        <ImagePlus size={24} color={theme.gray4} />
+                        {content.length > 0 && <Text>{image}</Text>}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.buttonSelect} onPress={pickDocument}>
+                        <Paperclip size={24} color={theme.gray4} />
+                        {otherFiles.length > 0 && <Text>{otherFiles.length}</Text>}
+                    </TouchableOpacity>
 
                     <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("category")}>
                         <Tag size={24} color={theme.gray4} />
-                        {selectedCategory !== undefined ? <Text>{selectedCategory?.category}</Text> : ""}
+                        {selectedCategory && <Text>{selectedCategory.category}</Text>}
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("member")}>
                         <UserPlus size={24} color={theme.gray4} />
-
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("group")}>
@@ -153,13 +265,11 @@ export function AddAnnotations() {
                 </View>
 
                 <View style={{ marginTop: 20 }}>
-                    <Button text="Criar Anotação" onPress={saveNote} disabled={isDisabled} style={{ opacity: isDisabled ? 0.5 : 1 }} />
+                    <Button text={annotation ? "Editar Anotação" : "Criar Anotação"} onPress={saveNote} disabled={isDisabled} style={{ opacity: isDisabled ? 0.5 : 1 }} />
                 </View>
             </ScrollView>
 
-            {openSections["category"] ?
-                <ModalCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />
-                : ""}
+            {openSections["category"] && <ModalCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />}
         </View>
     );
 }

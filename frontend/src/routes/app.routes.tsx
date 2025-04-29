@@ -15,11 +15,12 @@ import { AddAnnotations } from "@/screens/AddAnotations";
 import { FloatingActionButton } from "@/components/FloatingActionButton"; // ajuste o caminho se necessário
 import { CalendarDays, House, ListChecks, NotepadText } from "lucide-react-native";
 import { styles } from "./styles";
+import { AnnotationProps } from "@/@types/annotation";
 
 export type StackParamList = {
     tabs: NavigatorScreenParams<TabParamList>;
     addTask: undefined;
-    addAnnotations: undefined;
+    addAnnotations: { annotation?: AnnotationProps };
     category: undefined;
     profile: undefined;
 };
@@ -30,7 +31,7 @@ export type TabParamList = {
     calendar: undefined;
     anotation: undefined;
     addTask: undefined;
-    addAnnotations: undefined;
+    addAnnotations: { annotation?: AnnotationProps };
 };
 
 const Stack = createNativeStackNavigator<StackParamList>();

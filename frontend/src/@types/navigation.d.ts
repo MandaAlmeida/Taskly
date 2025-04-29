@@ -2,7 +2,7 @@ export declare global {
     namespace ReactNavigation {
         interface RootParamList {
             addTask: undefined;
-            addAnnotations: undefined;
+            addAnnotations: { annotation?: AnnotationProps };
             tasks: undefined;
             signIn: undefined;
             category: undefined;

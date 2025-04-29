@@ -45,7 +45,6 @@ export function ModalSubTask({ isVisible, handleOnVisible, task }: ModalProps) {
         handleOnVisible();
     }
 
-    console.log(localSubTasks)
     return (
         <Modal isVisible={isVisible}>
             <View style={styles.modalContainer}>

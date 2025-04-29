@@ -4,13 +4,16 @@ import { styles } from "./styles";
 import { theme } from "@/styles/theme";
 import { useTask } from "@/hooks/useTask";
 import { MenuListModal } from "../menuCategory";
+import { useNavigation } from "@react-navigation/native";
 
 type Props = {
     text: string
 }
 
 export function Header({ text }: Props) {
-    const { setSelectedCategory, isCategoryOpen, setIsCategoryOpen, setIsGroupOpen, isGroupOpen, category, user } = useTask();
+    const { setSelectedCategory, isCategoryOpen, setIsCategoryOpen, setIsGroupOpen, isGroupOpen, category, user, deleteUser, deslogar } = useTask();
+    const { navigate } = useNavigation();
+
 
     function openModal() {
         if (text !== "Anotações") {
@@ -20,20 +23,22 @@ export function Header({ text }: Props) {
         }
     }
 
+    function handleProfile() {
+        navigate("profile");
+    }
+
     return (
         <View style={styles.container}>
             <TouchableOpacity onPress={() => openModal()}>
                 <AlignJustify color={theme.gray4} size={24} />
             </TouchableOpacity>
             <Text style={styles.text}>{text}</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => handleProfile()}>
                 <Image
                     source={{ uri: user?.imageUser }}
                     style={styles.image}
                 />
-
             </TouchableOpacity>
-
             <MenuListModal
                 visible={isCategoryOpen}
                 title="Categorias"

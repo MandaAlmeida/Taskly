@@ -5,9 +5,12 @@ import { SectionTask } from "@/components/sectionTasks";
 import { ModalTask } from "@/components/modalTask";
 import { theme } from "@/styles/theme";
 import { useEffect } from "react";
+import { styles } from "./styles";
+import { Header } from "@/components/header";
+import { EmptyState } from "@/components/emptyState";
 
 export function Home() {
-    const { loading, user, tasks, tasksSearch, openSections, taskById, category, subCategory, fetchTask } = useTask();
+    const { loading, user, tasks, tasksSearch, openSections, taskById, subCategory, fetchTask } = useTask();
 
 
     if (loading) {
@@ -29,12 +32,24 @@ export function Home() {
         }
     ];
 
+
+    console.log(sections[0].lenght)
     return (
-        <View style={{ flex: 1 }}>
-            <Text>Bem-vindo(a) {user?.name}</Text>
+        <View style={styles.container}>
+            <Header text="Inicio" />
             <View>
-                <SectionTask sections={sections} />
+                <Text style={styles.title}>Bem-vindo(a) de volta </Text>
+                <Text style={styles.name}>{user?.name}</Text>
             </View>
+
+            {sections[0].lenght === "0" ?
+                <EmptyState text="tarefas" title="Você não possui tarefas para hoje" />
+                :
+                <View>
+                    <SectionTask sections={sections} />
+                </View>
+            }
+
             {taskById && <ModalTask
                 _id={taskById._id}
                 name={taskById.name}

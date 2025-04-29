@@ -1,6 +1,6 @@
 import { FlatList, View, Image, Text } from "react-native";
 import { Calendar, CalendarUtils, DateData, LocaleConfig } from 'react-native-calendars';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Feather } from "@expo/vector-icons";
 
@@ -15,26 +15,63 @@ import { useTask } from "@/hooks/useTask";
 import { Task } from "@/components/task";
 import { EmptyState } from "@/components/emptyState";
 import { formatDate } from "@/utils/formatDate";
+import { TaskProps } from "@/@types/task";
 
 
 LocaleConfig.locales["pt-br"] = ptBR
 LocaleConfig.defaultLocale = "pt-br"
 
 export function Calendars() {
+    const { fetchTaskByDate, tasksData, subCategory, fetchTaskById, tasks } = useTask();
+    const today = new Date();
+    const INITIAL_DATE = CalendarUtils.getCalendarDateString(today);
+
     const [day, setDay] = useState<DateData>({
-        year: 0,
-        month: 0,
-        day: 0,
-        timestamp: 0,
-        dateString: "",
-    })
-    const { fetchTaskByDate, tasksData, handleUpdateTask, subCategory, fetchTaskById } = useTask();
-    const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
+        year: today.getFullYear(),
+        month: today.getMonth() + 1,
+        day: today.getDate(),
+        timestamp: today.getTime(),
+        dateString: INITIAL_DATE,
+    });
+
 
     function handleDayPress(item: DateData) {
         setDay(item);
         fetchTaskByDate(item.dateString);
     }
+
+    useEffect(() => {
+        if (tasksData.length === 0) {
+            fetchTaskByDate(day.dateString);
+        }
+    }, [tasksData])
+
+
+    const buildMarkedDates = (selectedDate?: string) => {
+        const marked: Record<string, any> = {};
+
+        tasks.forEach(task => {
+            const taskDate = task.date.split('T')[0];
+
+            if (!marked[taskDate]) {
+                marked[taskDate] = {
+                    marked: true,
+                    dotColor: theme.blue2,
+                };
+            }
+        });
+
+        if (selectedDate) {
+            marked[selectedDate] = {
+                ...(marked[selectedDate] || {}),
+                selected: true,
+                selectedColor: theme.blue1,
+                selectedTextColor: theme.white,
+            };
+        }
+
+        return marked;
+    };
 
 
     return (
@@ -58,9 +95,7 @@ export function Calendars() {
                     textDisabledColor: theme.gray2,
                 }}
                 onDayPress={handleDayPress}
-                markedDates={day && {
-                    [day.dateString]: { selected: true }
-                }}
+                markedDates={buildMarkedDates(day?.dateString)}
             />
 
             {tasksData.length > 0 ? <FlatList

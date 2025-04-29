@@ -1,4 +1,5 @@
 export type attachmentProps = {
+    type: string;
     title: string;
     url: string
 }
@@ -8,8 +9,8 @@ type members = {
     accessType: string
 }
 
-type content = {
-    type: string,
+export type contentProps = {
+    type: 'text' | 'image',
     value: string | attachmentProps
 }
 
@@ -17,7 +18,7 @@ export type CreateAnnotationProps = {
     title: string;
     content: content[];
     category: string;
-    attachment?: attachmentProps[];
+    attachments?: attachmentProps[];
     members?: members[];
     groupId?: string[];
 }
@@ -32,4 +33,5 @@ export type AnnotationProps = {
     members?: members[];
     groupId?: string[];
     createdUserId: string;
+    attachments?: attachmentProps[];
 }

@@ -8,6 +8,7 @@ import Modal from 'react-native-modal';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { TaskProps } from '@/@types/task';
 import { ModalProps } from '../modalSubTask';
+import { ButtonModal } from '../buttonModal';
 
 LocaleConfig.locales["pt-br"] = ptBR
 LocaleConfig.defaultLocale = "pt-br"
@@ -57,15 +58,7 @@ export function ModalCalendar({ isVisible, handleOnVisible, task }: ModalProps) 
                     }}
                 />
 
-                <View style={styles.buttonsContainer}>
-                    <TouchableOpacity onPress={() => handleOnVisible()}>
-                        <Text style={styles.cancelText}>Cancelar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={() => UpdateDay()} style={styles.confirmButton}>
-                        <Text style={styles.confirmText}>Salvar</Text>
-                    </TouchableOpacity>
-                </View>
+                <ButtonModal color={task?.color || theme.blue1} CreateItem={() => UpdateDay()} handleOnVisible={() => handleOnVisible()} />
             </View>
         </Modal >
     );

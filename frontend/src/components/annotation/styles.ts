@@ -18,13 +18,33 @@ export const styles = StyleSheet.create({
         color: theme.gray4,
         fontWeight: "700"
     },
+    menuEdit: {
+        zIndex: 1,
+        position: "absolute",
+        top: 30,
+        backgroundColor: theme.white,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: `${theme.blue1}40`
+    },
+    menuItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+        padding: 20
+    },
+    menuText: {
+        fontSize: 16
+    },
     containerContent: {
         gap: 20,
     },
     title: {
         fontSize: 20,
         color: theme.gray4,
-        fontWeight: "700"
+        fontWeight: "700",
+        textAlign: "center",
+        marginBottom: 20
     },
     content: {
         fontSize: 16,

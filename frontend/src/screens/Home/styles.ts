@@ -5,41 +5,16 @@ import { theme } from '@/styles/theme';
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        padding: 24,
         gap: 20
     },
-    section: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-
-    text: {
-        color: theme.blue1,
+    title: {
+        fontSize: 20,
     },
     name: {
-        color: theme.blue2,
+        fontSize: 22,
         fontWeight: "700",
-        fontSize: 16
-    },
-    button: {
-        flexDirection: "row",
-        borderRadius: 6,
-        padding: 5,
-        paddingHorizontal: 10,
-        backgroundColor: theme.blue1,
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 10
-    },
-    count: {
-        alignItems: "center",
-        padding: 15,
-        borderRadius: 6,
-        marginTop: 30,
-        marginBottom: 40
-    },
-    textbutton: {
-        color: theme.white,
-    },
+        color: theme.blue1,
+        marginLeft: 40
+    }
 })

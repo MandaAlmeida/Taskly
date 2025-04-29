@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/emptyState";
 import { formatLayout, LayoutBlock } from "@/utils/formatLayout";
 import { formatDatePTBR } from "@/utils/formatDate";
 import { Annotation } from "@/components/annotation";
+import { theme } from "@/styles/theme";
 
 export function Anotations() {
     const { annotation, fetchAnnotation, fetchAnnotationById, category } = useTask();
@@ -28,39 +29,45 @@ export function Anotations() {
         if (item.type === "row") {
             return (
                 <View style={styles.row}>
-                    {item.items.map((annotation) => (
-                        <TouchableOpacity
-                            key={annotation._id}
-                            style={[styles.card, styles.cardSmall, {
-                                backgroundColor: "#FF808020",
-                                borderColor: "#FF8080",
-                            }]}
-                            onPress={() => handleAnnotation(annotation._id)}
-                        >
-                            <Text style={styles.title}>{annotation.title}</Text>
-                            {/* Verificar se annotation.content existe e é um array */}
-                            {annotation.content.map((ann, index) => {
-                                if (ann.type === "text") {
-                                    return <Text key={index} style={styles.description}>{ann.value.toString()}</Text>;
-                                }
-                                return null;
-                            })}
-                            <View style={styles.footer}>
-                                <Text style={styles.date}>{formatDatePTBR(annotation.createdAt)}</Text>
-                                <Text style={[styles.tag, { backgroundColor: "#FF8080" }]}>{category.find((category) => category._id === annotation.category)?.category || "Sem categoria"}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    ))}
+
+                    {item.items.map((annotation) => {
+                        const color = category.find((category) => category._id === annotation.category)?.color || theme.blue1
+
+                        return (
+                            <TouchableOpacity
+                                key={annotation._id}
+                                style={[styles.card, styles.cardSmall, {
+                                    backgroundColor: `${color}20`,
+                                    borderColor: color,
+                                }]}
+                                onPress={() => handleAnnotation(annotation._id)}
+                            >
+                                <Text style={styles.title}>{annotation.title}</Text>
+                                {/* Verificar se annotation.content existe e é um array */}
+                                {annotation.content.map((ann, index) => {
+                                    if (ann.type === "text") {
+                                        return <Text key={index} style={styles.description}>{ann.value.toString()}</Text>;
+                                    }
+                                    return null;
+                                })}
+                                <View style={styles.footer}>
+                                    <Text style={styles.date}>{formatDatePTBR(annotation.createdAt)}</Text>
+                                    <Text style={[styles.tag, { backgroundColor: color }]}>{category.find((category) => category._id === annotation.category)?.category || "Sem categoria"}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        )
+                    })}
                 </View>
             );
         } else {
             const annotation = item.items[0];
+            const color = category.find((category) => category._id === annotation.category)?.color || theme.blue1
             return (
                 <TouchableOpacity
                     key={annotation._id}
                     style={[styles.card, styles.cardLarge, {
-                        backgroundColor: "#FF808020",
-                        borderColor: "#FF8080",
+                        backgroundColor: `${color}20`,
+                        borderColor: color,
                     }]}
                     onPress={() => handleAnnotation(annotation._id)}
                 >
@@ -73,7 +80,7 @@ export function Anotations() {
                     })}
                     <View style={styles.footer}>
                         <Text style={styles.date}>{formatDatePTBR(annotation.createdAt)}</Text>
-                        <Text style={[styles.tag, { backgroundColor: "#FF8080" }]}>{category.find((category) => category._id === annotation.category)?.category || "Sem categoria"}</Text>
+                        <Text style={[styles.tag, { backgroundColor: color }]}>{category.find((category) => category._id === annotation.category)?.category || "Sem categoria"}</Text>
                     </View>
                 </TouchableOpacity>
             );

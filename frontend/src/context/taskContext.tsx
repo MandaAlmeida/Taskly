@@ -88,10 +88,13 @@ interface TaskContextProps {
     fetchAnnotationById: (id: string) => void;
     featchSubCategory: () => void;
     fetchTaskById: (taskId: string) => void;
-    handleSubTaskRemove: (taskId: string, subTask: string, subTaskId?: string) => void
-    handleAddAnnotation: (data: FormData) => void
-    handleAddSubCategory: (name: string, icon: string, color: string) => void
-    getNameUser: (userId: string) => void
+    handleSubTaskRemove: (taskId: string, subTask: string, subTaskId?: string) => void;
+    handleAddAnnotation: (data: FormData) => void;
+    handleAddSubCategory: (name: string, icon: string, color: string) => void;
+    getNameUser: (userId: string) => void;
+    deleteUser: () => void;
+    handleUpdateAnnotation: (id: string, data: FormData, handleBackToTask?: () => void) => void;
+    handleAnnotationRemove: (id: string, name: string) => void;
 }
 
 export const TaskContext = createContext({} as TaskContextProps);
@@ -168,20 +171,16 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     // USER
     async function createUser(formData: FormData, handleBackToLogin: () => void,) {
         try {
-            console.log(formData)
-            const response = await api.post("/user/register", formData, {
+            await api.post("/user/register", formData, {
                 headers: {
                     "Content-Type": `multipart/form-data`,
                 },
             });
-            console.log(response.data);
         } catch (error: any) {
-            console.error("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+            console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
             alert(`Erro: ${error.message}`);
         }
     }
-
-
 
     async function login(email: string, password: string) {
         try {
@@ -250,12 +249,49 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     async function fetchImageUser(fileName: string) {
         try {
-            const response = await api.get(`/annotation/fetchAttachment?attachment=${fileName}`);
+            const response = await api.get(`/uploads/${fileName}`);
             return response.data
         } catch (error) {
-            console.error("Erro ao buscar os arquivos:", error);
+            console.log("Erro ao buscar os arquivos:", error);
         }
     }
+
+    async function deleteUser() {
+        try {
+            Alert.alert("Ecluir", `Deseja realmente excluir sua conta ${user?.name}?`, [
+                {
+                    text: 'Não',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Sim',
+                    onPress: async () => {
+                        try {
+                            await api.delete("/user/delete");
+                            deslogar();
+                            Alert.alert("Sucesso", "Usúario excluido com sucesso!");
+                        } catch (error) {
+                            console.log(error);
+                            Alert.alert("Erro", "Não foi possível remover a categoria.");
+                        }
+                    }
+                },
+
+            ])
+
+        } catch (error) {
+            console.log(error)
+            Alert.alert("Remover usuario", "Não foi possivel remover essa usuario.")
+            console.log("Erro desconhecido:", error);
+
+            if (axios.isAxiosError(error)) {
+                console.log("Erro Axios:", error.response?.data || error.message);
+            } else {
+                console.log("Erro não Axios:", error);
+            }
+        }
+    }
+
 
     async function deslogar() {
         addToken("");
@@ -281,7 +317,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 console.log("Categoria criada com sucesso!");
                 featchCategory()
             } else {
-                console.error("Erro ao tentar criar a categoria", response.data.message);
+                console.log("Erro ao tentar criar a categoria", response.data.message);
             }
         } catch (error: any) {
             Alert.alert("Novo categoria", error.messag)
@@ -306,12 +342,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 featchSubCategory();
             }
         } catch (error) {
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -333,7 +369,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
                             Alert.alert("Sucesso", "Categoria removida com sucesso!");
                         } catch (error) {
-                            console.error(error);
+                            console.log(error);
                             Alert.alert("Erro", "Não foi possível remover a categoria.");
                         }
                     }
@@ -343,12 +379,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         } catch (error) {
             console.log(error)
             Alert.alert("Remover categoria", "Não foi possivel remover essa categoria.")
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -371,9 +407,9 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         } catch (error: any) {
             Alert.alert("Nova categoria", error.message)
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
 
         }
@@ -390,16 +426,15 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     return;
                 }
 
-                console.log(response.data)
                 setSubCategory(response.data)
             }
         } catch (error) {
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -421,7 +456,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
                             Alert.alert("Sucesso", "Categoria removida com sucesso!");
                         } catch (error) {
-                            console.error(error);
+                            console.log(error);
                             Alert.alert("Erro", "Não foi possível remover a categoria.");
                         }
                     }
@@ -431,12 +466,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         } catch (error) {
             console.log(error)
             Alert.alert("Remover categoria", "Não foi possivel remover essa categoria.")
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -464,7 +499,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 console.log("Tarefa criada com sucesso!");
                 handleBackToTask();
             } else {
-                console.error("Erro ao criar task:", response.data.message);
+                console.log("Erro ao criar task:", response.data.message);
             }
 
         } catch (error) {
@@ -489,15 +524,17 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
                 const tasks = response.data
 
+                featchCategory();
+                featchSubCategory();
                 setTasks(tasks);
             }
         } catch (error) {
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -517,12 +554,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 setIsTaskOpen(true)
             }
         } catch (error) {
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -536,12 +573,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 setTasksSearch(response.data)
             }
         } catch (error) {
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -555,12 +592,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 setTasksData(response.data)
             }
         } catch (error) {
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -588,8 +625,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     status,
                 }));
             }
-
-            console.log(updatePayload)
 
             await api.put(`/task/update/${_id}`, updatePayload)
             await fetchTask();
@@ -623,14 +658,14 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
                             Alert.alert("Sucesso", "Tarefa removida com sucesso!");
                         } catch (error) {
-                            console.error(error);
+                            console.log(error);
                             Alert.alert("Erro", "Não foi possível remover a tarefa.");
                         }
                     }
                 },
             ]);
         } catch (error) {
-            console.error(error);
+            console.log(error);
             Alert.alert("Erro", "Ocorreu um problema ao tentar remover a tarefa.");
         }
     }
@@ -652,14 +687,14 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
                             Alert.alert("Sucesso", "Tarefa removida com sucesso!");
                         } catch (error) {
-                            console.error(error);
+                            console.log(error);
                             Alert.alert("Erro", "Não foi possível remover a tarefa.");
                         }
                     }
                 },
             ]);
         } catch (error) {
-            console.error(error);
+            console.log(error);
             Alert.alert("Erro", "Ocorreu um problema ao tentar remover a tarefa.");
         }
     }
@@ -669,19 +704,13 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function handleAddAnnotation(data: FormData) {
 
         try {
-            const response = await api.post("/annotation/create", data, {
+            await api.post("/annotation/create", data, {
                 headers: {
                     "Content-Type": `multipart/form-data`,
                 },
             });
 
             fetchAnnotation();
-            if (response.status === 201) {
-                console.log("Anotacao criado com sucesso!");
-            } else {
-                console.error("Erro ao criar anotacao:", response.data.message);
-            }
-
         } catch (error: any) {
             if (error.response) {
                 // Aqui você consegue acessar a resposta completa do erro.
@@ -699,18 +728,18 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     async function fetchAttachment(file: attachmentProps) {
         try {
-            const response = await api.get(`/annotation/fetchAttachment?attachment=${file.url}`);
+            const response = await api.get(`/uploads/${file.url}`);
 
             const image = {
+                type: file.type,
                 title: file.title,
-                url: response.data // A URL da imagem retornada da API
+                url: response.data
             };
 
-            // Atualiza o estado com a nova imagem ou armazena várias imagens
             setAttachment(prevAttachment => [...prevAttachment, image]);
 
         } catch (error) {
-            console.error("Erro ao buscar os arquivos:", error);
+            console.log("Erro ao buscar os arquivos:", error);
         }
     }
 
@@ -727,12 +756,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
             setAnnotation(annotations);
         } catch (error) {
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -746,12 +775,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 setTasksSearch(response.data)
             }
         } catch (error) {
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
@@ -765,44 +794,43 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 setIsAnnotationOpen(true)
             }
         } catch (error) {
-            console.error("Erro desconhecido:", error);
+            console.log("Erro desconhecido:", error);
 
             if (axios.isAxiosError(error)) {
-                console.error("Erro Axios:", error.response?.data || error.message);
+                console.log("Erro Axios:", error.response?.data || error.message);
             } else {
-                console.error("Erro não Axios:", error);
+                console.log("Erro não Axios:", error);
             }
         }
     }
 
-    async function handleUpdateAnnotation(data: AnnotationProps, handleBackToTask?: () => void) {
+    async function handleUpdateAnnotation(id: string, data: FormData, handleBackToTask?: () => void) {
         try {
-            const response = await api.put(`/task/update/${data._id}`,
-                {
-                    ...data,
-                }
-            );
+            console.log(data.get("files"))
+            await api.put(`/annotation/update/${id}`, data, {
+                headers: {
+                    "Content-Type": `multipart/form-data`,
+                },
+            });
+            await fetchAnnotation();
+            if (handleBackToTask) handleBackToTask();
 
-            if (response.status === 200) {
-                await fetchTask();
-                if (handleBackToTask)
-                    handleBackToTask();
-            } else {
-                console.error("Erro ao modificar a task:", response.data.message);
-            }
-        } catch (error) {
-            if (error instanceof AppError) {
-                Alert.alert('Tarefa', error.message);
+        } catch (error: any) {
+            if (error.response) {
+                console.log("Erro do back-end:", error.response.data);
+                Alert.alert('Nova Anotacao', error.response.data.message);
+            } else if (error instanceof AppError) {
+                Alert.alert('Nova Anotacao', error.message);
             } else {
                 console.log(error);
-                Alert.alert('Tarefa', 'Não foi possível editar a tarefa');
+                Alert.alert('Nova Anotacao', 'Não foi possível adicionar');
             }
         }
     }
 
     async function handleAnnotationRemove(id: string, name: string) {
         try {
-            Alert.alert("Remover", `Remover a tarefa ${name}?`, [
+            Alert.alert("Remover", `Remover a anotação ${name}?`, [
                 {
                     text: 'Não',
                     style: 'cancel'
@@ -811,20 +839,20 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     text: 'Sim',
                     onPress: async () => {
                         try {
-                            await api.delete(`/task/delete/${id}`);
+                            await api.delete(`/annotation/delete/${id}`);
 
                             setTasks(prevTasks => prevTasks.filter(task => task._id !== id));
 
-                            Alert.alert("Sucesso", "Tarefa removida com sucesso!");
+                            Alert.alert("Sucesso", "Anotação removida com sucesso!");
                         } catch (error) {
-                            console.error(error);
-                            Alert.alert("Erro", "Não foi possível remover a tarefa.");
+                            console.log(error);
+                            Alert.alert("Erro", "Não foi possível remover a Anotação.");
                         }
                     }
                 },
             ]);
         } catch (error) {
-            console.error(error);
+            console.log(error);
             Alert.alert("Erro", "Ocorreu um problema ao tentar remover a tarefa.");
         }
     }
@@ -843,6 +871,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             saveTokenAndFetchUser();
         }
 
+
         setLoading(false);
         featchCategory();
         async function updateStatuses() {
@@ -854,8 +883,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     return (
         <TaskContext.Provider value={{
-            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, logado, createUserAnnotation, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser
-
+            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, logado, createUserAnnotation, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove
         }}>
             {children}
         </TaskContext.Provider>

@@ -5,7 +5,7 @@ export async function addToken(token: string) {
     try {
         await AsyncStorage.setItem(TOKEN, JSON.stringify(token));
     } catch (error) {
-        console.error("Erro ao recuperar o token:", error);
+        console.log("Erro ao recuperar o token:", error);
         throw error;
     }
 }

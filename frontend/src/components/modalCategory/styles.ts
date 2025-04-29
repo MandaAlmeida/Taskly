@@ -34,23 +34,5 @@ export const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: 'bold',
         textAlign: 'center',
-    },
-    buttonsContainer: {
-        width: "100%",
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 12,
-    },
-    cancelText: {
-        color: '#888', fontSize: 16,
-    },
-    confirmButton: {
-        backgroundColor: '#4285F4',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 6,
-    },
-    confirmText: {
-        color: 'white', fontWeight: 'bold',
-    },
+    }
 });
