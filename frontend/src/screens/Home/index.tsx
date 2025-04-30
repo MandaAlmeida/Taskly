@@ -32,8 +32,6 @@ export function Home() {
         }
     ];
 
-
-    console.log(sections[0].lenght)
     return (
         <View style={styles.container}>
             <Header text="Inicio" />

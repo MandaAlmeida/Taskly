@@ -7,6 +7,8 @@ import { CategoriesModule } from './categories.module';
 import { TaskModule } from './task.module';
 import { SubCategoryModule } from './subCategories.module';
 import { UploadModule } from './upload.module';
+import { GroupModule } from './group.module';
+import { AnnotationModule } from './annotation.module';
 
 @Module({
     imports: [
@@ -14,7 +16,9 @@ import { UploadModule } from './upload.module';
         CategoriesModule,
         TaskModule,
         SubCategoryModule,
-        UploadModule
+        UploadModule,
+        GroupModule,
+        AnnotationModule
     ],
     controllers: [UserController],
     providers: [

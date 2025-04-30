@@ -7,9 +7,16 @@ import {
     IsString,
     IsStrongPassword,
 } from "class-validator";
-import { AttachmentDTO } from "./attachment.dto";
 
 export class CreateUserDTO {
+    @IsNotEmpty({ message: "O nome de usuario é obrigatório." })
+    @IsString()
+    @ApiProperty({
+        description: "Nome de usuario",
+        example: "Diego20"
+    })
+    userName: string;
+
     @IsNotEmpty({ message: "O nome é obrigatório." })
     @IsString()
     @ApiProperty({
@@ -30,7 +37,7 @@ export class CreateUserDTO {
     @IsString()
     @ApiProperty({
         description: "Data de nascimento",
-        example: "17/04/2000"
+        example: "2000-04-17"
     })
     birth: string;
 
@@ -69,7 +76,7 @@ export class CreateUserDTO {
         description: "Confirmar senha quando cria o usuario",
         example: "DiegoM13#"
     })
-    passwordConfirm: string;
+    passwordConfirmation: string;
 }
 
 export class LoginUserDTO {
@@ -94,6 +101,14 @@ export class UpdateUserDTO {
     @IsOptional()
     @IsString()
     @ApiProperty({
+        description: "Nome de usuario",
+        example: "Diego20"
+    })
+    userName: string;
+
+    @IsOptional()
+    @IsString()
+    @ApiProperty({
         description: "Nome do usuario",
         example: "Diego Martins"
     })
@@ -114,6 +129,15 @@ export class UpdateUserDTO {
         example: "17/04/2000"
     })
     birth: string;
+
+    @ApiProperty({
+        type: 'string',
+        format: 'binary',
+        required: false,
+        description: "Arquivo do usuário (upload)",
+    })
+    @IsOptional()
+    file?: string;
 
     @IsOptional()
     @IsStrongPassword(
@@ -141,5 +165,5 @@ export class UpdateUserDTO {
         description: "Confirmar senha quando cria o usuario",
         example: "DiegoM13#"
     })
-    passwordConfirm: string;
+    passwordConfirmation: string;
 }

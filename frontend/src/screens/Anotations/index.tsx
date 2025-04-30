@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FlatList, View, Text, ListRenderItemInfo, TouchableOpacity } from "react-native";
 import { styles } from "./styles";
 
@@ -13,7 +13,9 @@ import { Annotation } from "@/components/annotation";
 import { theme } from "@/styles/theme";
 
 export function Anotations() {
-    const { annotation, fetchAnnotation, fetchAnnotationById, category } = useTask();
+    const { annotation, annotationSearch, fetchAnnotation, fetchAnnotationById, category, fetchAnnotationBySearch } = useTask();
+
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         fetchAnnotation();
@@ -23,7 +25,7 @@ export function Anotations() {
         fetchAnnotationById(id)
     }
 
-    const layout = formatLayout(annotation);
+    const layout = formatLayout(annotationSearch.length > 0 ? annotationSearch : annotation);
 
     const renderItem = ({ item }: ListRenderItemInfo<LayoutBlock>) => {
         if (item.type === "row") {
@@ -92,7 +94,7 @@ export function Anotations() {
             <Header text="Anotações" />
             {annotation && annotation.length > 0 ? (
                 <>
-                    <Search />
+                    <Search fetchSearch={fetchAnnotationBySearch} placeholder="Pesquisar por anotação ou categoria" setName={setSearch} name={search} />
                     <FlatList
                         data={layout}
                         renderItem={renderItem}

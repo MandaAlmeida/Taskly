@@ -1,98 +1,310 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# API Documentation
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Esta API fornece endpoints para gerenciar Anotações, Categorias, Grupos, Subcategorias, Tarefas, Usuários e Uploads. Todos os endpoints requerem autenticação via JWT e, em alguns casos, permissões de roles.
 
-## Description
+## Índice
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Autenticação](#autenticação)
+- [Annotations](#annotations)
+- [Categorias](#categorias)
+- [Grupos](#grupos)
+- [Subcategorias](#subcategorias)
+- [Tarefas](#tarefas)
+- [Usuários](#usuários)
+- [Uploads](#uploads)
 
-## Project setup
+---
 
-```bash
-$ yarn install
+## Autenticação
+
+Todos os endpoints requerem um token JWT válido. O token pode ser obtido no endpoint `POST /user/login`.
+
+### Login
+
+**POST** `/user/login`
+
+- **Body**: 
+  ```json
+  {
+    "username": "user@example.com",
+    "password": "password"
+  }
+  ```
+
+- **Response**:
+  ```json
+  {
+    "token": "jwt_token_here"
+  }
+  ```
+
+---
+
+## Annotations
+
+A API de Annotations permite criar, atualizar, excluir e buscar anotações. As permissões são controladas por roles de usuário.
+
+### Criar Anotação
+
+**POST** `/annotation/create`
+
+- **Body**: `CreateAnnotationDTO` (com arquivos anexados)
+- **Authorization**: Bearer Token
+
+### Criar Anotação por Grupo
+
+**POST** `/annotation/createByGroup/:groupId`
+
+- **Body**: `CreateAnnotationDTO` (com arquivos anexados)
+- **Authorization**: Bearer Token
+- **Roles**: ADMIN, EDIT, DELETE
+
+### Buscar Anotações por Usuário
+
+**GET** `/annotation/fetchByUser`
+
+- **Query Parameters**: `p` (página)
+- **Authorization**: Bearer Token
+
+### Buscar Anotações por Grupo
+
+**GET** `/annotation/fetchByGroup`
+
+- **Authorization**: Bearer Token
+
+### Buscar Anotação por ID
+
+**GET** `/annotation/fetchById/:annotationId`
+
+- **Authorization**: Bearer Token
+
+### Atualizar Anotação
+
+**PUT** `/annotation/update/:annotationId`
+
+- **Body**: `UpdateAnnotationDTO` (com arquivos anexados)
+- **Authorization**: Bearer Token
+- **Roles**: ADMIN, EDIT, DELETE
+
+### Deletar Anotação
+
+**DELETE** `/annotation/delete/:annotationId`
+
+- **Authorization**: Bearer Token
+- **Roles**: ADMIN
+
+---
+
+## Categorias
+
+A API de Categorias permite criar, atualizar, excluir e buscar categorias.
+
+### Criar Categoria
+
+**POST** `/categories/create`
+
+- **Body**: `CreateCategoryDTO`
+- **Authorization**: Bearer Token
+
+### Buscar Categorias
+
+**GET** `/categories/fetch`
+
+- **Authorization**: Bearer Token
+
+### Buscar Categoria por ID
+
+**GET** `/categories/fetchById/:categoryId`
+
+- **Authorization**: Bearer Token
+
+### Atualizar Categoria
+
+**PUT** `/categories/update/:id`
+
+- **Body**: `UpdateCategoryDTO`
+- **Authorization**: Bearer Token
+
+### Deletar Categoria
+
+**DELETE** `/categories/delete/:id`
+
+- **Authorization**: Bearer Token
+
+---
+
+## Grupos
+
+A API de Grupos permite criar, atualizar, excluir e gerenciar membros de grupos.
+
+### Criar Grupo
+
+**POST** `/group/create`
+
+- **Body**: `CreateGroupDTO`
+- **Authorization**: Bearer Token
+
+### Buscar Grupos
+
+**GET** `/group/fetch`
+
+- **Authorization**: Bearer Token
+
+### Atualizar Grupo
+
+**PUT** `/group/update/:id`
+
+- **Body**: `UpdateGroupDTO`
+- **Authorization**: Bearer Token
+- **Roles**: ADMIN
+
+### Deletar Grupo
+
+**DELETE** `/group/delete/:id`
+
+- **Authorization**: Bearer Token
+- **Roles**: ADMIN
+
+---
+
+## Subcategorias
+
+A API de Subcategorias permite criar, atualizar, excluir e buscar subcategorias.
+
+### Criar Subcategoria
+
+**POST** `/sub-category/create`
+
+- **Body**: `CreateSubCategoryDTO`
+- **Authorization**: Bearer Token
+
+### Buscar Subcategorias
+
+**GET** `/sub-category/fetch`
+
+- **Authorization**: Bearer Token
+
+### Buscar Subcategoria por ID
+
+**GET** `/sub-category/fetchById/:subCategoryId`
+
+- **Authorization**: Bearer Token
+
+### Atualizar Subcategoria
+
+**PUT** `/sub-category/update/:id`
+
+- **Body**: `UpdateSubCategoryDTO`
+- **Authorization**: Bearer Token
+
+### Deletar Subcategoria
+
+**DELETE** `/sub-category/delete/:id`
+
+- **Authorization**: Bearer Token
+
+---
+
+## Tarefas
+
+A API de Tarefas permite criar, atualizar, excluir e gerenciar tarefas.
+
+### Criar Tarefa
+
+**POST** `/task/create`
+
+- **Body**: `CreateTaskDTO`
+- **Authorization**: Bearer Token
+
+### Buscar Tarefas
+
+**GET** `/task/fetch`
+
+- **Authorization**: Bearer Token
+
+### Atualizar Tarefa
+
+**PUT** `/task/update/:id`
+
+- **Body**: `UpdateTaskDTO`
+- **Authorization**: Bearer Token
+
+### Deletar Tarefa
+
+**DELETE** `/task/delete/:id`
+
+- **Authorization**: Bearer Token
+
+---
+
+## Usuários
+
+A API de Usuários permite registrar, atualizar, excluir e buscar informações do usuário.
+
+### Criar Usuário
+
+**POST** `/user/register`
+
+- **Body**: `CreateUserDTO` (com arquivo opcional)
+- **Authorization**: Nenhuma (para registro)
+
+### Buscar Usuário por Token
+
+**GET** `/user/fetch`
+
+- **Authorization**: Bearer Token
+
+### Atualizar Usuário
+
+**PUT** `/user/update`
+
+- **Body**: `UpdateUserDTO` (com arquivo opcional)
+- **Authorization**: Bearer Token
+
+### Deletar Usuário
+
+**DELETE** `/user/delete`
+
+- **Authorization**: Bearer Token
+
+---
+
+## Uploads
+
+A API de Uploads permite realizar upload, download e excluir arquivos.
+
+### Upload de Arquivo
+
+**POST** `/uploads`
+
+- **Body**: Arquivo
+- **Authorization**: Bearer Token
+
+### Obter URL do Arquivo
+
+**GET** `/uploads/:filename`
+
+- **Authorization**: Bearer Token
+
+### Download de Arquivo
+
+**GET** `/uploads/download/:fileKey`
+
+- **Authorization**: Bearer Token
+
+### Deletar Arquivo
+
+**DELETE** `/uploads/:filename`
+
+- **Authorization**: Bearer Token
+
+---
+
+## Exemplo de Header para Requisição
+
+Para autenticar todas as requisições, adicione o token JWT no cabeçalho `Authorization` da seguinte forma:
+
+```http
+Authorization: Bearer {seu_token_jwt}
 ```
-
-## Compile and run the project
-
-```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

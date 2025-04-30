@@ -32,9 +32,9 @@ export const styles = StyleSheet.create({
         fontSize: 16,
     },
     description: {
+        flex: 1,
         fontSize: 14,
-        color: theme.gray3,
-        height: 84,
+        color: theme.gray3
     },
     footer: {
         flexDirection: 'row',

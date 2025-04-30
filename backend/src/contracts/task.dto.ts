@@ -2,12 +2,14 @@ import { Status } from "@/enum/status.enum";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
+    IsArray,
     IsDate,
     IsEnum,
     IsNotEmpty,
     IsOptional,
     IsString,
 } from "class-validator";
+import { CreateSubTaskDTO, SubTaskDTO } from "./subTask.dto";
 
 export class CreateTaskDTO {
     @IsNotEmpty({ message: "Nome é obrigatório" })
@@ -22,7 +24,7 @@ export class CreateTaskDTO {
     @IsString()
     @ApiProperty({
         description: "Nome da categoria onde a tarefa sera alocada",
-        example: "Estudo"
+        example: "6807b90e03651e11e3d74804"
     })
     category: string;
 
@@ -30,9 +32,42 @@ export class CreateTaskDTO {
     @IsString()
     @ApiProperty({
         description: "Nome da sub-categoria onde a tarefa sera alocada",
-        example: "Cursinho"
+        example: "680917898733608bb5f0cd9a"
     })
     subCategory: string;
+
+    @IsOptional()
+    @IsArray()
+    @ApiProperty({
+        description: "Sub-tarefas a serem executadas dentro da tarefa",
+        example: [
+            {
+                task: "O que é o NestJS? Arquitetura e conceitos principais",
+                status: "COMPLETED"
+            },
+            {
+                task: "Estrutura de pastas (modularização)",
+                status: "PENDING"
+            },
+            {
+                task: "Decorators (@Module(), @Controller(), @Injectable(), etc.)",
+                status: "PENDING"
+            },
+            {
+                task: "Controllers e rotas",
+                status: "PENDING"
+            },
+            {
+                task: "Services e injeção de dependência (DI)",
+                status: "PENDING"
+            },
+            {
+                task: "Pipes, Guards e Interceptors – o que são e para que servem",
+                status: "PENDING"
+            }
+        ]
+    })
+    subTask?: CreateSubTaskDTO[];
 
     @IsNotEmpty({ message: "Prioridade é obrigatória" })
     @IsString()
@@ -65,7 +100,7 @@ export class UpdateTaskDTO {
     @IsString()
     @ApiProperty({
         description: "Nome da categoria onde a tarefa sera alocada",
-        example: "Estudo"
+        example: "6807b90e03651e11e3d74804"
     })
     category?: string;
 
@@ -73,9 +108,43 @@ export class UpdateTaskDTO {
     @IsString()
     @ApiProperty({
         description: "Nome da sub-categoria onde a tarefa sera alocada",
-        example: "Cursinho"
+        example: "680917898733608bb5f0cd9a"
     })
     subCategory?: string;
+
+
+    @IsOptional()
+    @IsArray()
+    @ApiProperty({
+        description: "Sub-tarefas a serem executadas dentro da tarefa",
+        example: [
+            {
+                task: "O que é o NestJS? Arquitetura e conceitos principais",
+                status: "COMPLETED"
+            },
+            {
+                task: "Estrutura de pastas (modularização)",
+                status: "PENDING"
+            },
+            {
+                task: "Decorators (@Module(), @Controller(), @Injectable(), etc.)",
+                status: "PENDING"
+            },
+            {
+                task: "Controllers e rotas",
+                status: "PENDING"
+            },
+            {
+                task: "Services e injeção de dependência (DI)",
+                status: "PENDING"
+            },
+            {
+                task: "Pipes, Guards e Interceptors – o que são e para que servem",
+                status: "PENDING"
+            }
+        ]
+    })
+    subTask?: SubTaskDTO[];
 
     @IsOptional()
     @IsString()

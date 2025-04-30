@@ -11,10 +11,9 @@ async function bootstrap() {
 
   const envService = app.get(EnvService)
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: false, //TODO: alterar para true quando todos os contratos possuirem regras de validacao nos campos
-    forbidNonWhitelisted: true,
     transform: true,
-    disableErrorMessages: false,
+    whitelist: true,
+    forbidNonWhitelisted: true,
   }));
 
   const port = envService.get("PORT")

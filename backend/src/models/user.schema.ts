@@ -13,6 +13,9 @@ export class User {
     _id: ObjectId;
 
     @Prop({ required: true })
+    userName: string;
+
+    @Prop({ required: true })
     name: string;
 
     @Prop({ required: true })

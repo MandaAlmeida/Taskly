@@ -13,7 +13,7 @@ export class UploadDTO {
     @IsString()
     mimetype: string;
 
-    buffer: Buffer;
+    buffer?: Buffer;
 
     @IsNumber()
     size: number;

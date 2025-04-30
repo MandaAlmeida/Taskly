@@ -135,13 +135,11 @@ export function AddAnnotations() {
         // Adicionar documentos (attachments), verificando se são novos
         otherFiles.forEach((block, index) => {
             const uri = block.uri;
-            const fileName = uri.split('/').pop() || `document_${index}.jpg`;
+            const fileName = uri.split('/').pop() || `document_${index}.jpg`;;
             const mimeType = block.mimeType;
 
             // Verificar se o arquivo já está na anotação
             const alreadyAttached = annotation?.attachments?.some(att => att.url === fileName);
-
-            console.log(!alreadyAttached)
 
             // Só adiciona se não estiver na anotação
             if (!alreadyAttached) {
@@ -236,38 +234,36 @@ export function AddAnnotations() {
 
                     return null;
                 })}
-
-
-
-                <View style={styles.containerButton}>
-                    <TouchableOpacity style={styles.buttonSelect} onPress={addImageBlock}>
-                        <ImagePlus size={24} color={theme.gray4} />
-                        {content.length > 0 && <Text>{image}</Text>}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.buttonSelect} onPress={pickDocument}>
-                        <Paperclip size={24} color={theme.gray4} />
-                        {otherFiles.length > 0 && <Text>{otherFiles.length}</Text>}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("category")}>
-                        <Tag size={24} color={theme.gray4} />
-                        {selectedCategory && <Text>{selectedCategory.category}</Text>}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("member")}>
-                        <UserPlus size={24} color={theme.gray4} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("group")}>
-                        <Users size={24} color={theme.gray4} />
-                    </TouchableOpacity>
-                </View>
-
-                <View style={{ marginTop: 20 }}>
-                    <Button text={annotation ? "Editar Anotação" : "Criar Anotação"} onPress={saveNote} disabled={isDisabled} style={{ opacity: isDisabled ? 0.5 : 1 }} />
-                </View>
             </ScrollView>
+            <View style={styles.containerButton}>
+                <TouchableOpacity style={styles.buttonSelect} onPress={addImageBlock}>
+                    <ImagePlus size={24} color={theme.gray4} />
+                    {content.length > 0 && <Text>{image}</Text>}
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.buttonSelect} onPress={pickDocument}>
+                    <Paperclip size={24} color={theme.gray4} />
+                    {otherFiles.length > 0 && <Text>{otherFiles.length}</Text>}
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("category")}>
+                    <Tag size={24} color={theme.gray4} />
+                    {selectedCategory && <Text>{selectedCategory.category}</Text>}
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("member")}>
+                    <UserPlus size={24} color={theme.gray4} />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("group")}>
+                    <Users size={24} color={theme.gray4} />
+                </TouchableOpacity>
+            </View>
+
+            <View style={{ marginTop: 20 }}>
+                <Button text={annotation ? "Editar Anotação" : "Criar Anotação"} onPress={saveNote} disabled={isDisabled} style={{ opacity: isDisabled ? 0.5 : 1 }} />
+            </View>
+
 
             {openSections["category"] && <ModalCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />}
         </View>

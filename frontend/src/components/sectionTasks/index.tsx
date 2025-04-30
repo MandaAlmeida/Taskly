@@ -18,7 +18,7 @@ type SectionProps = {
 };
 
 export function SectionTask({ sections }: SectionProps) {
-    const { handleUpdateTask, subCategory, fetchTaskById, openSections, setOpenSections } = useTask();
+    const { subCategory, fetchTaskById, openSections, setOpenSections } = useTask();
 
 
     function toggleSection(key: string) {

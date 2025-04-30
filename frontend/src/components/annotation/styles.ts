@@ -59,7 +59,6 @@ export const styles = StyleSheet.create({
     footer: {
         backgroundColor: theme.white,
         gap: 12,
-        paddingBottom: 24,
         marginVertical: 24,
     },
     textFooter: {

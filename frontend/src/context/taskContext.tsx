@@ -8,9 +8,8 @@ import { addToken } from "@/storage/token/addToken";
 import { getToken } from "@/storage/token/getToken";
 import { CategoryProps } from "@/@types/category";
 import api from "@/api/axios";
-import { AnnotationProps, attachmentProps, CreateAnnotationProps } from "@/@types/annotation";
+import { AnnotationProps, attachmentProps } from "@/@types/annotation";
 import { SubCategoryProps } from "@/@types/subCategory";
-import { AccountProps } from "@/@types/account";
 
 type User = {
     _id: string;
@@ -48,7 +47,9 @@ interface TaskContextProps {
     isTaskOpen: boolean;
     openSections: { [key: string]: boolean };
     logado: boolean;
-    createUserAnnotation: userCreate | undefined
+    createUserAnnotation: userCreate | undefined;
+    isAttachmentOpen: boolean;
+    annotationSearch: AnnotationProps[]
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
     setAnnotation: React.Dispatch<React.SetStateAction<AnnotationProps[]>>;
@@ -66,7 +67,8 @@ interface TaskContextProps {
     setIsTaskOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setOpenSections: React.Dispatch<React.SetStateAction<{
         [key: string]: boolean;
-    }>>
+    }>>;
+    setIsAttachmentOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
     handleTaskRemove: (id: string, name: string) => void;
     handleAddCategory: (name: string, icon: string, color: string) => void;
@@ -95,6 +97,8 @@ interface TaskContextProps {
     deleteUser: () => void;
     handleUpdateAnnotation: (id: string, data: FormData, handleBackToTask?: () => void) => void;
     handleAnnotationRemove: (id: string, name: string) => void;
+    fetchAnnotationBySearch: (item: string) => void;
+    handleAttachmentRemove: (id: string, name: string, url: string) => void;
 }
 
 export const TaskContext = createContext({} as TaskContextProps);
@@ -129,6 +133,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [tasks, setTasks] = useState<TaskProps[]>([]);
     const [taskById, setTaskById] = useState<TaskProps | undefined>();
     const [annotation, setAnnotation] = useState<AnnotationProps[]>([]);
+    const [annotationSearch, setAnnotationSearch] = useState<AnnotationProps[]>([]);
     const [annotationById, setAnnotationById] = useState<AnnotationProps | undefined>();
     const [tasksSearch, setTasksSearch] = useState<TaskProps[]>([]);
     const [tasksData, setTasksData] = useState<TaskProps[]>([]);
@@ -145,6 +150,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [isTaskOpen, setIsTaskOpen] = useState(false);
     const [isGroupOpen, setIsGroupOpen] = useState(false);
     const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
+    const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<CategoryProps | undefined>();
     const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategoryProps | undefined>();
     const [logado, setLogado] = useState(false)
@@ -250,7 +256,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function fetchImageUser(fileName: string) {
         try {
             const response = await api.get(`/uploads/${fileName}`);
-            return response.data
+            return response.data.url
         } catch (error) {
             console.log("Erro ao buscar os arquivos:", error);
         }
@@ -291,7 +297,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             }
         }
     }
-
 
     async function deslogar() {
         addToken("");
@@ -670,7 +675,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function handleTaskRemove(id: string, name: string) {
+    async function handleTaskRemove(id: string, name: string,) {
         try {
             Alert.alert("Remover", `Remover a tarefa ${name}?`, [
                 {
@@ -683,8 +688,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                         try {
                             await api.delete(`/task/delete/${id}`);
 
-                            setTasks(prevTasks => prevTasks.filter(task => task._id !== id));
-
+                            fetchTask()
+                            setIsTaskOpen(false)
                             Alert.alert("Sucesso", "Tarefa removida com sucesso!");
                         } catch (error) {
                             console.log(error);
@@ -733,7 +738,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             const image = {
                 type: file.type,
                 title: file.title,
-                url: response.data
+                url: response.data.url
             };
 
             setAttachment(prevAttachment => [...prevAttachment, image]);
@@ -769,10 +774,10 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function fetchAnnotationBySearch(item: string) {
         try {
             if (user) {
-                const response = await api.get(`/task/search?q=${item}`);
+                const response = await api.get(`/annotation/search?q=${item}`);
 
 
-                setTasksSearch(response.data)
+                setAnnotationSearch(response.data)
             }
         } catch (error) {
             console.log("Erro desconhecido:", error);
@@ -806,7 +811,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     async function handleUpdateAnnotation(id: string, data: FormData, handleBackToTask?: () => void) {
         try {
-            console.log(data.get("files"))
+            console.log(data.get("attachments"))
             await api.put(`/annotation/update/${id}`, data, {
                 headers: {
                     "Content-Type": `multipart/form-data`,
@@ -828,6 +833,35 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+    async function handleAttachmentRemove(id: string, name: string, url: string) {
+        try {
+            Alert.alert("Remover", `Remover o anexo ${name}?`, [
+                {
+                    text: 'Não',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Sim',
+                    onPress: async () => {
+                        try {
+                            await api.delete(`/annotation/delete/${id}/attachment/${url}`);
+
+                            annotationById?.attachments?.filter(attachment => attachment.url !== url)
+                            setIsAttachmentOpen(false)
+                            Alert.alert("Sucesso", "Anotação removida com sucesso!");
+                        } catch (error) {
+                            console.log(error);
+                            Alert.alert("Erro", "Não foi possível remover a Anotação.");
+                        }
+                    }
+                },
+            ]);
+        } catch (error) {
+            console.log(error);
+            Alert.alert("Erro", "Ocorreu um problema ao tentar remover a tarefa.");
+        }
+    }
+
     async function handleAnnotationRemove(id: string, name: string) {
         try {
             Alert.alert("Remover", `Remover a anotação ${name}?`, [
@@ -841,8 +875,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                         try {
                             await api.delete(`/annotation/delete/${id}`);
 
-                            setTasks(prevTasks => prevTasks.filter(task => task._id !== id));
-
+                            fetchAnnotation()
+                            setIsAnnotationOpen(false)
                             Alert.alert("Sucesso", "Anotação removida com sucesso!");
                         } catch (error) {
                             console.log(error);
@@ -883,7 +917,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     return (
         <TaskContext.Provider value={{
-            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, logado, createUserAnnotation, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove
+            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, logado, createUserAnnotation, isAttachmentOpen, annotationSearch, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, setIsAttachmentOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove, fetchAnnotationBySearch, handleAttachmentRemove
         }}>
             {children}
         </TaskContext.Provider>

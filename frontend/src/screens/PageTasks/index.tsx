@@ -1,22 +1,20 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { View } from "react-native"
 
 import { styles } from "./styles"
 
 import { useTask } from "@/hooks/useTask";
 
-
 import { Header } from "@/components/header";
 import { Search } from "@/components/search";
 import { SectionTask } from "@/components/sectionTasks";
 import { EmptyState } from "@/components/emptyState";
-import { ModalTask } from "@/components/modalTask";
-import { formatDate } from "@/utils/formatDate";
 
 
 
 export function PageTasks() {
-    const { tasks, fetchTask, subCategory, category, taskById, tasksSearch, openSections } = useTask();
+    const { tasks, fetchTask, fetchTaskBySearch, tasksSearch, openSections } = useTask();
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         fetchTask();
@@ -58,7 +56,7 @@ export function PageTasks() {
             </View>
             {tasks.length > 0 ? (
                 <>
-                    <Search />
+                    <Search fetchSearch={fetchTaskBySearch} placeholder="Pesquisar por tarefa ou subCategoria" setName={setSearch} name={search} />
                     <SectionTask sections={sections} />
                 </>
             ) : (

@@ -5,6 +5,8 @@ import { CurrentUser } from '@/auth/current-user-decorator';
 import { TokenPayloadSchema } from '@/auth/jwt.strategy';
 import { CreateTaskDTO, UpdateTaskDTO } from '@/contracts/task.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { CreateSubTaskDTO } from '@/contracts/subTask.dto';
+import { query } from 'express';
 
 @ApiTags('Task')
 @ApiBearerAuth('access-token')
@@ -41,13 +43,18 @@ export class TaskController {
     }
 
     @Put("update/:id")
-    async update(@Param('id') taskId: string, @Body() task: UpdateTaskDTO, @CurrentUser() user: TokenPayloadSchema) {
-        return this.TaskService.update(taskId, task, user)
+    async update(@Param('id') taskId: string, @Body() task: UpdateTaskDTO) {
+        return this.TaskService.update(taskId, task)
     }
 
     @Patch("update-status")
     async updateStatus(@CurrentUser() user: TokenPayloadSchema) {
         return this.TaskService.updateStatus(user)
+    }
+
+    @Delete("deleteSubTask/:id")
+    async deleteSubTask(@Param('id') taskId: string, @Query("sub") subTask: string) {
+        return this.TaskService.deleteSubTask(taskId, subTask);
     }
 
     @Delete("delete/:id")

@@ -29,7 +29,7 @@ export class CreateSubCategoryDTO {
         description: "Icone da categoria",
         example: "GraduationCap"
     })
-    icon: string;
+    icon: number;
 
     @IsNotEmpty({ message: "Cor é obrigatória" })
     @IsString()
