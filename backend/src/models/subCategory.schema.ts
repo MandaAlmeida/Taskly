@@ -18,7 +18,7 @@ export class SubCategory {
     @Prop({ required: true })
     categoryName: string;
 
-    @Prop({ required: true })
+    @Prop({ required: true, index: true })
     categoryId: string;
 
     @Prop({ required: true, type: String })

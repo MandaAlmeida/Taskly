@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, View, Text, ListRenderItemInfo, TouchableOpacity } from "react-native";
+import { FlatList, View, Text, ListRenderItemInfo, TouchableOpacity, Image } from "react-native";
 import { styles } from "./styles";
 
 import { useTask } from "@/hooks/useTask";
@@ -46,12 +46,14 @@ export function Anotations() {
                             >
                                 <Text style={styles.title}>{annotation.title}</Text>
                                 {/* Verificar se annotation.content existe e é um array */}
-                                {annotation.content.map((ann, index) => {
-                                    if (ann.type === "text") {
-                                        return <Text key={index} style={styles.description}>{ann.value.toString()}</Text>;
-                                    }
-                                    return null;
-                                })}
+                                {
+                                    annotation.content.length > 0 && annotation.content[0].type === "text" ? (
+                                        <Text style={styles.description}>{annotation.content[0].value.toString()}</Text>
+                                    ) : annotation.content.length > 0 && annotation.content[0].type === "image" ? (
+                                        <Image source={{ uri: annotation.content[0].value.url }} />
+                                    ) : null
+                                }
+
                                 <View style={styles.footer}>
                                     <Text style={styles.date}>{formatDatePTBR(annotation.createdAt)}</Text>
                                     <Text style={[styles.tag, { backgroundColor: color }]}>{category.find((category) => category._id === annotation.category)?.category || "Sem categoria"}</Text>

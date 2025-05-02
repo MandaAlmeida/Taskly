@@ -16,13 +16,13 @@ export class Group {
     @Prop({ required: true })
     name: string;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true })
     createdUserId: ObjectId;
 
     @Prop({
         type: [
             {
-                userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+                userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
                 accessType: { type: String, required: true }
             }
         ],

@@ -13,7 +13,7 @@ export class Annotation {
     })
     _id: ObjectId;
 
-    @Prop({ required: true })
+    @Prop({ required: true, index: true })
     title: string;
 
     @Prop({
@@ -31,10 +31,10 @@ export class Annotation {
     }>;
 
 
-    @Prop({ required: true })
+    @Prop({ required: true, index: true })
     category: string
 
-    @Prop({ required: true })
+    @Prop({ required: true, index: true })
     createdUserId: string;
 
     @Prop({

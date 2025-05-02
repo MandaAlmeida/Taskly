@@ -56,6 +56,7 @@ describe('UploadController (e2e)', () => {
     it('Deve fazer download do arquivo', async () => {
         const res = await request(app.getHttpServer()).get(`/uploads/download/${uploadedFileName}`);
 
+
         expect(res.status).toBe(200);
 
         // Verifica se o content-type está presente e válido
@@ -68,12 +69,12 @@ describe('UploadController (e2e)', () => {
     });
 
 
-    // it('Deve deletar o arquivo', async () => {
-    //     // Use o nome completo do arquivo para deletar
-    //     const res = await request(app.getHttpServer()).delete(`/uploads/${uploadedFileName}`);
+    it('Deve deletar o arquivo', async () => {
+        // Use o nome completo do arquivo para deletar
+        const res = await request(app.getHttpServer()).delete(`/uploads/${uploadedFileName}`);
 
-    //     expect(res.status).toBe(200);
-    //     expect(res.body.success).toBe(true);
-    // });
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+    });
 
 });

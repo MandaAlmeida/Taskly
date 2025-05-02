@@ -1,4 +1,3 @@
-// Importações necessárias de bibliotecas AWS e Node
 import { DeleteObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "node:crypto";
 import { BadRequestException, Injectable } from "@nestjs/common";
@@ -7,7 +6,6 @@ import { UploadDTO } from "@/contracts/upload.dto";
 import { Upload } from "@aws-sdk/lib-storage";
 import { Readable } from "stream";
 
-// Decorador do NestJS para declarar a classe como um serviço injetável
 @Injectable()
 export class UploadService {
     private client: S3Client; // Cliente para interagir com o serviço S3
@@ -99,13 +97,8 @@ export class UploadService {
      * Retorna o corpo do arquivo como um Stream (útil para downloads)
      */
     async download(fileKey: string) {
-        const command = new GetObjectCommand({
-            Bucket: this.envService.get("AWS_BUCKET_NAME"),
-            Key: fileKey,
-        });
-
-        const response = await this.client.send(command);
-        return response.Body as Readable;
+        const bucketUrl = this.envService.get('URL_PUBLIC_GET_IMAGE'); // Ex: https://<bucket>.r2.cloudflarestorage.com/
+        return { url: `${bucketUrl}${fileKey}` };
     }
 
     /**

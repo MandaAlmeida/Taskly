@@ -43,7 +43,6 @@ export const styles = StyleSheet.create({
         fontSize: 20,
         color: theme.gray4,
         fontWeight: "700",
-        textAlign: "center",
         marginBottom: 20
     },
     content: {

@@ -49,7 +49,8 @@ interface TaskContextProps {
     logado: boolean;
     createUserAnnotation: userCreate | undefined;
     isAttachmentOpen: boolean;
-    annotationSearch: AnnotationProps[]
+    annotationSearch: AnnotationProps[];
+    finalUrl: string
 
     setTasks: React.Dispatch<React.SetStateAction<TaskProps[]>>;
     setAnnotation: React.Dispatch<React.SetStateAction<AnnotationProps[]>>;
@@ -99,6 +100,7 @@ interface TaskContextProps {
     handleAnnotationRemove: (id: string, name: string) => void;
     fetchAnnotationBySearch: (item: string) => void;
     handleAttachmentRemove: (id: string, name: string, url: string) => void;
+    handleDownloadAttachment: (url: string) => void;
 }
 
 export const TaskContext = createContext({} as TaskContextProps);
@@ -137,6 +139,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     const [annotationById, setAnnotationById] = useState<AnnotationProps | undefined>();
     const [tasksSearch, setTasksSearch] = useState<TaskProps[]>([]);
     const [tasksData, setTasksData] = useState<TaskProps[]>([]);
+    const [finalUrl, setFinalUrl] = useState("");
+
 
     const [taskName, setTaskName] = useState('');
     const [createUserAnnotation, setCreateUserAnnotation] = useState<userCreate | undefined>();
@@ -891,6 +895,18 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+    async function handleDownloadAttachment(url: string) {
+        try {
+            const response = await api.get(`/uploads/download/${url}`);
+
+            console.log(response)
+            // setFinalUrl(response)
+
+        } catch (error) {
+            console.log("Erro ao buscar os arquivos:", error);
+        }
+    }
+
 
     useEffect(() => {
         async function saveTokenAndFetchUser() {
@@ -917,7 +933,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     return (
         <TaskContext.Provider value={{
-            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, logado, createUserAnnotation, isAttachmentOpen, annotationSearch, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, setIsAttachmentOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove, fetchAnnotationBySearch, handleAttachmentRemove
+            tasks, tasksSearch, tasksData, taskName, category, selectedCategory, isDropdownOpen, user, token, loading, error, date, priority, isCategoryOpen, isGroupOpen, isCreateCategoryOpen, selectedSubCategory, annotation, annotationById, isAnnotationOpen, attachment, subCategory, taskById, isTaskOpen, openSections, logado, createUserAnnotation, isAttachmentOpen, annotationSearch, finalUrl, setOpenSections, setIsTaskOpen, fetchTaskById, setIsAnnotationOpen, setAnnotationById, setAnnotation, setSelectedSubCategory, setIsCreateCategoryOpen, setIsGroupOpen, setTasks, setTaskName, setIsDropdownOpen, setSelectedCategory, setDate, setPriority, setIsCategoryOpen, setIsAttachmentOpen, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove, fetchAnnotationBySearch, handleAttachmentRemove, handleDownloadAttachment
         }}>
             {children}
         </TaskContext.Provider>

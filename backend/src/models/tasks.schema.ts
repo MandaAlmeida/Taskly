@@ -14,13 +14,13 @@ export class Task {
     })
     _id: ObjectId;
 
-    @Prop({ required: true })
+    @Prop({ required: true, index: true })
     name: string;
 
-    @Prop({ required: true })
+    @Prop({ required: true, index: true })
     category: string;
 
-    @Prop({ required: true })
+    @Prop({ required: true, index: true })
     subCategory: string;
 
     @Prop({ type: [SubTask], default: [] })

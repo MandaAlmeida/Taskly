@@ -10,7 +10,7 @@ export class SubTask {
     })
     _id: ObjectId;
 
-    @Prop({ required: true })
+    @Prop({ required: true, index: true })
     task: string;
 
     @Prop({ required: true, enum: ['COMPLETED', 'PENDING'] })

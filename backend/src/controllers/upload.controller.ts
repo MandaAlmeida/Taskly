@@ -38,10 +38,11 @@ export class UploadController {
   /**
    * Fazer download de arquivo via Stream
    */
-  @Get('download/:fileKey')
-  async downloadFile(@Param('fileKey') fileKey: string, @Res() res: Response) {
-    return await this.uploadService.download(fileKey);
+  @Get('download/:url')
+  async downloadFile(@Param('url') url: string, @Res() res: Response) {
+    return await this.uploadService.download(url);
   }
+
 
   /**
    * Deletar arquivo

@@ -261,23 +261,42 @@ export class AnnotationService {
                 annotationToUpdate.attachments = [...existingAnnotation.attachments, ...uploadedAttachmentsUrls];
             }
 
-            // Substituir as imagens no conteúdo
             if (files && content && uploadedFileUrls.length > 0) {
                 let imageIndex = 0;
 
-                content.forEach((block) => {
-                    if (block.type === 'image' && imageIndex < uploadedFileUrls.length) {
-                        block.value = uploadedFileUrls[imageIndex];
-                        imageIndex++;
+                // Substitui valores das imagens existentes mantendo o _id e a posição
+                for (let i = 0; i < content.length; i++) {
+                    const block = content[i];
+
+                    if (block.type === 'image') {
+                        const hasInvalidValue = !block.value || typeof block.value !== 'object' || !block.value.url;
+
+                        if (imageIndex < uploadedFileUrls.length && (hasInvalidValue)) {
+                            block.value = uploadedFileUrls[imageIndex];
+                            imageIndex++;
+                        }
                     }
-                });
+                }
+
+                // Adiciona novas imagens ao final, se houver imagens restantes
+                while (imageIndex < uploadedFileUrls.length) {
+                    content.push({
+                        type: 'image',
+                        value: uploadedFileUrls[imageIndex],
+                    });
+                    imageIndex++;
+                }
             }
+
+            // console.log(content)
         }
 
         // Atualizar o campo 'content' com o novo conteúdo após as imagens terem sido processadas
         if (content && content.length > 0) {
             annotationToUpdate.content = content;  // Atualizando o campo content com o novo conteúdo
         }
+
+
 
         // Atualizar a anotação no banco de dados
         const updatedAnnotation = await this.annotationModel.findByIdAndUpdate(
