@@ -14,14 +14,13 @@ type AttachmentsProps = {
 
 
 export function Attachments({ id, color }: AttachmentsProps) {
-    const { isAttachmentOpen, setIsAttachmentOpen, handleAttachmentRemove, handleDownloadAttachment, annotationById, finalUrl } = useTask();
+    const { setModalState, modalState, handleAttachmentRemove, handleDownloadAttachment, data } = useTask();
 
     async function downloadFile(backendUrl: string, fileName: string) {
         try {
             handleDownloadAttachment(backendUrl);
             const fileUri = FileSystem.documentDirectory + fileName;
 
-            console.log(finalUrl)
             // Agora baixa o arquivo usando a URL retornada
             //   const { uri } = await FileSystem.downloadAsync(finalUrl, fileUri);
             //   console.log('Arquivo salvo em:', uri);
@@ -32,17 +31,17 @@ export function Attachments({ id, color }: AttachmentsProps) {
 
 
     return (
-        <Modal visible={isAttachmentOpen} transparent>
+        <Modal visible={modalState === "isAttachmentOpen"} transparent>
             <View style={styles.container}>
                 <View style={styles.header}>
                     <Text style={styles.title}>Anexos</Text>
-                    <TouchableOpacity onPress={() => setIsAttachmentOpen(false)}>
+                    <TouchableOpacity onPress={() => setModalState(null)}>
                         <X size={20} color={theme.gray4} />
                     </TouchableOpacity>
 
                 </View>
                 <FlatList
-                    data={annotationById?.attachments}
+                    data={data.annotationById?.attachments}
                     keyExtractor={(_, index) => index.toString()}
                     ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
                     renderItem={({ item }) => (

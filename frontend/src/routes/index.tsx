@@ -7,11 +7,11 @@ import { AuthRoutes } from "./auth.routes";
 import { Loading } from "@/components/loading";
 
 export function Routes() {
-    const { loading, logado } = useTask();
+    const { uiState, data } = useTask();
 
     return (
         <NavigationContainer>
-            {loading ? <Loading /> : logado ? <AppRoutes /> : <AuthRoutes />}
+            {uiState.loading ? <Loading /> : data.logado ? <AppRoutes /> : <AuthRoutes />}
         </NavigationContainer>
     );
 }

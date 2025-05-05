@@ -29,20 +29,20 @@ const priorities: Priority[] = [
 
 export function ModalPriority({ isVisible, handleOnVisible, task }: ModalProps) {
     const [active, setActive] = useState<{ [key: string]: boolean }>({})
-    const { setPriority, handleUpdateTask, priority } = useTask();
+    const { handleUpdateTask, data, setData } = useTask();
 
     function UpdateSetPriority(key: string, priority: string) {
         setActive((prev) => ({
             [key]: !prev[key],
         }));
-        setPriority(priority);
+        setData(prevData => ({ ...prevData, priority: priority }));
 
     }
 
 
     function UpdatePriority() {
         if (task) {
-            handleUpdateTask({ _id: task._id, priority: priority, task: task })
+            handleUpdateTask({ _id: task._id, priority: data.priority, task: task })
         }
         handleOnVisible();
     }

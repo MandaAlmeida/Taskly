@@ -18,15 +18,19 @@ type SectionProps = {
 };
 
 export function SectionTask({ sections }: SectionProps) {
-    const { subCategory, fetchTaskById, openSections, setOpenSections } = useTask();
+    const { data, setUiState, uiState, fetchTaskById } = useTask();
 
 
     function toggleSection(key: string) {
-        setOpenSections((prev) => ({
+        setUiState(prev => ({
             ...prev,
-            [key]: !prev[key],
+            openSections: {
+                ...prev.openSections,
+                [key]: !prev.openSections[key],
+            },
         }));
     }
+
 
     return (
         <SectionList
@@ -41,10 +45,10 @@ export function SectionTask({ sections }: SectionProps) {
                     status={item.status}
                     priority={item.priority}
                     subCategory={
-                        subCategory.find((subCategory) => subCategory._id === item.subCategory)?.subCategory || "Sem sub categoria"
+                        data.subCategory.find((subCategory) => subCategory._id === item.subCategory)?.subCategory || "Sem sub categoria"
                     }
                     date={formatDate(item.date)}
-                    color={subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
+                    color={data.subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
                     category={item.subCategory}
                     subTask={item.subTask}
                     userId={item.userId}
@@ -52,7 +56,7 @@ export function SectionTask({ sections }: SectionProps) {
             )
             }
             renderSectionHeader={({ section: { title, content, lenght } }) => (
-                <TextFilter text={title} number={lenght ? lenght : "0"} Open={() => toggleSection(content)} isOpen={openSections[content]} />
+                <TextFilter text={title} number={lenght ? lenght : "0"} Open={() => toggleSection(content)} isOpen={uiState.openSections[content]} />
             )}
         />
     )

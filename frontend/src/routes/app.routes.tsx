@@ -7,7 +7,6 @@ import { theme } from '@/styles/theme';
 import { Home } from "@/screens/Home";
 import { PageTasks } from "@/screens/PageTasks";
 import { AddTask } from "@/screens/AddTask";
-import { Category } from "@/screens/Category";
 import { Calendars } from "@/screens/Calendars";
 import { Profile } from "@/screens/Profile";
 import { Anotations } from "@/screens/Anotations";
@@ -21,7 +20,6 @@ export type StackParamList = {
     tabs: NavigatorScreenParams<TabParamList>;
     addTask: undefined;
     addAnnotations: { annotation?: AnnotationProps };
-    category: undefined;
     profile: undefined;
 };
 
@@ -114,7 +112,6 @@ export function AppRoutes() {
             <Stack.Screen name="tabs" component={BottomTabs} />
             <Stack.Screen name="addTask" component={AddTask} />
             <Stack.Screen name="addAnnotations" component={AddAnnotations} />
-            <Stack.Screen name="category" component={Category} />
             <Stack.Screen name="profile" component={Profile} />
         </Stack.Navigator>
     );

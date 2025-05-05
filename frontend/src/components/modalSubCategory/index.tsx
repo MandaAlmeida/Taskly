@@ -9,29 +9,28 @@ import { iconsList } from "@/Array/icons";
 import { SubCategoryProps } from '@/@types/subCategory';
 import { ButtonModal } from '../buttonModal';
 import { ModalProps } from '../modalSubTask';
-import { AddCategory } from '../addCategory';
-
+import { AddCategory } from "../addGroupAndCategory/addCategory";
 
 export function ModalSubCategory({ isVisible, handleOnVisible, task }: ModalProps) {
-    const { setSelectedSubCategory, selectedSubCategory, subCategory, handleUpdateTask, selectedCategory, user, setIsCreateCategoryOpen } = useTask();
+    const { data, setData, setModalState, handleUpdateTask } = useTask();
     const [active, setActive] = useState<{ [key: string]: boolean }>({});
 
     function UpdateSetSubCategory(key: string, item: SubCategoryProps) {
         setActive((prev) => ({
             [key]: !prev[key],
         }));
-        setSelectedSubCategory(item);
+        setData(prevData => ({ ...prevData, selectedSubCategory: item }));
     }
 
     function UpdateSubCategory() {
         if (task) {
-            handleUpdateTask({ _id: task._id, subCategory: selectedSubCategory?._id, task: task })
+            handleUpdateTask({ _id: task._id, subCategory: data.selectedSubCategory?._id, task: task })
         }
         handleOnVisible()
     }
 
     function handleAddSubCategory() {
-        setIsCreateCategoryOpen(true)
+        setModalState('isCreateCategoryOpen')
     }
 
     return (
@@ -40,8 +39,8 @@ export function ModalSubCategory({ isVisible, handleOnVisible, task }: ModalProp
                 <Text style={styles.title}>Sub-categorias</Text>
                 <FlatList
                     data={[
-                        ...subCategory.filter(item => item.categoryId === selectedCategory?._id),
-                        { _id: 'add', subCategory: 'Add Subcategoria', icon: 24, color: theme.blue1, categoryId: "680c5694af5684c6b85511b5", categoryName: "Estudo", userId: user?._id }
+                        ...data.subCategory.filter(item => item.categoryId === data.selectedCategory?._id),
+                        { _id: 'add', subCategory: 'Add Subcategoria', icon: 24, color: theme.blue1, categoryId: "680c5694af5684c6b85511b5", categoryName: "Estudo", userId: data.user?._id }
                     ]}
                     numColumns={3}
                     keyExtractor={(item) => item._id}

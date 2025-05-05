@@ -19,13 +19,12 @@ type taskType = TaskProps & {
 
 export function ModalTask(task: taskType) {
     const {
-        isTaskOpen,
-        setIsTaskOpen,
+        setModalState,
+        modalState,
         handleTaskRemove,
         handleUpdateTask,
         handleSubTaskRemove,
-        subCategory,
-        category
+        data
     } = useTask();
 
     const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
@@ -37,9 +36,9 @@ export function ModalTask(task: taskType) {
     }
 
     return (
-        <Modal visible={isTaskOpen} transparent>
+        <Modal visible={modalState === "isTaskOpen"} transparent>
             <View style={styles.container}>
-                <X size={20} color={theme.gray4} onPress={() => setIsTaskOpen(false)} />
+                <X size={20} color={theme.gray4} onPress={() => setModalState(null)} />
                 <View style={styles.header}>
                     {task.status === "COMPLETED" ?
                         <Check size={24} color={task.color} /> :
@@ -59,12 +58,12 @@ export function ModalTask(task: taskType) {
                     <View style={styles.containerItem}>
                         <Tag size={20} color={task.color} />
                         <Text style={styles.title}>Categoria:</Text>
-                        <TouchableOpacity onPress={() => toggleSection("category")}><Text style={styles.content}>{category.find((category) => category._id === task.category)?.category || "Sem categoria"}</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={() => toggleSection("category")}><Text style={styles.content}>{data.categories.find((category) => category._id === task.category)?.category || "Sem categoria"}</Text></TouchableOpacity>
                     </View>
                     <View style={styles.containerItem}>
                         <Tag size={20} color={task.color} />
                         <Text style={styles.title}>Sub-categoria:</Text>
-                        <TouchableOpacity onPress={() => toggleSection("subCategory")}><Text style={styles.content}>{subCategory.find((subCategory) => subCategory._id === task.subCategory)?.subCategory || "Sem sub categoria"}</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={() => toggleSection("subCategory")}><Text style={styles.content}>{data.subCategory.find((subCategory) => subCategory._id === task.subCategory)?.subCategory || "Sem sub categoria"}</Text></TouchableOpacity>
                     </View>
                     <View style={styles.containerItem}>
                         <Flag size={20} color={task.color} />

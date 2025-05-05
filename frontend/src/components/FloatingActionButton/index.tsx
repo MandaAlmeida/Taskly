@@ -14,7 +14,7 @@ export function FloatingActionButton() {
 
     function handleNavigate() {
         if (tabIndex === "anotation") {
-            navigation.navigate("addAnnotations");
+            navigation.navigate("addAnnotations", {});
         } else {
             navigation.navigate("addTask");
         }

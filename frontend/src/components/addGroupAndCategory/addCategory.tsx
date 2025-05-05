@@ -13,7 +13,7 @@ type CategoryProps = {
 }
 
 export function AddCategory({ title }: CategoryProps) {
-    const { isCreateCategoryOpen, setIsCreateCategoryOpen, handleAddCategory, handleAddSubCategory } = useTask();
+    const { modalState, setModalState, handleAddCategory, handleAddSubCategory } = useTask();
     const [selectedName, setSelectedName] = useState("")
     const [selectedIcon, setSelectedIcon] = useState<number>(0);
     const [selectedColor, setSelectedColor] = useState<number>(0);
@@ -21,17 +21,16 @@ export function AddCategory({ title }: CategoryProps) {
 
     function CreateCategory() {
         handleAddCategory(selectedName, selectedIcon.toString(), chroma(colors[selectedColor]).hex())
-        setIsCreateCategoryOpen(false)
+        setModalState(null)
     }
 
     function CreateSubCategory() {
         handleAddSubCategory(selectedName, selectedIcon.toString(), chroma(colors[selectedColor]).hex())
-        setIsCreateCategoryOpen(false)
+        setModalState(null)
     }
 
-
     return (
-        <Modal visible={isCreateCategoryOpen} transparent animationType="fade" >
+        <Modal visible={modalState == "isCreateCategoryOpen"} transparent animationType="fade" >
             <View style={styles.modal}>
                 <View style={styles.container}>
                     <Text style={styles.title}>{title}</Text>
@@ -97,7 +96,7 @@ export function AddCategory({ title }: CategoryProps) {
                     </View>
                 </View>
                 <View style={styles.containerButton}>
-                    <TouchableOpacity onPress={() => setIsCreateCategoryOpen(false)} style={styles.button}>
+                    <TouchableOpacity onPress={() => setModalState(null)} style={styles.button}>
                         <Text style={styles.cancelText}>Cancelar</Text>
                     </TouchableOpacity>
 

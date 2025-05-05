@@ -16,15 +16,15 @@ type NavigationProps = StackNavigationProp<StackParamList>;
 
 
 export function Annotation() {
-    const { annotationById, fetchAttachment, isAnnotationOpen, attachment, setIsAnnotationOpen, category, getNameUser, createUserAnnotation, handleAnnotationRemove, setIsAttachmentOpen } = useTask();
+    const { data, fetchAttachment, modalState, setModalState, getNameUser, handleAnnotationRemove } = useTask();
     const navigation = useNavigation<NavigationProps>();
 
 
     const [isVisible, setIsVisible] = useState(false)
 
     useEffect(() => {
-        if (annotationById) {
-            annotationById.content.map(item => {
+        if (data.annotationById) {
+            data.annotationById.content.map(item => {
                 if (item.type !== "image") return;
                 if (item.type === "image" && typeof item.value !== "string") {
                     fetchAttachment(item.value)
@@ -32,26 +32,26 @@ export function Annotation() {
 
             })
 
-            getNameUser(annotationById.createdUserId)
+            getNameUser(data.annotationById.createdUserId)
         }
-    }, [annotationById]);
+    }, [data.annotationById]);
 
     function handleEdit() {
         navigation.navigate("addAnnotations", {
-            annotation: annotationById
+            annotation: data.annotationById
         })
-        setIsAnnotationOpen(false)
+        setModalState(null)
         setIsVisible(false)
     }
 
     function handleViewAttachments() {
-        setIsAttachmentOpen(true)
+        setModalState("isAttachmentOpen")
         setIsVisible(false)
     }
 
     return (
-        <Modal visible={isAnnotationOpen} transparent>
-            {annotationById &&
+        <Modal visible={modalState === "isAnnotationOpen"} transparent>
+            {data.annotationById &&
                 <View style={styles.container}>
                     <View style={styles.header}>
                         <TouchableOpacity onPress={() => setIsVisible(!isVisible)}>
@@ -63,7 +63,7 @@ export function Annotation() {
                                 <Text style={styles.menuText}>Editar anotatação</Text>
                             </TouchableOpacity>
 
-                            {annotationById.attachments && annotationById.attachments?.length > 0 && <TouchableOpacity
+                            {data.annotationById.attachments && data.annotationById.attachments?.length > 0 && <TouchableOpacity
                                 style={[styles.menuItem, { borderTopWidth: 1, borderColor: `${theme.blue1}40` }]}
                                 onPress={handleViewAttachments}
                             >
@@ -73,7 +73,7 @@ export function Annotation() {
 
                             <TouchableOpacity
                                 style={[styles.menuItem, { borderTopWidth: 1, borderColor: `${theme.blue1}40` }]}
-                                onPress={() => handleAnnotationRemove(annotationById._id, annotationById.title)}
+                                onPress={() => handleAnnotationRemove(data.annotationById!._id, data.annotationById!.title)}
                             >
                                 <Trash2 size={20} color={theme.red} />
                                 <Text style={[styles.menuText, { color: theme.red }]}>Excluir anotatação</Text>
@@ -81,13 +81,13 @@ export function Annotation() {
                         </View>
                         }
                         <Text style={styles.textHeader}>Anotação</Text>
-                        <TouchableOpacity onPress={() => setIsAnnotationOpen(false)}>
+                        <TouchableOpacity onPress={() => setModalState(null)}>
                             <X size={24} color={theme.gray4} />
                         </TouchableOpacity>
                     </View>
                     <ScrollView>
-                        <Text style={styles.title}>{annotationById.title}</Text>
-                        {annotationById.content.map((item, index) => {
+                        <Text style={styles.title}>{data.annotationById.title}</Text>
+                        {data.annotationById.content.map((item, index) => {
                             if (item.type === "text" && typeof item.value === "string") {
                                 return (
                                     <Text
@@ -98,7 +98,7 @@ export function Annotation() {
                                     </Text>
                                 );
                             } else {
-                                const foundImage = attachment.find(image => {
+                                const foundImage = data.attachment.find(image => {
                                     if (typeof item.value !== 'string') {
                                         return image.title === item.value.title;
                                     }
@@ -126,14 +126,14 @@ export function Annotation() {
                         })}
                     </ScrollView>
                     <View style={styles.footer}>
-                        {annotationById.groupId && <Text style={styles.textFooter}>Grupo: {annotationById.groupId}</Text>}
-                        <Text style={styles.textFooter}>Criado por: {createUserAnnotation?.userName}</Text>
+                        {data.annotationById.groupId && <Text style={styles.textFooter}>Grupo: {data.annotationById.groupId}</Text>}
+                        <Text style={styles.textFooter}>Criado por: {data.createUserAnnotation?.userName}</Text>
                         <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                            <Text style={styles.textFooter}>Categoria: {category.find((category) => category._id === annotationById.category)?.category || "Sem categoria"}</Text>
-                            <Text style={styles.textFooter}>Data de criação: {formatDatePTBR(annotationById.createdAt)}</Text>
+                            <Text style={styles.textFooter}>Categoria: {data.categories.find((categories) => categories._id === data.annotationById?.category)?.category || "Sem categoria"}</Text>
+                            <Text style={styles.textFooter}>Data de criação: {formatDatePTBR(data.annotationById.createdAt)}</Text>
                         </View>
                     </View>
-                    <Attachments id={annotationById._id} color={category.find((category) => category._id === annotationById.category)?.color || theme.blue1} />
+                    <Attachments id={data.annotationById._id} color={data.categories.find((categories) => categories._id === data.annotationById?.category)?.color || theme.blue1} />
                 </View>
             }
         </Modal>

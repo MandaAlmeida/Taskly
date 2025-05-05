@@ -23,7 +23,7 @@ export function AddTask() {
     const navigation = useNavigation<NavigationProps>();
     const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
 
-    const { handleAddTask, selectedSubCategory, selectedCategory, priority, date, setDate, setPriority, setSelectedSubCategory, setSelectedCategory, setIsCreateCategoryOpen } = useTask();
+    const { handleAddTask, data, uiState, setUiState, setData, setModalState } = useTask();
     const [showSubTasks, setShowSubTasks] = useState(false);
     const [localSubTasks, setLocalSubTasks] = useState<CreateSubTaskProps[]>([]);
 
@@ -53,16 +53,17 @@ export function AddTask() {
 
     function handleBackToTask() {
         navigation.navigate('tabs', { screen: 'tasks' })
-        setDate({
-            year: 0,
-            month: 0,
-            day: 0,
-            timestamp: 0,
-            dateString: "",
-        })
-        setSelectedSubCategory(undefined)
-        setPriority("")
-        setSelectedCategory(undefined);
+        setUiState(prevState => ({
+            ...prevState, date: {
+                year: 0,
+                month: 0,
+                day: 0,
+                timestamp: 0,
+                dateString: "",
+            }
+        }))
+
+        setData(prevData => ({ ...prevData, selectedSubCategory: undefined, priority: "", selectedCategory: undefined }))
     };
 
 
@@ -75,31 +76,31 @@ export function AddTask() {
     };
 
     function handleSaveTask() {
-        if (date.dateString === "", selectedSubCategory === undefined, priority === "") {
+        if (uiState.date.dateString === "", data.selectedSubCategory === undefined, data.priority === "") {
             return;
         }
         const task = {
             name: taskName,
-            priority,
-            category: selectedCategory?._id,
-            subCategory: selectedSubCategory?._id,
-            date: date.dateString,
+            priority: data.priority,
+            category: data.selectedCategory?._id,
+            subCategory: data.selectedSubCategory?._id,
+            date: uiState.date.dateString,
             subTask: localSubTasks,
         };
 
 
         handleAddTask(task, handleBackToTask);
-        setDate({
-            year: 0,
-            month: 0,
-            day: 0,
-            timestamp: 0,
-            dateString: "",
-        })
-        setSelectedSubCategory(undefined)
-        setPriority("")
-        setTaskName("")
-        setSelectedCategory(undefined)
+        setUiState(prevState => ({
+            ...prevState, date: {
+                year: 0,
+                month: 0,
+                day: 0,
+                timestamp: 0,
+                dateString: "",
+            }
+        }))
+        setData(prevData => ({ ...prevData, taskName: "", selectedSubCategory: undefined, priority: "", selectedCategory: undefined }))
+
     }
 
     useEffect(() => {
@@ -184,34 +185,34 @@ export function AddTask() {
             <View style={styles.containerButton}>
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("calendar")}>
                     <Feather name="clock" size={24} color={theme.gray4} />
-                    {date.dateString !== "" ? (
+                    {uiState.date.dateString !== "" ? (
                         <Text>
-                            {date.day <= 9 ? `0${date.day}` : date.day}/
-                            {date.month <= 9 ? `0${date.month}` : date.month}/
-                            {date.year}
+                            {uiState.date.day <= 9 ? `0${uiState.date.day}` : uiState.date.day}/
+                            {uiState.date.month <= 9 ? `0${uiState.date.month}` : uiState.date.month}/
+                            {uiState.date.year}
                         </Text>
                     ) : null}
 
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("category"),
-                setIsCreateCategoryOpen(false)
+                setModalState(null)
                 ]}>
                     <Feather name="tag" size={24} color={theme.gray4} />
-                    {selectedCategory !== undefined ? <Text>{selectedCategory?.category}</Text> : ""}
+                    {data.selectedCategory !== undefined ? <Text>{data.selectedCategory?.category}</Text> : ""}
                 </TouchableOpacity>
-                {selectedCategory &&
+                {data.selectedCategory &&
                     <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("subCategory"),
-                    setIsCreateCategoryOpen(false)
+                    setModalState(null)
                     ]}>
                         <Feather name="tag" size={24} color={theme.gray4} />
-                        {selectedSubCategory !== undefined ? <Text>{selectedSubCategory?.subCategory}</Text> : ""}
+                        {data.selectedSubCategory !== undefined ? <Text>{data.selectedSubCategory?.subCategory}</Text> : ""}
                     </TouchableOpacity>
                 }
 
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("priority")}>
                     <Feather name="flag" size={24} color={theme.gray4} />
-                    {priority ? <Text>{priority}</Text> : ""}
+                    {data.priority ? <Text>{data.priority}</Text> : ""}
                 </TouchableOpacity>
             </View>
             {openSections["calendar"] ?

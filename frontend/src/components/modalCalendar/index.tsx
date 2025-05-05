@@ -16,17 +16,17 @@ LocaleConfig.defaultLocale = "pt-br"
 
 
 export function ModalCalendar({ isVisible, handleOnVisible, task }: ModalProps) {
-    const { fetchTask, setDate, date, handleUpdateTask } = useTask();
+    const { fetchTask, uiState, setUiState, handleUpdateTask } = useTask();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(new Date());
 
     function handleDayPress(item: DateData) {
-        setDate(item);
+        setUiState(prevState => ({ ...prevState, date: item }));
         fetchTask();
     }
 
     function UpdateDay() {
         if (task) {
-            handleUpdateTask({ _id: task._id, date: date.dateString, task: task })
+            handleUpdateTask({ _id: task._id, date: uiState.date.dateString, task: task })
         }
         handleOnVisible();
     }
@@ -53,8 +53,8 @@ export function ModalCalendar({ isVisible, handleOnVisible, task }: ModalProps) 
                         textDisabledColor: theme.gray2,
                     }}
                     onDayPress={handleDayPress}
-                    markedDates={date && {
-                        [date.dateString]: { selected: true }
+                    markedDates={uiState.date && {
+                        [uiState.date.dateString]: { selected: true }
                     }}
                 />
 

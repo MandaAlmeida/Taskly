@@ -9,11 +9,11 @@ import { styles } from './styles';
 import { CategoryProps } from '@/@types/category';
 import { ModalProps } from '../modalSubTask';
 import { ButtonModal } from '../buttonModal';
-import { AddCategory } from '../addCategory';
+import { AddCategory } from '../addGroupAndCategory/addCategory';
 
 
 export function ModalCategory({ isVisible, handleOnVisible, task }: ModalProps) {
-    const { setSelectedCategory, selectedCategory, category, handleUpdateTask, user, setIsCreateCategoryOpen } = useTask();
+    const { data, setData, setModalState, handleUpdateTask } = useTask();
 
     const [active, setActive] = useState<{ [key: string]: boolean }>({});
 
@@ -21,18 +21,18 @@ export function ModalCategory({ isVisible, handleOnVisible, task }: ModalProps) 
         setActive((prev) => ({
             [key]: !prev[key],
         }));
-        setSelectedCategory(item);
+        setData(prevData => ({ ...prevData, selectedCategory: item }));
     }
 
     function UpdateCategory() {
         if (task) {
-            handleUpdateTask({ _id: task._id, category: selectedCategory?._id, task: task })
+            handleUpdateTask({ _id: task._id, category: data.selectedCategory?._id, task: task })
         }
         handleOnVisible()
     }
 
     function handleAddCategory() {
-        setIsCreateCategoryOpen(true)
+        setModalState('isCreateCategoryOpen')
     }
 
     return (
@@ -40,8 +40,8 @@ export function ModalCategory({ isVisible, handleOnVisible, task }: ModalProps) 
             <View style={styles.modalContainer}>
                 <Text style={styles.title}>Categorias</Text>
                 <FlatList
-                    data={[...category.filter(item => item.category !== 'Todas'),
-                    { _id: 'add', category: 'Add Subcategoria', icon: 24, color: theme.blue1, userId: user?._id }
+                    data={[...data.categories.filter(item => item.category !== 'Todas'),
+                    { _id: 'add', category: 'Add Subcategoria', icon: 24, color: theme.blue1, userId: data.user?._id }
                     ]}
                     numColumns={3}
                     keyExtractor={(item) => item._id}

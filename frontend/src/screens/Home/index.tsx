@@ -10,10 +10,10 @@ import { Header } from "@/components/header";
 import { EmptyState } from "@/components/emptyState";
 
 export function Home() {
-    const { loading, user, tasks, tasksSearch, openSections, taskById, subCategory, fetchTask } = useTask();
+    const { data, uiState, fetchTask } = useTask();
 
 
-    if (loading) {
+    if (uiState.loading) {
         return <Loading />;
     }
 
@@ -27,8 +27,8 @@ export function Home() {
         {
             title: 'Pra terminar hoje 🙌',
             content: 'TODAY',
-            lenght: tasksSearch.length > 0 ? tasksSearch.filter(task => task.status === 'TODAY').length.toString() : tasks.filter(task => task.status === 'TODAY').length.toString(),
-            data: openSections['TODAY'] ? tasksSearch.length > 0 ? tasksSearch.filter(task => task.status === 'TODAY') : tasks.filter(task => task.status === 'TODAY') : [],
+            lenght: data.tasksSearch.length > 0 ? data.tasksSearch.filter(task => task.status === 'TODAY').length.toString() : data.tasks.filter(task => task.status === 'TODAY').length.toString(),
+            data: uiState.openSections['TODAY'] ? data.tasksSearch.length > 0 ? data.tasksSearch.filter(task => task.status === 'TODAY') : data.tasks.filter(task => task.status === 'TODAY') : [],
         }
     ];
 
@@ -37,7 +37,7 @@ export function Home() {
             <Header text="Inicio" />
             <View>
                 <Text style={styles.title}>Bem-vindo(a) de volta </Text>
-                <Text style={styles.name}>{user?.name}</Text>
+                <Text style={styles.name}>{data.user?.name}</Text>
             </View>
 
             {sections[0].lenght === "0" ?
@@ -48,17 +48,17 @@ export function Home() {
                 </View>
             }
 
-            {taskById && <ModalTask
-                _id={taskById._id}
-                name={taskById.name}
-                category={taskById.category}
-                subCategory={taskById.subCategory}
-                subTask={taskById.subTask}
-                priority={taskById.priority}
-                date={taskById.date}
-                status={taskById.status}
-                userId={taskById.userId}
-                color={subCategory.find((subCategory) => subCategory._id === taskById.subCategory)?.color || theme.blue1}
+            {data.taskById && <ModalTask
+                _id={data.taskById._id}
+                name={data.taskById.name}
+                category={data.taskById.category}
+                subCategory={data.taskById.subCategory}
+                subTask={data.taskById.subTask}
+                priority={data.taskById.priority}
+                date={data.taskById.date}
+                status={data.taskById.status}
+                userId={data.taskById.userId}
+                color={data.subCategory.find((subCategory) => subCategory._id === data.taskById?.subCategory)?.color || theme.blue1}
             />}
         </View>
     );

@@ -12,10 +12,10 @@ type Props = {
 };
 
 export function ModalTaskName({ isVisible, handleOnVisible, task }: Props) {
-    const { taskName, setTaskName, handleUpdateTask } = useTask();
+    const { data, setData, handleUpdateTask } = useTask();
 
     function handleUpdateName() {
-        handleUpdateTask({ _id: task._id, name: taskName, task: task })
+        handleUpdateTask({ _id: task._id, name: data.taskName, task: task })
         handleOnVisible()
     }
 
@@ -28,8 +28,8 @@ export function ModalTaskName({ isVisible, handleOnVisible, task }: Props) {
                     multiline={true}
                     numberOfLines={3}
                     placeholder={task.name}
-                    value={taskName}
-                    onChangeText={setTaskName}
+                    value={data.taskName}
+                    onChangeText={text => setData(prevData => ({ ...prevData, taskName: text }))}
                 />
                 <View style={styles.buttonsContainer}>
                     <TouchableOpacity onPress={() => handleOnVisible()}>

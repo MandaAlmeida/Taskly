@@ -35,6 +35,12 @@ export class Group {
 
     @Prop()
     description?: string;
+
+    @Prop({ required: true, type: String })
+    icon: string;
+
+    @Prop({ required: true, type: String })
+    color: string;
 }
 
 export const GroupSchema = SchemaFactory.createForClass(Group);

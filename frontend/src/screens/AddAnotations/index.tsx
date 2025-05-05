@@ -23,7 +23,7 @@ export function AddAnnotations() {
     const [title, setTitle] = useState(annotation?.title ?? '');
     const navigation = useNavigation<NavigationProps>();
     const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
-    const { selectedCategory, handleAddAnnotation, fetchAttachment, attachment, handleUpdateAnnotation } = useTask();
+    const { data, handleAddAnnotation, fetchAttachment, handleUpdateAnnotation } = useTask();
 
     const [content, setContent] = useState<contentProps[]>(annotation?.content ?? [{ type: 'text', value: '' }]);
 
@@ -60,7 +60,7 @@ export function AddAnnotations() {
             : []
     );
 
-    const isDisabled = !selectedCategory || title === "";
+    const isDisabled = !data.selectedCategory || title === "";
 
     async function addImageBlock() {
         const result = await ImagePicker.launchImageLibraryAsync();
@@ -109,7 +109,7 @@ export function AddAnnotations() {
         const formData = new FormData();
 
         formData.append("title", title);
-        if (selectedCategory) formData.append("category", selectedCategory._id);
+        if (data.selectedCategory) formData.append("category", data.selectedCategory._id);
 
         const contentData = content.filter((item) => item.value !== "");
         formData.append("content", JSON.stringify(contentData));
@@ -204,7 +204,7 @@ export function AddAnnotations() {
 
                     if (block.type === 'image') {
                         // Verifica se é uma imagem que já existe no servidor (via attachment)
-                        const foundImage = attachment.find(image => {
+                        const foundImage = data.attachment.find(image => {
                             if (typeof block.value !== 'string') {
                                 return image.title === block.value.title;
                             }
@@ -248,7 +248,7 @@ export function AddAnnotations() {
 
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("category")}>
                     <Tag size={24} color={theme.gray4} />
-                    {selectedCategory && <Text>{selectedCategory.category}</Text>}
+                    {data.selectedCategory && <Text>{data.selectedCategory.category}</Text>}
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("member")}>

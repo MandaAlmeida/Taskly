@@ -22,7 +22,7 @@ LocaleConfig.locales["pt-br"] = ptBR
 LocaleConfig.defaultLocale = "pt-br"
 
 export function Calendars() {
-    const { fetchTaskByDate, tasksData, subCategory, fetchTaskById, tasks } = useTask();
+    const { fetchTaskByDate, fetchTaskById, data } = useTask();
     const today = new Date();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(today);
 
@@ -41,16 +41,16 @@ export function Calendars() {
     }
 
     useEffect(() => {
-        if (tasksData.length === 0) {
+        if (data.tasksData.length === 0) {
             fetchTaskByDate(day.dateString);
         }
-    }, [tasksData])
+    }, [data.tasksData])
 
 
     const buildMarkedDates = (selectedDate?: string) => {
         const marked: Record<string, any> = {};
 
-        tasks.forEach(task => {
+        data.tasks.forEach(task => {
             const taskDate = task.date.split('T')[0];
 
             if (!marked[taskDate]) {
@@ -98,8 +98,8 @@ export function Calendars() {
                 markedDates={buildMarkedDates(day?.dateString)}
             />
 
-            {tasksData.length > 0 ? <FlatList
-                data={tasksData}
+            {data.tasksData.length > 0 ? <FlatList
+                data={data.tasksData}
                 keyExtractor={(item) => item._id}
                 ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
                 renderItem={({ item }) => (
@@ -109,11 +109,11 @@ export function Calendars() {
                         name={item.name}
                         status={item.status}
                         priority={item.priority}
-                        subCategory={subCategory.find((subCategory) => subCategory._id === item.subCategory)?.subCategory || "Sem sub categoria"}
+                        subCategory={data.subCategory.find((subCategory) => subCategory._id === item.subCategory)?.subCategory || "Sem sub categoria"}
                         category={item.subCategory}
                         date={formatDate(item.date)}
                         handleOpenTask={() => fetchTaskById(item._id)}
-                        color={subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
+                        color={data.subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
                     />
                 )} /> : (
                 <EmptyState text="tarefas" title="O que você quer fazer hoje?" />

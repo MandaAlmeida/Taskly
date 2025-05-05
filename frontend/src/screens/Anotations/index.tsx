@@ -13,7 +13,7 @@ import { Annotation } from "@/components/annotation";
 import { theme } from "@/styles/theme";
 
 export function Anotations() {
-    const { annotation, annotationSearch, fetchAnnotation, fetchAnnotationById, category, fetchAnnotationBySearch } = useTask();
+    const { fetchAnnotation, fetchAnnotationById, data, fetchAnnotationBySearch } = useTask();
 
     const [search, setSearch] = useState("");
 
@@ -25,7 +25,7 @@ export function Anotations() {
         fetchAnnotationById(id)
     }
 
-    const layout = formatLayout(annotationSearch.length > 0 ? annotationSearch : annotation);
+    const layout = formatLayout(data.annotationSearch.length > 0 ? data.annotationSearch : data.annotation);
 
     const renderItem = ({ item }: ListRenderItemInfo<LayoutBlock>) => {
         if (item.type === "row") {
@@ -33,7 +33,7 @@ export function Anotations() {
                 <View style={styles.row}>
 
                     {item.items.map((annotation) => {
-                        const color = category.find((category) => category._id === annotation.category)?.color || theme.blue1
+                        const color = data.categories.find((category) => category._id === annotation.category)?.color || theme.blue1
 
                         return (
                             <TouchableOpacity
@@ -56,7 +56,7 @@ export function Anotations() {
 
                                 <View style={styles.footer}>
                                     <Text style={styles.date}>{formatDatePTBR(annotation.createdAt)}</Text>
-                                    <Text style={[styles.tag, { backgroundColor: color }]}>{category.find((category) => category._id === annotation.category)?.category || "Sem categoria"}</Text>
+                                    <Text style={[styles.tag, { backgroundColor: color }]}>{data.categories.find((category) => category._id === annotation.category)?.category || "Sem categoria"}</Text>
                                 </View>
                             </TouchableOpacity>
                         )
@@ -65,7 +65,7 @@ export function Anotations() {
             );
         } else {
             const annotation = item.items[0];
-            const color = category.find((category) => category._id === annotation.category)?.color || theme.blue1
+            const color = data.categories.find((category) => category._id === annotation.category)?.color || theme.blue1
             return (
                 <TouchableOpacity
                     key={annotation._id}
@@ -84,7 +84,7 @@ export function Anotations() {
                     })}
                     <View style={styles.footer}>
                         <Text style={styles.date}>{formatDatePTBR(annotation.createdAt)}</Text>
-                        <Text style={[styles.tag, { backgroundColor: color }]}>{category.find((category) => category._id === annotation.category)?.category || "Sem categoria"}</Text>
+                        <Text style={[styles.tag, { backgroundColor: color }]}>{data.categories.find((category) => category._id === annotation.category)?.category || "Sem categoria"}</Text>
                     </View>
                 </TouchableOpacity>
             );
@@ -94,7 +94,7 @@ export function Anotations() {
     return (
         <View style={styles.container}>
             <Header text="Anotações" />
-            {annotation && annotation.length > 0 ? (
+            {data.annotation && data.annotation.length > 0 ? (
                 <>
                     <Search fetchSearch={fetchAnnotationBySearch} placeholder="Pesquisar por anotação ou categoria" setName={setSearch} name={search} />
                     <FlatList

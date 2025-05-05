@@ -3,6 +3,7 @@ import { Type } from "class-transformer";
 import {
     IsArray,
     IsNotEmpty,
+    IsNumber,
     IsOptional,
     IsString,
     ValidateNested,
@@ -42,6 +43,22 @@ export class CreateGroupDTO {
         example: "Grupo dedicado para estudo de Nest"
     })
     description?: string;
+
+    @IsNotEmpty({ message: "Icone é obrigatória" })
+    @IsNumber()
+    @ApiProperty({
+        description: "Icone da categoria",
+        example: "1"
+    })
+    icon: number;
+
+    @IsNotEmpty({ message: "Cor é obrigatória" })
+    @IsString()
+    @ApiProperty({
+        description: "Cor da categoria",
+        example: "#FBBC05"
+    })
+    color: string;
 }
 
 export class UpdateGroupDTO {
@@ -83,4 +100,20 @@ export class UpdateGroupDTO {
         example: "Grupo dedicado para estudo de Nest"
     })
     description?: string;
+
+    @IsNotEmpty({ message: "Icone é obrigatória" })
+    @IsNumber()
+    @ApiProperty({
+        description: "Icone da categoria",
+        example: "1"
+    })
+    icon: number;
+
+    @IsNotEmpty({ message: "Cor é obrigatória" })
+    @IsString()
+    @ApiProperty({
+        description: "Cor da categoria",
+        example: "#FBBC05"
+    })
+    color: string;
 }

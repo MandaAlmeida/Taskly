@@ -15,7 +15,6 @@ import { useTask } from "@/hooks/useTask";
 import { Progress } from "@/components/progress";
 
 export function SignUp2() {
-    const { error } = useTask();
     const { control, formState: { errors }, getValues, watch, handleSubmit } = useFormContext<AccountProps>();
     const emailRef = useRef<TextInput>(null);
     const passwordRef = useRef<TextInput>(null);
@@ -114,7 +113,7 @@ export function SignUp2() {
                         control,
                         rules: {
                             required: "Confirme a senha",
-                            validate: validationPasswordConfirmation
+                            // validate: validationPasswordConfirmation                        
                         }
                     }}
                     inputProps={{
@@ -124,7 +123,6 @@ export function SignUp2() {
                     }}
                     error={errors.passwordConfirmation?.message}
                 />
-                {error && <Text style={styles.error}>Usuario ja cadastrado</Text>}
                 <View style={styles.containerButton}>
                     <Button text="VOLTAR" onPress={() => handlePreviousPage()} style={[styles.button, { width: 150 }]} />
                     <Button text="CONTINUAR" onPress={handleSubmit(handleNextPage)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1, width: 150 }]} disabled={isDisabled} />

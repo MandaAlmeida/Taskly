@@ -19,7 +19,7 @@ export class CreateCategoryDTO {
     @IsNumber()
     @ApiProperty({
         description: "Icone da categoria",
-        example: "GraduationCap"
+        example: "1"
     })
     icon: number;
 

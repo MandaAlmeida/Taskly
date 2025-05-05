@@ -4,7 +4,7 @@ export type attachmentProps = {
     url: string
 }
 
-type members = {
+export type membersProps = {
     userId: string;
     accessType: string
 }
@@ -19,7 +19,7 @@ export type CreateAnnotationProps = {
     content: content[];
     category: string;
     attachments?: attachmentProps[];
-    members?: members[];
+    members?: membersProps[];
     groupId?: string[];
 }
 
@@ -30,7 +30,7 @@ export type AnnotationProps = {
     category: string;
     createdAt: string;
     updatedAt: string;
-    members?: members[];
+    members?: membersProps[];
     groupId?: string[];
     createdUserId: string;
     attachments?: attachmentProps[];

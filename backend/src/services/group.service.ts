@@ -13,7 +13,7 @@ export class GroupService {
 
     // Criação de grupo, evitando nomes duplicados e membros repetidos
     async create(group: CreateGroupDTO, user: TokenPayloadSchema) {
-        const { name, description, members } = group;
+        const { name, description, members, color, icon } = group;
         const userId = user.sub;
 
         const existingGroup = await this.groupModel.findOne({ name, createdUserId: userId });
@@ -28,7 +28,15 @@ export class GroupService {
             }
         }
 
-        const groupToCreate = { name, createdUserId: userId, description, members };
+        const groupToCreate = {
+            name,
+            createdUserId: userId,
+            description,
+            members,
+            icon,
+            color
+        };
+
         const createdGroup = new this.groupModel(groupToCreate);
         await createdGroup.save();
 
@@ -95,9 +103,9 @@ export class GroupService {
         });
     }
 
-    // Atualização de grupo com validações de nome único e tratamento de membros
+    // Atualização de grupo com validações de nome único
     async update(groupId: string, group: UpdateGroupDTO, user: TokenPayloadSchema) {
-        const { name, description, members } = group;
+        const { name, description, members, icon, color } = group;
         const userId = user.sub;
 
         const existingGroup = await this.groupModel.findById(groupId);
@@ -109,29 +117,8 @@ export class GroupService {
         const groupToUpdate: any = {};
         if (name) groupToUpdate.name = name;
         if (description) groupToUpdate.description = description;
-
-        if (members && members.length > 0) {
-            const userIds = members.map(m => m.userId.toString());
-            const duplicates = userIds.filter((id, i) => userIds.indexOf(id) !== i);
-            if (duplicates.length > 0) throw new ConflictException("Usuário duplicado na lista de membros");
-
-            const existingMembers = existingGroup.members || [];
-            const updateMembers = [...existingMembers];
-
-            members.forEach(newMember => {
-                const index = updateMembers.findIndex(
-                    member => member.userId.toString() === newMember.userId.toString()
-                );
-
-                if (index === -1) {
-                    updateMembers.push(newMember);
-                } else if (updateMembers[index].accessType !== newMember.accessType) {
-                    updateMembers[index].accessType = newMember.accessType;
-                }
-            });
-
-            groupToUpdate.members = updateMembers;
-        }
+        if (icon) groupToUpdate.icon = icon;
+        if (color) groupToUpdate.color = color;
 
         return await this.groupModel.findByIdAndUpdate(
             groupId,

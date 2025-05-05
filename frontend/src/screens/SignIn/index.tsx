@@ -15,7 +15,7 @@ import { useTask } from "@/hooks/useTask";
 
 export function SignIn() {
     const { control, handleSubmit, formState: { errors }, watch } = useForm<AccountProps>();
-    const { login, error } = useTask();
+    const { login } = useTask();
     const { navigate } = useNavigation();
 
     const passwordRef = useRef<TextInput>(null);
@@ -81,7 +81,6 @@ export function SignIn() {
                     }}
                     error={errors.password?.message}
                 />
-                {error && <Text style={styles.error}>Senha ou email invalidos</Text>}
                 <Button text="Fazer login" onPress={handleSubmit(handleNextStep)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1 }]} disabled={isDisabled} />
 
             </View>
