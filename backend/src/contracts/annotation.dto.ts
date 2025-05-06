@@ -51,8 +51,17 @@ export class CreateAnnotationDTO {
     category: string;
 
     @IsOptional()
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            } catch (error) {
+                throw new BadRequestException('Formato Json invalido');
+            }
+        }
+        return value;
+    }, { toClassOnly: true })
     @IsArray()
-    @Type(() => MemberDTO)
     @ApiProperty({
         description: "Com quem voce quer compartilhar essa anotacao",
         example: [
@@ -115,8 +124,17 @@ export class UpdateAnnotationDTO {
     category?: string;
 
     @IsOptional()
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            } catch (error) {
+                throw new BadRequestException('Formato Json invalido');
+            }
+        }
+        return value;
+    }, { toClassOnly: true })
     @IsArray()
-    @ValidateNested({ each: true })
     @Type(() => MemberDTO)
     @ApiProperty({
         description: "Com quem voce quer compartilhar essa anotacao",

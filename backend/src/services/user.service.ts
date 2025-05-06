@@ -50,8 +50,14 @@ export class UserService {
         // Verifica se o email já está em uso
         const existingEmail = await this.userModel.findOne({ email });
         if (existingEmail) {
-            throw new ConflictException('Este usuário já existe');
+            throw new ConflictException('Este email já está em uso');
         }
+
+        const existingUserName = await this.userModel.findOne({ userName });
+        if (existingUserName) {
+            throw new ConflictException('Este nome de usuário já está em uso');
+        }
+
 
         // Criptografa a senha
         const hashedPassword = await hash(password, 8);
@@ -152,6 +158,25 @@ export class UserService {
 
         return userFound;
     }
+
+    /**
+    * Recupera o usuário pelo nome.
+     */
+    async fetchByName(name: string) {
+        const regex = new RegExp(name, 'i');
+
+        const filters: any[] = [
+            { userName: { $regex: regex } },
+        ];
+
+        const user = await this.userModel.findOne({
+            $or: filters,
+        }).select(['_id', 'userName']);
+
+        console.log(user)
+        return user
+    }
+
 
     /**
      * Atualiza as informações do usuário.

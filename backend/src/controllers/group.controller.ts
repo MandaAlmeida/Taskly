@@ -38,8 +38,8 @@ export class GroupController {
     }
 
     @Roles("ADMIN")
-    @Put("update/:id")
-    async update(@Param('id') groupId: string, @Body() group: UpdateGroupDTO, @CurrentUser() user: TokenPayloadSchema) {
+    @Put("update/:groupId")
+    async update(@Param('groupId') groupId: string, @Body() group: UpdateGroupDTO, @CurrentUser() user: TokenPayloadSchema) {
         return this.GroupService.update(groupId, group, user)
     }
 
@@ -56,8 +56,8 @@ export class GroupController {
     }
 
     @Roles("ADMIN")
-    @Delete("delete/:id")
-    async delete(@Param('id') groupId: string) {
+    @Delete("delete/:groupId")
+    async delete(@Param('groupId') groupId: string) {
         return this.GroupService.delete(groupId);
     }
 

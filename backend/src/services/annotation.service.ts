@@ -17,6 +17,8 @@ export class AnnotationService {
     async create(annotation: CreateAnnotationDTO, user: TokenPayloadSchema, files?: Express.Multer.File[], attachments?: Express.Multer.File[]) {
         const { title, content, category, members } = annotation;
 
+        console.log(members)
+
         const userId = user.sub
         const existingAnnotation = await this.annotationModel.findOne({ title, category, createdUserId: userId });
 
@@ -288,7 +290,6 @@ export class AnnotationService {
                 }
             }
 
-            // console.log(content)
         }
 
         // Atualizar o campo 'content' com o novo conteúdo após as imagens terem sido processadas
@@ -554,6 +555,10 @@ export class AnnotationService {
             if (content.type === "image" && typeof content.value !== "string") {
                 this.uploadService.delete(content.value.url)
             }
+        });
+
+        annotation.attachments?.filter(attachment => {
+            this.uploadService.delete(attachment)
         });
 
         await this.annotationModel.findByIdAndDelete(annotationId).exec();

@@ -1,15 +1,14 @@
 import { UserRole } from "@/enum/userRole.enum";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsMongoId } from "class-validator";
-import { ObjectId } from "mongoose";
+import { IsIn, IsMongoId, IsString } from "class-validator";
 
 export class MemberDTO {
-    @IsMongoId()
+    @IsString()
     @ApiProperty({
         description: "Id do usuario",
         example: "67f84a94f3512313ce56e030"
     })
-    userId: ObjectId;
+    userId: string;
 
     @IsIn(["ADMIN", "EDIT", "DELETE", "VIEWER"], { message: "O tipo de acesso deve ser 'ADMIN', 'EDIT', 'DELETE', 'VIEWER'" })
     @ApiProperty({

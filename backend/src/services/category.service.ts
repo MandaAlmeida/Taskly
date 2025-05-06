@@ -66,7 +66,9 @@ export class CategorysService {
         // Verifica se já existe outra categoria com o mesmo nome para o usuário
         const existingCategory = await this.categoryModel.findOne({ category, userId });
 
-        if (existingCategory?._id.toString() !== categoryId) {
+        console.log(existingCategory?._id.toString() !== categoryId, existingCategory)
+
+        if (existingCategory !== null && existingCategory?._id.toString() !== categoryId) {
             throw new ConflictException("Ja existe uma categoria com esse nome");
         }
 

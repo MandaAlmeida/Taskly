@@ -3,7 +3,7 @@ import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { TokenPayloadSchema } from '@/auth/jwt.strategy';
 import { CreateUserDTO, LoginUserDTO, UpdateUserDTO } from '@/contracts/user.dto';
 import { UserService } from '@/services/user.service';
-import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
@@ -38,6 +38,11 @@ export class UserController {
     @Get("fetch/:id")
     async fetchById(@Param("id") userId: string) {
         return this.UserService.fetchById(userId)
+    }
+
+    @Get("fetchByName")
+    async fetchByName(@Query("n") name: string) {
+        return this.UserService.fetchByName(name)
     }
 
     @ApiBearerAuth('access-token')

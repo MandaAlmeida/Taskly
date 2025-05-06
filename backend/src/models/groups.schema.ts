@@ -29,15 +29,15 @@ export class Group {
         default: []
     })
     members: {
-        userId: ObjectId;
+        userId: string;
         accessType: UserRole;
     }[];
 
     @Prop()
     description?: string;
 
-    @Prop({ required: true, type: String })
-    icon: string;
+    @Prop({ required: true, type: Number })
+    icon: number;
 
     @Prop({ required: true, type: String })
     color: string;

@@ -46,7 +46,7 @@ export class Annotation {
         ],
     })
     members: {
-        userId: ObjectId;
+        userId: string;
         accessType: UserRole;
     }[];
 
