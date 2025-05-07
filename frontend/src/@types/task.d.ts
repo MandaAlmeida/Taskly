@@ -11,13 +11,14 @@ export type CreateTaskProps = {
     subTask?: CreateSubTaskProps[]
     priority: string;
     date: string;
+    hours?: string;
 }
 
 export type TaskProps = {
     _id: string;
     name: string;
     category: string;
-    subCategory: string;
+    subCategory?: string;
     subTask?: CreateSubTaskProps[]
     priority: string;
     date: string;

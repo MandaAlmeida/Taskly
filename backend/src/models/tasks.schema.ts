@@ -20,8 +20,8 @@ export class Task {
     @Prop({ required: true, index: true })
     category: string;
 
-    @Prop({ required: true, index: true })
-    subCategory: string;
+    @Prop({ index: true })
+    subCategory?: string;
 
     @Prop({ type: [SubTask], default: [] })
     subTask: SubTask[];
@@ -31,6 +31,9 @@ export class Task {
 
     @Prop({ required: true, index: true })
     date: Date;
+
+    @Prop({ required: true })
+    hour: string;
 
     @Prop({ required: true, index: true })
     status: Status;

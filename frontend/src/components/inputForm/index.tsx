@@ -1,20 +1,28 @@
 import { TextInput, TextInputProps, View, Text } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { styles } from "./styles";
 import { Controller, UseControllerProps } from "react-hook-form"
 import { forwardRef } from "react";
-import clsx from "clsx";
 import { theme } from '@/styles/theme';
-import { AccountProps } from "@/@types/account";
+
+type AccountProps = {
+    userName: string;
+    name: string;
+    email: string;
+    birth: string;
+    password: string;
+    passwordConfirmation: string;
+}
+
 
 type InputProps = {
     text: string;
     formProps: UseControllerProps<AccountProps>;
     inputProps: TextInputProps;
     error?: string
+    rightIcon?: React.ReactNode;
 }
 
-const InputForm = forwardRef<TextInput, InputProps>(({ text, formProps, inputProps, error = "" }, ref) => {
+const InputForm = forwardRef<TextInput, InputProps>(({ text, formProps, inputProps, error = "", rightIcon }, ref) => {
     return (
         <Controller render={({ field }) => (
             <View style={styles.container}>
@@ -33,7 +41,7 @@ const InputForm = forwardRef<TextInput, InputProps>(({ text, formProps, inputPro
                     />
                 </View>
                 {error.length > 0 ? <Text style={styles.error}>{error}</Text> : ""}
-
+                {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
             </View>
         )}
             {...formProps}

@@ -6,6 +6,7 @@ export type attachmentProps = {
 
 export type membersProps = {
     userId: string;
+    name: string;
     accessType: string
 }
 

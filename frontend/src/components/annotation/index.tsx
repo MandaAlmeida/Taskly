@@ -40,17 +40,17 @@ export function Annotation() {
         navigation.navigate("addAnnotations", {
             annotation: data.annotationById
         })
-        setModalState(null)
+        setModalState({ name: null })
         setIsVisible(false)
     }
 
     function handleViewAttachments() {
-        setModalState("isAttachmentOpen")
+        setModalState({ name: "isAttachmentOpen" })
         setIsVisible(false)
     }
 
     return (
-        <Modal visible={modalState === "isAnnotationOpen"} transparent>
+        <Modal visible={modalState.name === "isAnnotationOpen"} transparent>
             {data.annotationById &&
                 <View style={styles.container}>
                     <View style={styles.header}>
@@ -81,7 +81,7 @@ export function Annotation() {
                         </View>
                         }
                         <Text style={styles.textHeader}>Anotação</Text>
-                        <TouchableOpacity onPress={() => setModalState(null)}>
+                        <TouchableOpacity onPress={() => setModalState({ name: null })}>
                             <X size={24} color={theme.gray4} />
                         </TouchableOpacity>
                     </View>

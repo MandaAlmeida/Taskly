@@ -44,12 +44,9 @@ export function SectionTask({ sections }: SectionProps) {
                     handleOpenTask={() => fetchTaskById(item._id)}
                     status={item.status}
                     priority={item.priority}
-                    subCategory={
-                        data.subCategory.find((subCategory) => subCategory._id === item.subCategory)?.subCategory || "Sem sub categoria"
-                    }
                     date={formatDate(item.date)}
-                    color={data.subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
-                    category={item.subCategory}
+                    color={data.categories.find((category) => category._id === item.category)?.color || theme.blue1}
+                    category={item.category}
                     subTask={item.subTask}
                     userId={item.userId}
                 />

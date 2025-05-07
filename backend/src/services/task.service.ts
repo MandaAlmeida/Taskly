@@ -15,7 +15,7 @@ export class TaskService {
 
     // Cria uma nova tarefa para o usuário
     async create(task: CreateTaskDTO, user: TokenPayloadSchema): Promise<CreateTaskDTO> {
-        const { name, category, subCategory, subTask, priority, date } = task;
+        const { name, category, subCategory, subTask, priority, date, hour } = task;
         const userId = user.sub;
 
         // Verifica se já existe uma tarefa com o mesmo nome, categoria e data para o usuário

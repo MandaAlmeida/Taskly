@@ -14,7 +14,8 @@ import { ModalPriority } from "@/components/modalPriority";
 import { ModalCategory } from "@/components/modalCategory";
 import { CreateSubTaskProps } from "@/@types/task";
 import { Keyboard } from "react-native";
-import { Plus } from "lucide-react-native";
+import { Calendar1, Clock, Flag, Plus, Tag } from "lucide-react-native";
+import { Calendar } from "react-native-calendars";
 
 type NavigationProps = StackNavigationProp<StackParamList>;
 
@@ -86,6 +87,7 @@ export function AddTask() {
             subCategory: data.selectedSubCategory?._id,
             date: uiState.date.dateString,
             subTask: localSubTasks,
+            hours: uiState.hours
         };
 
 
@@ -184,49 +186,49 @@ export function AddTask() {
 
             <View style={styles.containerButton}>
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("calendar")}>
-                    <Feather name="clock" size={24} color={theme.gray4} />
-                    {uiState.date.dateString !== "" ? (
+                    <Calendar1 size={24} color={theme.gray4} />
+                    {uiState.date.dateString !== "" &&
                         <Text>
                             {uiState.date.day <= 9 ? `0${uiState.date.day}` : uiState.date.day}/
                             {uiState.date.month <= 9 ? `0${uiState.date.month}` : uiState.date.month}/
                             {uiState.date.year}
                         </Text>
-                    ) : null}
+                    }
 
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("category"),
-                setModalState(null)
-                ]}>
-                    <Feather name="tag" size={24} color={theme.gray4} />
-                    {data.selectedCategory !== undefined ? <Text>{data.selectedCategory?.category}</Text> : ""}
-                </TouchableOpacity>
-                {data.selectedCategory &&
+                {uiState.date.dateString !== "" &&
                     <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("subCategory"),
-                    setModalState(null)
+                    setModalState({ name: null })
                     ]}>
-                        <Feather name="tag" size={24} color={theme.gray4} />
-                        {data.selectedSubCategory !== undefined ? <Text>{data.selectedSubCategory?.subCategory}</Text> : ""}
+                        <Clock size={24} color={theme.gray4} />
+                        {uiState.hours !== undefined && <Text>{uiState.hours}</Text>}
                     </TouchableOpacity>
                 }
 
+                <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("category"),
+                setModalState({ name: null })
+                ]}>
+                    <Tag size={24} color={theme.gray4} />
+                    {data.selectedCategory !== undefined && <Text>{data.selectedCategory?.category}</Text>}
+                </TouchableOpacity>
                 <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("priority")}>
-                    <Feather name="flag" size={24} color={theme.gray4} />
-                    {data.priority ? <Text>{data.priority}</Text> : ""}
+                    <Flag size={24} color={theme.gray4} />
+                    {data.priority && <Text>{data.priority}</Text>}
                 </TouchableOpacity>
             </View>
-            {openSections["calendar"] ?
+            {openSections["calendar"] &&
                 <ModalCalendar isVisible={openSections["calendar"]} handleOnVisible={() => toggleSection("calendar")} />
-                : ""}
-            {openSections["category"] ?
+            }
+            {openSections["category"] &&
                 <ModalCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />
-                : ""}
-            {openSections["subCategory"] ?
+            }
+            {openSections["subCategory"] &&
                 <ModalSubCategory isVisible={openSections["subCategory"]} handleOnVisible={() => toggleSection("subCategory")} />
-                : ""}
-            {openSections["priority"] ?
+            }
+            {openSections["priority"] &&
                 <ModalPriority isVisible={openSections["priority"]} handleOnVisible={() => toggleSection("priority")} />
-                : ""}
+            }
             <Button
                 text={"Adicionar tarefa"}
                 onPress={handleSaveTask}

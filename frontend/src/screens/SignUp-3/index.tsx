@@ -21,7 +21,7 @@ export function SignUp3() {
 
     const { navigate } = useNavigation();
 
-    // const isDisabled = !image;
+    const isDisabled = !image;
 
     async function pickerImage() {
         const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -84,7 +84,7 @@ export function SignUp3() {
 
         try {
             createUser(formData, handleLogin);
-            navigate("signIn")
+
         } catch (error) {
             console.log("Erro ao criar usuário:", error);
         }
@@ -118,7 +118,7 @@ export function SignUp3() {
                 </View>
                 <View style={styles.containerButton}>
                     <Button text="VOLTAR" onPress={handlePreviousPage} style={[styles.button, { width: 150 }]} />
-                    <Button text="CONTINUAR" onPress={handleSubmit(handleNextPage)} style={[styles.button, { width: 150 }]} />
+                    <Button text="CONTINUAR" onPress={handleSubmit(handleNextPage)} style={[styles.button, { opacity: isDisabled ? 0.5 : 1, width: 150 }]} disabled={isDisabled} />
                 </View>
                 <Progress count={3} />
             </ScrollView>

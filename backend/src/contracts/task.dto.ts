@@ -8,6 +8,7 @@ import {
     IsNotEmpty,
     IsOptional,
     IsString,
+    Matches,
 } from "class-validator";
 import { CreateSubTaskDTO, SubTaskDTO } from "./subTask.dto";
 
@@ -28,13 +29,13 @@ export class CreateTaskDTO {
     })
     category: string;
 
-    @IsNotEmpty({ message: "Sub Categoria é obrigatória" })
+    @IsOptional()
     @IsString()
     @ApiProperty({
         description: "Nome da sub-categoria onde a tarefa sera alocada",
         example: "680917898733608bb5f0cd9a"
     })
-    subCategory: string;
+    subCategory?: string;
 
     @IsOptional()
     @IsArray()
@@ -85,6 +86,18 @@ export class CreateTaskDTO {
         example: "2025-04-16T12:00:00.000+00:00"
     })
     date: Date;
+
+    @IsOptional()
+    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+        message: 'Hora inválida. Use o formato HH:mm (ex: 14:30)',
+    })
+    @ApiProperty({
+        description: 'Hora que deve executar a tarefa (formato HH:mm)',
+        example: '14:30',
+        type: String,
+        format: 'time',
+    })
+    hour?: string;
 }
 
 export class UpdateTaskDTO {
@@ -162,6 +175,18 @@ export class UpdateTaskDTO {
         example: "2025-04-16T12:00:00.000+00:00"
     })
     date?: Date;
+
+    @IsOptional()
+    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+        message: 'Hora inválida. Use o formato HH:mm (ex: 14:30)',
+    })
+    @ApiProperty({
+        description: 'Hora que deve executar a tarefa (formato HH:mm)',
+        example: '14:30',
+        type: String,
+        format: 'time',
+    })
+    hour?: Date;
 
     @IsOptional()
     @IsEnum(Status, {

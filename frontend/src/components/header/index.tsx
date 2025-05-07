@@ -9,6 +9,7 @@ import { CategoryProps } from "@/@types/category";
 import { useEffect } from "react";
 import { AddCategory } from "../addGroupAndCategory/addCategory";
 import { AddGroup } from "../addGroupAndCategory/addGrop";
+import { ModalList } from "../modalListCategoryOrGroup";
 
 type Props = {
     text: string;
@@ -19,6 +20,7 @@ export function Header({ text }: Props) {
         data,
         setModalState,
         modalState,
+        removeGroup
     } = useTask();
 
     const { navigate } = useNavigation();
@@ -26,9 +28,9 @@ export function Header({ text }: Props) {
     // Função que abre ou fecha os modais conforme o texto
     function openModal() {
         if (text !== "Anotações") {
-            setModalState("isCategoryOpen");
+            setModalState({ name: "isMenuCategoryOpen" });
         } else {
-            setModalState("isGroupOpen");
+            setModalState({ name: "isMenuGroupOpen" });
         }
     }
 
@@ -52,25 +54,42 @@ export function Header({ text }: Props) {
 
             {/* Modal para categorias */}
             <MenuListModal
-                visible={modalState === "isCategoryOpen"}
+                visible={modalState.name === "isMenuCategoryOpen"}
                 title="Categorias"
                 items={data.categories.filter(category => category.category !== "Todas")}
-                onClose={() => setModalState(null)}
-                onAddNewItem={() => setModalState("isCreateCategoryOpen")}
+                onClose={() => setModalState({ name: null })}
+                onAddNewItem={() => setModalState({ name: "isCategoryOpen" })}
                 showDefaultItem={false} // Mostra o item "Todas" apenas se necessário
             />
 
-            {/* Modal para grupos */}
-            <MenuListModal
-                visible={modalState === "isGroupOpen"}
-                title="Grupo"
-                items={data.groups}
-                onClose={() => setModalState(null)}
-                onAddNewItem={() => setModalState("isCreateGroupOpen")}
-                showDefaultItem={false} // Se quiser exibir algo específico para o grupo, passe `true`
+            <ModalList
+                data={data.categories.filter(category => category.category !== "Todas")}
+                onAdd={() => setModalState({ name: "isCreateCategoryOpen" })}
+                onClose={() => setModalState({ name: "isMenuCategoryOpen" })}
+                title="categoria"
+                visible={modalState.name === "isCategoryOpen"}
             />
 
             <AddCategory title="Categoria" />
+
+            {/* Modal para grupos */}
+            <MenuListModal
+                visible={modalState.name === "isMenuGroupOpen"}
+                title="Grupo"
+                items={data.groups}
+                onClose={() => setModalState({ name: null })}
+                onAddNewItem={() => setModalState({ name: "isGroupOpen" })}
+                showDefaultItem={false} // Se quiser exibir algo específico para o grupo, passe `true`
+            />
+
+            <ModalList
+                data={data.groups}
+                onAdd={() => setModalState({ name: "isCreateGroupOpen" })}
+                onClose={() => setModalState({ name: "isMenuGroupOpen" })}
+                title="grupo"
+                visible={modalState.name === "isGroupOpen"}
+            />
+
             <AddGroup />
         </View>
     );

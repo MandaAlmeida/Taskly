@@ -13,6 +13,7 @@ import { StackParamList } from '@/routes/app.routes';
 import { ModalCategory } from '@/components/modalCategory';
 import { useTask } from '@/hooks/useTask';
 import { AnnotationProps, contentProps } from '@/@types/annotation';
+import { ModalCreateMember } from '@/components/modalCreateMember';
 
 type NavigationProps = StackNavigationProp<StackParamList>;
 type AddAnnotationsRouteProp = RouteProp<StackParamList, 'addAnnotations'>;
@@ -23,7 +24,7 @@ export function AddAnnotations() {
     const [title, setTitle] = useState(annotation?.title ?? '');
     const navigation = useNavigation<NavigationProps>();
     const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
-    const { data, handleAddAnnotation, fetchAttachment, handleUpdateAnnotation } = useTask();
+    const { data, modalState, handleAddAnnotation, fetchAttachment, handleUpdateAnnotation } = useTask();
 
     const [content, setContent] = useState<contentProps[]>(annotation?.content ?? [{ type: 'text', value: '' }]);
 
@@ -114,6 +115,8 @@ export function AddAnnotations() {
         const contentData = content.filter((item) => item.value !== "");
         formData.append("content", JSON.stringify(contentData));
 
+        formData.append("members", JSON.stringify(data.member));
+
         // Adiciona imagens, verificando se são novas
         content.forEach((block, index) => {
             if (block.type === 'image' && typeof block.value === 'string' && block.value.startsWith("file://")) {
@@ -130,7 +133,6 @@ export function AddAnnotations() {
                 } as any);
             }
         });
-
 
         // Adicionar documentos (attachments), verificando se são novos
         otherFiles.forEach((block, index) => {
@@ -266,6 +268,11 @@ export function AddAnnotations() {
 
 
             {openSections["category"] && <ModalCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />}
+            {openSections["member"] && <ModalCreateMember item={annotation} isVisible={openSections["member"]} handleOnVisible={() => toggleSection("member")} />}
+
+
         </View>
+
+
     );
 }

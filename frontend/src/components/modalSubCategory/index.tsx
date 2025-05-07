@@ -30,7 +30,7 @@ export function ModalSubCategory({ isVisible, handleOnVisible, task }: ModalProp
     }
 
     function handleAddSubCategory() {
-        setModalState('isCreateCategoryOpen')
+        setModalState({ name: "isCreateCategoryOpen" })
     }
 
     return (

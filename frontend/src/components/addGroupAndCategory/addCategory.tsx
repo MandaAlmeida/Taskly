@@ -1,5 +1,5 @@
 import { theme } from "@/styles/theme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { styles } from "./styles";
 import { useTask } from "@/hooks/useTask";
@@ -13,24 +13,54 @@ type CategoryProps = {
 }
 
 export function AddCategory({ title }: CategoryProps) {
-    const { modalState, setModalState, handleAddCategory, handleAddSubCategory } = useTask();
+    const { modalState, setModalState, handleAddCategory, handleAddSubCategory, handleUpdateCategory } = useTask();
     const [selectedName, setSelectedName] = useState("")
     const [selectedIcon, setSelectedIcon] = useState<number>(0);
     const [selectedColor, setSelectedColor] = useState<number>(0);
 
+    useEffect(() => {
+        if (modalState.name === "isCreateCategoryOpen") {
+            if (modalState.data) {
+                setSelectedName(modalState.data.category || "");
+                setSelectedIcon(Number(modalState.data.icon) ?? 0);
+
+                const colorRaw = modalState.data.color;
+                const colorHex = chroma(colorRaw).hex().toLowerCase(); // CONVERTE hsl para hex
+
+                const colorIndex = colors.findIndex(c => chroma(c).hex().toLowerCase() === colorHex);
+                setSelectedColor(colorIndex >= 0 ? colorIndex : 0);
+            } else {
+                setSelectedName("");
+                setSelectedIcon(0);
+                setSelectedColor(0);
+            }
+        }
+    }, [modalState]);
+
 
     function CreateCategory() {
-        handleAddCategory(selectedName, selectedIcon.toString(), chroma(colors[selectedColor]).hex())
-        setModalState(null)
+        if (modalState.data) {
+            handleUpdateCategory(modalState.data._id, selectedName, selectedIcon, chroma(colors[selectedColor]).hex())
+            setModalState({ name: "isCategoryOpen" })
+        } else {
+            handleAddCategory(selectedName, selectedIcon, chroma(colors[selectedColor]).hex())
+            setModalState({ name: "isCategoryOpen" })
+            setSelectedName("");
+            setSelectedIcon(0);
+            setSelectedColor(0);
+        }
     }
 
     function CreateSubCategory() {
         handleAddSubCategory(selectedName, selectedIcon.toString(), chroma(colors[selectedColor]).hex())
-        setModalState(null)
+        setModalState({ name: null })
+        setSelectedName("");
+        setSelectedIcon(0);
+        setSelectedColor(0);
     }
 
     return (
-        <Modal visible={modalState == "isCreateCategoryOpen"} transparent animationType="fade" >
+        <Modal visible={modalState.name == "isCreateCategoryOpen"} transparent animationType="fade" >
             <View style={styles.modal}>
                 <View style={styles.container}>
                     <Text style={styles.title}>{title}</Text>
@@ -96,7 +126,7 @@ export function AddCategory({ title }: CategoryProps) {
                     </View>
                 </View>
                 <View style={styles.containerButton}>
-                    <TouchableOpacity onPress={() => setModalState(null)} style={styles.button}>
+                    <TouchableOpacity onPress={() => setModalState({ name: null })} style={styles.button}>
                         <Text style={styles.cancelText}>Cancelar</Text>
                     </TouchableOpacity>
 

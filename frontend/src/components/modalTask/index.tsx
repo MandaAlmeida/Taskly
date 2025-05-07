@@ -36,9 +36,9 @@ export function ModalTask(task: taskType) {
     }
 
     return (
-        <Modal visible={modalState === "isTaskOpen"} transparent>
+        <Modal visible={modalState.name === "isTaskOpen"} transparent>
             <View style={styles.container}>
-                <X size={20} color={theme.gray4} onPress={() => setModalState(null)} />
+                <X size={20} color={theme.gray4} onPress={() => setModalState({ name: null })} />
                 <View style={styles.header}>
                     {task.status === "COMPLETED" ?
                         <Check size={24} color={task.color} /> :

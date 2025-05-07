@@ -7,6 +7,7 @@ export const styles = StyleSheet.create({
         width: "100%",
     },
     containerInput: {
+        position: "relative",
         height: 80,
         gap: 8
     },
@@ -29,5 +30,11 @@ export const styles = StyleSheet.create({
         fontSize: 14,
         marginTop: 5,
         color: theme.red,
-    }
+    },
+    iconRight: {
+        position: 'absolute',
+        right: 20,
+        top: 45,
+        zIndex: 100
+    },
 })

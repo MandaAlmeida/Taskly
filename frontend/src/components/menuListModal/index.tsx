@@ -16,6 +16,7 @@ import { iconsList } from "@/Array/icons";
 import { useTask } from "@/hooks/useTask";
 import { CategoryProps } from "@/@types/category";
 import { GroupProps } from "@/@types/group";
+import { ModalList } from "../modalListCategoryOrGroup";
 
 type Props = {
     visible: boolean;

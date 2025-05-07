@@ -41,17 +41,22 @@ type dataProps = {
     user: User | null;
     logado: boolean;
     createUserAnnotation: userCreate | undefined;
+    member: membersProps[] | [];
+    userExists: string
 };
 
 type ModalProps =
-    | "isGroupOpen"
+    | "isMenuGroupOpen"
+    | "isMenuCategoryOpen"
     | "isCategoryOpen"
+    | "isGroupOpen"
     | "isCreateCategoryOpen"
     | "isCreateGroupOpen"
     | "isDropdownOpen"
     | "isAnnotationOpen"
     | "isTaskOpen"
     | "isAttachmentOpen"
+    | "isCreateMemberOpen"
     | null;
 
 
@@ -60,6 +65,7 @@ type uiStateProps = {
     loading: boolean;
     error: boolean;
     date: DateData;
+    hours: string;
     openSections: { [key: string]: boolean };
 };
 
@@ -75,9 +81,9 @@ interface TaskContextProps {
     setUiState: React.Dispatch<React.SetStateAction<uiStateProps>>;
 
     // 📦 Modais e Dropdowns
-    modalState: ModalProps;
+    modalState: { name: ModalProps, data?: any };
 
-    setModalState: React.Dispatch<React.SetStateAction<ModalProps>>;
+    setModalState: React.Dispatch<React.SetStateAction<{ name: ModalProps, data?: any }>>;
 
     // 📌 Funções de Tarefa
     handleTaskRemove: (id: string, name: string) => void;
@@ -96,6 +102,7 @@ interface TaskContextProps {
     handleAddAnnotation: (data: FormData) => void;
     handleUpdateAnnotation: (id: string, data: FormData, handleBackToTask?: () => void) => void;
     handleAnnotationRemove: (id: string, name: string) => void;
+    fetchByGroup: () => void;
 
     // 📁 Funções de Anexo
     fetchAttachment: (fileName: attachmentProps) => void;
@@ -103,7 +110,8 @@ interface TaskContextProps {
     handleDownloadAttachment: (url: string) => void;
 
     // 🗂️ Funções de Categoria
-    handleAddCategory: (name: string, icon: string, color: string) => void;
+    handleAddCategory: (name: string, icon: number, color: string) => void;
+    handleUpdateCategory: (id: string, name: string, icon: number, color: string) => void;
     removeCategory: (category: string, id?: string) => void;
     handleAddSubCategory: (name: string, icon: string, color: string) => void;
     removeSubCategory: (subCategory: string, id?: string) => void;
@@ -111,6 +119,7 @@ interface TaskContextProps {
 
     // 👥 Funções de Grupo
     handleAddGroup: (name: string, description: string, icon: number, color: string, members?: membersProps[]) => void;
+    handleUpdateGroup: (id: string, name: string, description: string, icon: number, color: string) => void;
     fetchGroup: () => void;
     removeGroup: (group: string, id?: string) => void;
 
@@ -120,6 +129,7 @@ interface TaskContextProps {
     deslogar: () => void;
     deleteUser: () => void;
     getNameUser: (userId: string) => void;
+    getUserMember: (name: string, accessType?: string, handleBackToNext?: () => void) => void;
 }
 
 
@@ -175,14 +185,17 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         groups: [] as GroupProps[],
         selectedGroup: [] as GroupProps[],
 
+        member: [] as membersProps[],
+
         token: "" as string,
         user: null as User | null,
         logado: false as boolean,
         createUserAnnotation: undefined as userCreate | undefined,
+        userExists: ""
     });
 
     // Agrupar estados relacionados aos modais
-    const [modalState, setModalState] = useState<ModalProps>(null);
+    const [modalState, setModalState] = useState<{ name: ModalProps, data?: any }>({ name: null });
 
 
     // Agrupar estados de UI
@@ -190,6 +203,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         finalUrl: "",
         loading: false,
         error: false,
+        hours: "",
         date: {
             year: 0,
             month: 0,
@@ -205,9 +219,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         } as { [key: string]: boolean },
     });
 
-    console.log(data.groups)
-
-
     // USER
     async function createUser(formData: FormData, handleBackToLogin: () => void,) {
         try {
@@ -216,9 +227,11 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     "Content-Type": `multipart/form-data`,
                 },
             });
+
+            handleBackToLogin();
         } catch (error: any) {
             console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
-            alert(`Erro: ${error.message}`);
+            Alert.alert(`Erro: ${error.message}`);
         }
     }
 
@@ -261,7 +274,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 birth: response.data.birth
             };
 
-            setData(prevState => ({ ...prevState, user: response.data, logado: true }));
+            setData(prevState => ({ ...prevState, user: user, logado: true }));
             featchCategory();
         } catch (error: any) {
             console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
@@ -271,11 +284,40 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function getNameUser(userId: string) {
         try {
             const response = await api.get(`/user/fetch/${userId}`);
-
             setData(prevState => ({ ...prevState, createUserAnnotation: response.data }));
 
         } catch (error: any) {
             console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+        }
+    }
+
+    async function getUserMember(name: string, accessType?: string, handleBackToNext?: () => void) {
+        try {
+            const response = await api.get(`/user/fetchByName?n=${name}`);
+
+            if (accessType) {
+                const memberData = {
+                    userId: response.data._id,
+                    name: response.data.userName,
+                    accessType,
+                };
+
+                setData(prev => ({
+                    ...prev,
+                    member: [...(prev.member || []), memberData],
+                }));
+            }
+            console.log(response.data)
+            if (!response.data) {
+
+                handleBackToNext && handleBackToNext();
+            } else {
+                Alert.alert("Nome de usuario:", "Já existe usuario com esse nome")
+            }
+
+        } catch (error: any) {
+            console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
+            return null;
         }
     }
 
@@ -331,7 +373,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     }
 
     // CATEGORY
-    async function handleAddCategory(name: string, icon: string, color: string) {
+    async function handleAddCategory(name: string, icon: number, color: string) {
         try {
             if (name.length === 0) {
                 return Alert.alert("Nova categoria", "Informe o nome da categoria")
@@ -351,9 +393,31 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 console.log("Erro ao tentar criar a categoria", response.data.message);
             }
         } catch (error: any) {
-            Alert.alert("Novo categoria", error.messag)
+
             if (axios.isAxiosError(error)) {
                 console.log("Erro Axios:", error.response?.data || error.message);
+                Alert.alert("Novo categoria", error.message)
+            } else {
+                console.log("Erro não Axios:", error);
+            }
+        }
+    }
+
+    async function handleUpdateCategory(id: string, name: string, icon: number, color: string) {
+        try {
+            await api.put(`/categories/update/${id}`, {
+                category: name,
+                icon,
+                color
+            });
+
+
+            featchCategory()
+        } catch (error: any) {
+
+            if (axios.isAxiosError(error)) {
+                console.log("Erro Axios:", error.response?.data || error.message);
+                Alert.alert("Novo categoria", error.message)
             } else {
                 console.log("Erro não Axios:", error);
             }
@@ -511,22 +575,10 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     // TASK
     async function handleAddTask(data: CreateTaskProps, handleBackToTask: () => void) {
         try {
-            const response = await api.post("/task/create", {
-                name: data.name,
-                category: data.category,
-                subCategory: data.subCategory,
-                subTask: data.subTask,
-                priority: data.priority,
-                date: data.date,
-            });
+            await api.post("/task/create", data);
 
             fetchTask();
-            if (response.status === 201) {
-                console.log("Tarefa criada com sucesso!");
-                handleBackToTask();
-            } else {
-                console.log("Erro ao criar task:", response.data.message);
-            }
+            handleBackToTask();
         } catch (error) {
             if (error instanceof AppError) {
                 Alert.alert('Nova Tarefa', error.message);
@@ -575,7 +627,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 const task = response.data;
 
                 setData(prevState => ({ ...prevState, taskById: task }));
-                setModalState("isTaskOpen");
+                setModalState({ name: "isTaskOpen" });
             }
         } catch (error) {
             console.log("Erro desconhecido:", error);
@@ -705,7 +757,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                             await api.delete(`/task/delete/${id}`);
 
                             fetchTask();
-                            setModalState(null);
+                            setModalState({ name: null });
                             Alert.alert("Sucesso", "Tarefa removida com sucesso!");
                         } catch (error) {
                             console.log(error);
@@ -730,6 +782,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             });
 
             fetchAnnotation();
+            setData(prevData => ({ ...prevData, member: [] }))
         } catch (error: any) {
             if (error.response) {
                 console.log("Erro do back-end:", error.response.data);
@@ -789,7 +842,25 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 const response = await api.get(`/annotation/fetchById/${id}`);
 
                 setData(prevState => ({ ...prevState, annotationById: response.data }));
-                setModalState("isAnnotationOpen")
+                setModalState({ name: "isAnnotationOpen" })
+            }
+        } catch (error) {
+            console.log("Erro desconhecido:", error);
+
+            if (axios.isAxiosError(error)) {
+                console.log("Erro Axios:", error.response?.data || error.message);
+            } else {
+                console.log("Erro não Axios:", error);
+            }
+        }
+    }
+
+    async function fetchByGroup() {
+        try {
+            if (data.user) {
+                const response = await api.get(`/annotation/fetchByGroup`);
+
+                setData(prevState => ({ ...prevState, annotation: response.data }));
             }
         } catch (error) {
             console.log("Erro desconhecido:", error);
@@ -839,7 +910,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                             await api.delete(`/annotation/delete/${id}`);
 
                             fetchAnnotation()
-                            setModalState(null)
+                            setModalState({ name: null })
 
                             Alert.alert("Sucesso", "Anotação removida com sucesso!");
                         } catch (error) {
@@ -882,6 +953,26 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+    async function handleUpdateGroup(id: string, name: string, description: string, icon: number, color: string) {
+        try {
+            await api.put(`/group/update/${id}`, {
+                name,
+                description,
+                icon,
+                color,
+            });
+
+            fetchGroup();
+        } catch (error: any) {
+            Alert.alert("Novo grupo", error.message);
+            if (axios.isAxiosError(error)) {
+                console.log("Erro Axios:", error.response?.data || error.message);
+            } else {
+                console.log("Erro não Axios:", error);
+            }
+        }
+    }
+
     async function fetchGroup() {
         try {
             if (data.user) {
@@ -890,7 +981,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 if (!response.data || response.data.length === 0) {
                     return;
                 }
-                console.log(response.data)
                 setData(prevState => ({ ...prevState, groups: response.data }));
             }
         } catch (error) {
@@ -954,7 +1044,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                             await api.delete(`/annotation/delete/${id}/attachment/${url}`);
 
                             data.annotationById?.attachments?.filter(attachment => attachment.url !== url)
-                            setModalState("isAttachmentOpen")
+                            setModalState({ name: "isAttachmentOpen" })
 
                             Alert.alert("Sucesso", "Anotação removida com sucesso!");
                         } catch (error) {
@@ -1028,7 +1118,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     return (
         <TaskContext.Provider value={{
             data, modalState, uiState, setData, setModalState, setUiState,
-            fetchTaskById, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove, fetchAnnotationBySearch, handleAttachmentRemove, handleDownloadAttachment, removeSubCategory, fetchGroup, handleAddGroup, removeGroup
+            fetchTaskById, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove, fetchAnnotationBySearch, handleAttachmentRemove, handleDownloadAttachment, removeSubCategory, fetchGroup, handleAddGroup, removeGroup, handleUpdateGroup, handleUpdateCategory, getUserMember, fetchByGroup
         }}>
             {children}
         </TaskContext.Provider>

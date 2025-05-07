@@ -1,12 +1,10 @@
-import { FlatList, View, Image, Text } from "react-native";
+import { FlatList, View } from "react-native";
 import { Calendar, CalendarUtils, DateData, LocaleConfig } from 'react-native-calendars';
 import { useEffect, useState } from "react";
 
 import { Feather } from "@expo/vector-icons";
 
 import { ptBR } from "@/utils/localeCalendarConfig";
-import ImageHome from "@/assets/Checklist-rafiki.png";
-
 
 import { styles } from "./styles";
 import { theme } from "@/styles/theme";
@@ -15,7 +13,6 @@ import { useTask } from "@/hooks/useTask";
 import { Task } from "@/components/task";
 import { EmptyState } from "@/components/emptyState";
 import { formatDate } from "@/utils/formatDate";
-import { TaskProps } from "@/@types/task";
 
 
 LocaleConfig.locales["pt-br"] = ptBR

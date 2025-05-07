@@ -1,5 +1,5 @@
 import { theme } from "@/styles/theme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useTask } from "@/hooks/useTask";
 import * as LucideIcons from 'lucide-react-native';
@@ -9,20 +9,53 @@ import { iconsList } from "@/Array/icons";
 import { styles } from "./styles";
 
 export function AddGroup() {
-    const { modalState, setModalState, handleAddGroup } = useTask();
+    const { modalState, setModalState, handleAddGroup, handleUpdateGroup } = useTask();
     const [selectedName, setSelectedName] = useState("");
     const [selectedDescription, setSelectedDescription] = useState("");
     const [selectedIcon, setSelectedIcon] = useState<number>(0);
-    const [selectedColor, setSelectedColor] = useState<number>(0);
+    const [selectedColor, setSelectedColor] = useState(0);
+
+
+    useEffect(() => {
+        if (modalState.name === "isCreateGroupOpen") {
+            if (modalState.data) {
+                setSelectedName(modalState.data.name || "");
+                setSelectedDescription(modalState.data.description || "");
+                setSelectedIcon(Number(modalState.data.icon) ?? 0);
+
+                const colorRaw = modalState.data.color;
+                const colorIndex = colors.findIndex(color => chroma(color).hex() === colorRaw);
+
+                setSelectedColor(colorIndex >= 0 ? colorIndex : 0);
+
+            } else {
+                // Limpa os campos se não houver dados
+                setSelectedName("");
+                setSelectedDescription("");
+                setSelectedIcon(0);
+                setSelectedColor(0);
+            }
+        }
+    }, [modalState]);
 
 
     function CreateGroup() {
-        handleAddGroup(selectedName, selectedDescription, selectedIcon, chroma(colors[selectedColor]).hex())
-        setModalState(null)
+        if (modalState.data) {
+            handleUpdateGroup(modalState.data._id, selectedName, selectedDescription, selectedIcon, chroma(colors[selectedColor]).hex())
+            setModalState({ name: "isGroupOpen" })
+        } else {
+            handleAddGroup(selectedName, selectedDescription, selectedIcon, chroma(colors[selectedColor]).hex())
+            setModalState({ name: "isGroupOpen" })
+            setSelectedColor(0)
+            setSelectedDescription("")
+            setSelectedName("")
+            setSelectedIcon(0)
+        }
+
     }
 
     return (
-        <Modal visible={modalState === "isCreateGroupOpen"} transparent animationType="fade" >
+        <Modal visible={modalState.name === "isCreateGroupOpen"} transparent animationType="fade" >
             <View style={styles.modal}>
                 <View style={styles.container}>
                     <Text style={styles.title}>Criar novo grupo</Text>
@@ -97,7 +130,7 @@ export function AddGroup() {
                     </View>
                 </View>
                 <View style={styles.containerButton}>
-                    <TouchableOpacity onPress={() => setModalState(null)} style={styles.button}>
+                    <TouchableOpacity onPress={() => setModalState({ name: null })} style={styles.button}>
                         <Text style={styles.cancelText}>Cancelar</Text>
                     </TouchableOpacity>
 

@@ -11,14 +11,16 @@ import { formatLayout, LayoutBlock } from "@/utils/formatLayout";
 import { formatDatePTBR } from "@/utils/formatDate";
 import { Annotation } from "@/components/annotation";
 import { theme } from "@/styles/theme";
+import { ModalCreateMember } from "@/components/modalCreateMember";
 
 export function Anotations() {
-    const { fetchAnnotation, fetchAnnotationById, data, fetchAnnotationBySearch } = useTask();
+    const { fetchAnnotation, fetchAnnotationById, data, fetchAnnotationBySearch, fetchByGroup } = useTask();
 
     const [search, setSearch] = useState("");
 
     useEffect(() => {
         fetchAnnotation();
+        fetchByGroup();
     }, []);
 
     function handleAnnotation(id: string) {

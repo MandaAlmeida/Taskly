@@ -31,11 +31,11 @@ export function Attachments({ id, color }: AttachmentsProps) {
 
 
     return (
-        <Modal visible={modalState === "isAttachmentOpen"} transparent>
+        <Modal visible={modalState.name === "isAttachmentOpen"} transparent>
             <View style={styles.container}>
                 <View style={styles.header}>
                     <Text style={styles.title}>Anexos</Text>
-                    <TouchableOpacity onPress={() => setModalState(null)}>
+                    <TouchableOpacity onPress={() => setModalState({ name: null })}>
                         <X size={20} color={theme.gray4} />
                     </TouchableOpacity>
 
