@@ -46,7 +46,8 @@ export function SectionTask({ sections }: SectionProps) {
                     priority={item.priority}
                     date={formatDate(item.date)}
                     color={data.categories.find((category) => category._id === item.category)?.color || theme.blue1}
-                    category={item.category}
+                    category={data.categories.find((category) => category._id === item.category)?.category || "Categoria nao encontrada"}
+                    hours={item.hours}
                     subTask={item.subTask}
                     userId={item.userId}
                 />

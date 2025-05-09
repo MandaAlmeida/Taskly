@@ -16,6 +16,7 @@ import { CreateSubTaskProps } from "@/@types/task";
 import { Keyboard } from "react-native";
 import { Calendar1, Clock, Flag, Plus, Tag } from "lucide-react-native";
 import { Calendar } from "react-native-calendars";
+import { ModalHours } from "@/components/modalHours";
 
 type NavigationProps = StackNavigationProp<StackParamList>;
 
@@ -198,7 +199,7 @@ export function AddTask() {
                 </TouchableOpacity>
 
                 {uiState.date.dateString !== "" &&
-                    <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("subCategory"),
+                    <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("hours"),
                     setModalState({ name: null })
                     ]}>
                         <Clock size={24} color={theme.gray4} />
@@ -225,6 +226,9 @@ export function AddTask() {
             }
             {openSections["subCategory"] &&
                 <ModalSubCategory isVisible={openSections["subCategory"]} handleOnVisible={() => toggleSection("subCategory")} />
+            }
+            {openSections["hours"] &&
+                <ModalHours isVisible={openSections["hours"]} handleOnVisible={() => toggleSection("hours")} />
             }
             {openSections["priority"] &&
                 <ModalPriority isVisible={openSections["priority"]} handleOnVisible={() => toggleSection("priority")} />

@@ -12,6 +12,8 @@ import { TokenPayloadSchema } from "@/auth/jwt.strategy"; // Tipo para dados do 
 import { UploadService } from "./upload.service"; // Serviço para upload de arquivos
 import { Group, GroupDocument } from "@/models/groups.schema"; // Modelo de grupos
 import { Annotation, AnnotationDocument } from "@/models/annotations.schema"; // Modelo de anotações
+import { AnnotationService } from "./annotation.service"; // Modelo de anotações
+
 
 // Decorador para tornar a classe injetável no NestJS
 @Injectable()
@@ -24,6 +26,8 @@ export class UserService {
         @InjectModel(SubCategory.name) private subCategoriesModel: Model<SubCategoryDocument>,
         @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
         @InjectModel(Annotation.name) private annotationModel: Model<AnnotationDocument>,
+
+        private AnnotationService: AnnotationService,
 
         // Injeção do serviço de upload
         private UploadService: UploadService,
@@ -173,10 +177,8 @@ export class UserService {
             $or: filters,
         }).select(['_id', 'userName']);
 
-        console.log(user)
         return user
     }
-
 
     /**
      * Atualiza as informações do usuário.
@@ -198,8 +200,6 @@ export class UserService {
 
         // Prepara os dados para atualizar o usuário
         const userToUpdate: any = {};
-
-        console.log(file)
 
         if (name) userToUpdate.name = name;
         if (email) userToUpdate.email = email;
@@ -235,13 +235,20 @@ export class UserService {
         await this.subCategoriesModel.deleteMany({ userId }).exec();
         await this.categoriesModel.deleteMany({ userId }).exec();
         await this.groupModel.deleteMany({ userId }).exec();
-        await this.annotationModel.deleteMany({ createdUserId: userId }).exec();
+
+        const annotations = await this.AnnotationService.fetchByUser(user, 1)
+
+        if (annotations) {
+            annotations.map(annotation =>
+                this.AnnotationService.deleteAnnotation(annotation._id.toString())
+            )
+        }
 
         // Remove o usuário das anotações e grupos onde ele era membro
-        const annotationMembers = await this.annotationModel.find({ 'members.userId': userId });
-        for (const annotation of annotationMembers) {
-            const newMembers = annotation.members.filter(member => member.userId.toString() !== userId.toString());
-            await this.annotationModel.findByIdAndUpdate(annotation._id, { $set: { members: newMembers } }, { new: true });
+        const annotation = await this.annotationModel.find({ 'members.userId': userId });
+        for (const annotationMembers of annotation) {
+            const newMembers = annotationMembers.members.filter(member => member.userId.toString() !== userId.toString());
+            await this.annotationModel.findByIdAndUpdate(annotationMembers._id, { $set: { members: newMembers } }, { new: true });
         }
 
         const groupMembers = await this.groupModel.find({ 'members.userId': userId });

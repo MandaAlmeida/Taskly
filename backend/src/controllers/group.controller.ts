@@ -7,6 +7,7 @@ import { GroupService } from "../services/group.service"
 import { RoleGuard } from '@/guards/roles.guard';
 import { Roles } from '@/decorator/roles.decorator';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { MemberDTO } from '@/contracts/member.dto';
 
 @ApiTags('Group')
 @ApiBearerAuth('access-token')
@@ -45,14 +46,14 @@ export class GroupController {
 
     @Roles("ADMIN")
     @Patch("update/:groupId/members")
-    async addMember(@Param('groupId') groupId: string, @Body() members: UpdateGroupDTO, @CurrentUser() user: TokenPayloadSchema) {
+    async addMember(@Param('groupId') groupId: string, @Body() members: MemberDTO[], @CurrentUser() user: TokenPayloadSchema) {
         return this.GroupService.addMember(groupId, members)
     }
 
     @Roles("ADMIN")
     @Patch("update/:groupId/members/:memberId")
-    async updatePermissonMember(@Param('groupId') groupId: string, @Param('memberId') memberId: string, @Body() body: { accessType: string }) {
-        return this.GroupService.updatePermissonMember(groupId, memberId, body)
+    async updatePermissonMember(@Param('groupId') groupId: string, @Param('memberId') memberId: string, @Body("accessType") accessType: string) {
+        return this.GroupService.updatePermissonMember(groupId, memberId, accessType)
     }
 
     @Roles("ADMIN")

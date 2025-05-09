@@ -22,6 +22,7 @@ export type TaskProps = {
     subTask?: CreateSubTaskProps[]
     priority: string;
     date: string;
+    hours?: string;
     status: string;
     userId: string;
 }

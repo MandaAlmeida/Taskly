@@ -9,6 +9,8 @@ import { SubCategoryModule } from './subCategories.module';
 import { UploadModule } from './upload.module';
 import { GroupModule } from './group.module';
 import { AnnotationModule } from './annotation.module';
+import { AnnotationService } from '@/services/annotation.service';
+import { NotificationModule } from './notifications.module';
 
 @Module({
     imports: [
@@ -18,11 +20,13 @@ import { AnnotationModule } from './annotation.module';
         SubCategoryModule,
         UploadModule,
         GroupModule,
-        AnnotationModule
+        AnnotationModule,
+        NotificationModule
     ],
     controllers: [UserController],
     providers: [
         UserService,
+        AnnotationService
     ]
 })
 export class UserModule { }

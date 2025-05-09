@@ -1,4 +1,3 @@
-import { UserRole } from '@/enum/userRole.enum';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { ObjectId } from 'mongoose';
 
@@ -41,13 +40,15 @@ export class Annotation {
         type: [
             {
                 userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+                name: { type: String, required: true },
                 accessType: { type: String, required: true }
             }
         ],
     })
     members: {
         userId: string;
-        accessType: UserRole;
+        name: string;
+        accessType: "ADMIN" | "EDIT" | "DELETE" | "VIEWER";
     }[];
 
     @Prop({ type: Array, ref: 'Group', required: false })

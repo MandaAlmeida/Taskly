@@ -3,10 +3,11 @@ import Modal from 'react-native-modal';
 import { useTask } from '@/hooks/useTask';
 import { styles } from './styles';
 import { ButtonModal } from '../buttonModal';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnnotationProps } from '@/@types/annotation';
 import { theme } from '@/styles/theme';
 import { X } from 'lucide-react-native';
+import { connectToSocket } from '@/notification';
 
 type Props = {
     isVisible: boolean;
@@ -28,6 +29,10 @@ export function ModalCreateMember({ isVisible, handleOnVisible, item }: Props) {
     async function handleAddMember() {
         getUserMember(name, accessType);
 
+        if (data.member) {
+            data.member.map(member => connectToSocket(member.userId))
+        }
+
         setName('');
         setAccessType('');
         setDropdownOpen(false);
@@ -39,7 +44,6 @@ export function ModalCreateMember({ isVisible, handleOnVisible, item }: Props) {
             member: prevData.member.filter((m: any) => m.name !== name)
         }));
     }
-
 
     return (
         <Modal isVisible={isVisible}>

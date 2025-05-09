@@ -7,11 +7,9 @@ import {
   UseInterceptors,
   Param,
   Res,
-  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
-import { UploadDTO } from '@/contracts/upload.dto';
 import { UploadService } from '@/services/upload.service';
 
 @Controller('uploads')

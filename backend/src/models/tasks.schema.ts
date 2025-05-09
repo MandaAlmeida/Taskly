@@ -32,8 +32,8 @@ export class Task {
     @Prop({ required: true, index: true })
     date: Date;
 
-    @Prop({ required: true })
-    hour: string;
+    @Prop()
+    hours?: string;
 
     @Prop({ required: true, index: true })
     status: Status;

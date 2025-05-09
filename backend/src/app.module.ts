@@ -11,6 +11,7 @@ import { GroupModule } from './modules/group.module';
 import { AnnotationModule } from './modules/annotation.module';
 import { UploadModule } from './modules/upload.module';
 import { envSchema } from './env/env';
+import { NotificationModule } from './modules/notifications.module';
 
 
 config()
@@ -29,7 +30,8 @@ config()
         SubCategoryModule,
         GroupModule,
         AnnotationModule,
-        UploadModule
+        UploadModule,
+        NotificationModule
     ],
 })
 export class AppModule {

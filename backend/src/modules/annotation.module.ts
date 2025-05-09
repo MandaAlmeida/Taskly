@@ -8,6 +8,7 @@ import { UploadModule } from './upload.module';
 import { UploadService } from '@/services/upload.service';
 import { EnvModule } from '@/env/env.module';
 import { EnvService } from '@/env/env.service';
+import { NotificationModule } from './notifications.module';
 
 
 @Module({
@@ -17,7 +18,8 @@ import { EnvService } from '@/env/env.service';
         ]),
         forwardRef(() => GroupModule),
         UploadModule,
-        EnvModule
+        EnvModule,
+        NotificationModule,
     ],
     controllers: [AnnotationController],
     providers: [AnnotationService, UploadService, EnvService],

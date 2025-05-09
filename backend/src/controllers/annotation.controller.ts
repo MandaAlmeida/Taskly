@@ -8,6 +8,7 @@ import { Roles } from '@/decorator/roles.decorator';
 import { ApiTags, ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { RoleGuard } from '@/guards/roles.guard';
 import { AnyFilesInterceptor, FileFieldsInterceptor } from '@nestjs/platform-express';
+import { MemberDTO } from '@/contracts/member.dto';
 
 @ApiTags('Annotation')
 @Controller("annotation")
@@ -97,14 +98,14 @@ export class AnnotationController {
 
     @Roles("ADMIN")
     @Patch("update/:annotationId/members")
-    async addNewMember(@Param('annotationId') annotationId: string, @Body() members: UpdateAnnotationDTO, @CurrentUser() user: TokenPayloadSchema) {
+    async addNewMember(@Param('annotationId') annotationId: string, @Body() members: MemberDTO[], @CurrentUser() user: TokenPayloadSchema) {
         return this.AnnotationService.addMember(annotationId, members, user)
     }
 
     @Roles("ADMIN")
     @Patch("update/:annotationId/members/:memberId")
-    async updatePermissonMember(@Param('annotationId') annotationId: string, @Param('memberId') memberId: string, @Body() body: { accessType: string }, @CurrentUser() user: TokenPayloadSchema) {
-        return this.AnnotationService.updatePermissonMember(annotationId, memberId, body, user)
+    async updatePermissonMember(@Param('annotationId') annotationId: string, @Param('memberId') memberId: string, @Body("accessType") accessType: string, @CurrentUser() user: TokenPayloadSchema) {
+        return this.AnnotationService.updatePermissonMember(annotationId, memberId, accessType, user)
     }
 
     @Roles("ADMIN")

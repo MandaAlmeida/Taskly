@@ -8,15 +8,35 @@ import { useEffect } from "react";
 import { styles } from "./styles";
 import { Header } from "@/components/header";
 import { EmptyState } from "@/components/emptyState";
+import { socket } from "@/notification";
+import { notificationProps } from "@/@types/notification";
 
 export function Home() {
-    const { data, uiState, fetchTask } = useTask();
+    const { data, uiState, fetchTask, setData } = useTask();
 
 
     if (uiState.loading) {
         return <Loading />;
     }
 
+    useEffect(() => {
+        if (data.user?._id) {
+            socket.emit('join', data.user._id); // B deve emitir isso ao entrar
+        }
+
+        const handleNotification = (notification: any) => {
+            setData(prev => ({
+                ...prev,
+                notification: [...prev.notification, notification],
+            }));
+        };
+
+        socket.on('notification', handleNotification);
+
+        return () => {
+            socket.off('notification', handleNotification);
+        };
+    }, [data.user?._id]);
 
     useEffect(() => {
         fetchTask();
@@ -35,6 +55,10 @@ export function Home() {
     return (
         <View style={styles.container}>
             <Header text="Inicio" />
+            {data.notification && data.notification.map(notification =>
+                <View key={notification._id}>
+                    <Text>Notificação: {notification.message}</Text>
+                </View>)}
             <View>
                 <Text style={styles.title}>Bem-vindo(a) de volta </Text>
                 <Text style={styles.name}>{data.user?.name}</Text>

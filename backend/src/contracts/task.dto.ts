@@ -97,7 +97,7 @@ export class CreateTaskDTO {
         type: String,
         format: 'time',
     })
-    hour?: string;
+    hours?: string;
 }
 
 export class UpdateTaskDTO {

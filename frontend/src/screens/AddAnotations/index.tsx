@@ -14,6 +14,7 @@ import { ModalCategory } from '@/components/modalCategory';
 import { useTask } from '@/hooks/useTask';
 import { AnnotationProps, contentProps } from '@/@types/annotation';
 import { ModalCreateMember } from '@/components/modalCreateMember';
+import { connectToSocket, socket } from '@/notification';
 
 type NavigationProps = StackNavigationProp<StackParamList>;
 type AddAnnotationsRouteProp = RouteProp<StackParamList, 'addAnnotations'>;
@@ -24,7 +25,7 @@ export function AddAnnotations() {
     const [title, setTitle] = useState(annotation?.title ?? '');
     const navigation = useNavigation<NavigationProps>();
     const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
-    const { data, modalState, handleAddAnnotation, fetchAttachment, handleUpdateAnnotation } = useTask();
+    const { data, handleAddAnnotation, fetchAttachment, handleUpdateAnnotation, setData, handleAddMemberAnnotation } = useTask();
 
     const [content, setContent] = useState<contentProps[]>(annotation?.content ?? [{ type: 'text', value: '' }]);
 
@@ -32,22 +33,21 @@ export function AddAnnotations() {
         async function fetchImageContent() {
             if (!annotation) return;
 
-            const updatedContent = await Promise.all(annotation.content.map(async (item) => {
-                if (item.type === "image") {
-                    if (typeof item.value === 'string' && !item.value.startsWith("http")) {
-                        const uri = fetchAttachment(item.value);
+            const updatedContent = await Promise.all(
+                annotation.content.map(async (item) => {
+                    if (item.type === "image" && typeof item.value === 'string' && !item.value.startsWith("http")) {
+                        const uri = await fetchAttachment(item.value); // <- await estava faltando aqui
                         return { ...item, value: uri };
                     }
-                }
-                return item;
-            }));
+                    return item;
+                })
+            );
 
             setContent(updatedContent);
         }
 
         fetchImageContent();
-    }, [annotation]);
-
+    }, [annotation]); // Este efeito só cuida das imagens
 
     const image = content.filter(cont => cont.type === "image").length;
     const [otherFiles, setOtherFiles] = useState<DocumentPicker.DocumentPickerAsset[]>(
@@ -115,8 +115,6 @@ export function AddAnnotations() {
         const contentData = content.filter((item) => item.value !== "");
         formData.append("content", JSON.stringify(contentData));
 
-        formData.append("members", JSON.stringify(data.member));
-
         // Adiciona imagens, verificando se são novas
         content.forEach((block, index) => {
             if (block.type === 'image' && typeof block.value === 'string' && block.value.startsWith("file://")) {
@@ -156,12 +154,16 @@ export function AddAnnotations() {
         setContent([{ type: 'text', value: '' }]);
 
         if (annotation) {
-            handleUpdateAnnotation(annotation._id, formData);
+            handleUpdateAnnotation(annotation._id, formData, handleBackToAnnotation);
+
+            if (data.member) {
+                handleAddMemberAnnotation(annotation._id, data.member, handleBackToAnnotation)
+            }
         } else {
             handleAddAnnotation(formData);
         }
 
-        handleBackToAnnotation();
+
     }
 
     function handleBackToAnnotation() {

@@ -1,6 +1,5 @@
-import { UserRole } from "@/enum/userRole.enum";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsMongoId, IsString } from "class-validator";
+import { IsIn, IsString } from "class-validator";
 
 export class MemberDTO {
     @IsString()
@@ -10,10 +9,17 @@ export class MemberDTO {
     })
     userId: string;
 
+    @IsString()
+    @ApiProperty({
+        description: "nome do usuario",
+        example: "Diego20"
+    })
+    name: string;
+
     @IsIn(["ADMIN", "EDIT", "DELETE", "VIEWER"], { message: "O tipo de acesso deve ser 'ADMIN', 'EDIT', 'DELETE', 'VIEWER'" })
     @ApiProperty({
         description: "Define o que o usuario tem permissao para fazer",
         example: "EDIT"
     })
-    accessType: UserRole;
+    accessType: "ADMIN" | "EDIT" | "DELETE" | "VIEWER";
 }

@@ -9,7 +9,7 @@ type taskType = TaskProps & {
     color: string
 }
 
-export function Task({ name, status, priority, category, date, color, handleOpenTask }: taskType) {
+export function Task({ name, status, priority, category, date, color, hours, handleOpenTask }: taskType) {
 
     return (
         <TouchableOpacity style={[styles.container, {
@@ -25,7 +25,7 @@ export function Task({ name, status, priority, category, date, color, handleOpen
                         <Check size={12} color="#F2F2F2" /></View>
                     <View>
                         <Text style={styles.nameCheck}>{name}</Text>
-                        <Text style={styles.textCheck}>{date}</Text>
+                        <Text style={styles.textCheck}>{date}{hours && " - "}{hours}</Text>
                     </View>
                 </View>
             ) : (
@@ -35,7 +35,7 @@ export function Task({ name, status, priority, category, date, color, handleOpen
                     }]} />
                     <View>
                         <Text style={styles.name}>{name}</Text>
-                        <Text style={styles.text}>{date}</Text>
+                        <Text style={styles.text}>{date}{hours && " - "}{hours}</Text>
                     </View>
                 </View>
             )

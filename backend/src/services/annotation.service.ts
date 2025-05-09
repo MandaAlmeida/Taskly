@@ -6,18 +6,24 @@ import { Annotation, AnnotationDocument } from "@/models/annotations.schema";
 import { CreateAnnotationDTO, UpdateAnnotationDTO } from "@/contracts/annotation.dto";
 import { UploadService } from "./upload.service";
 import { AttachmentDTO } from "@/contracts/attachment.dto";
+import { NotificationsGateway } from "@/gateway/notifications.gateway";
+import { MemberDTO } from "@/contracts/member.dto";
+import { CreateNotificationDto } from "@/contracts/notification.dto";
+import { GroupService } from "./group.service";
+import { NotificationsService } from "./notifications.service";
 
 @Injectable()
 export class AnnotationService {
     constructor(
         @InjectModel(Annotation.name) private annotationModel: Model<AnnotationDocument>,
-        private uploadService: UploadService
+        private uploadService: UploadService,
+        private groupService: GroupService,
+        private notificationService: NotificationsService,
+        private notificationsGateway: NotificationsGateway
     ) { }
 
     async create(annotation: CreateAnnotationDTO, user: TokenPayloadSchema, files?: Express.Multer.File[], attachments?: Express.Multer.File[]) {
         const { title, content, category, members } = annotation;
-
-        console.log(members)
 
         const userId = user.sub
         const existingAnnotation = await this.annotationModel.findOne({ title, category, createdUserId: userId });
@@ -379,26 +385,26 @@ export class AnnotationService {
 
     }
 
-    async addMember(annotationId: string, annotation: UpdateAnnotationDTO, user: TokenPayloadSchema) {
-        const { members = [] } = annotation;
+    async addMember(annotationId: string, members: MemberDTO[], user: TokenPayloadSchema) {
         const userId = user.sub;
 
         const existingAnnotation = await this.annotationModel.findById(annotationId);
+        if (!existingAnnotation) {
+            throw new ConflictException("Essa anotação não existe");
+        }
 
-        if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
-
-        const editedUserId = members.some(
+        const isAddingSelf = members.some(
             (member) => member.userId.toString() === userId
         );
+        if (isAddingSelf) {
+            throw new ConflictException("Você não pode adicionar seu próprio usuário");
+        }
 
-        if (editedUserId) throw new ConflictException("Você não pode adicionar seu proprio Usuário");
-
-        const userIds = members.map(member => member.userId.toString());
-
+        const userIds = members.map((m) => m.userId.toString());
         const hasDuplicates = new Set(userIds).size !== userIds.length;
-
-        if (hasDuplicates) throw new ConflictException("Usuário duplicado na lista de membros");
-
+        if (hasDuplicates) {
+            throw new ConflictException("Usuário duplicado na lista de membros");
+        }
 
         const existingMembers = existingAnnotation.members || [];
         const newMembers = [...existingMembers];
@@ -410,7 +416,22 @@ export class AnnotationService {
             if (alreadyExists) {
                 throw new ConflictException("Usuário já cadastrado na lista de membros");
             }
+
             newMembers.push(member);
+
+            const notification: CreateNotificationDto = {
+                title: "Nova anotação",
+                message: `Você foi adicionado à anotação ${existingAnnotation.title}.`,
+                type: "ANNOTATION",
+                status: false,
+                itemId: existingAnnotation._id.toString(),
+                userId: members.map(member => member.userId)
+
+            }
+
+            this.notificationService.create(notification)
+            // Envia notificação
+            this.notificationsGateway.sendAddMemberNotification(notification);
         }
 
         const updatedAnnotation = await this.annotationModel.findByIdAndUpdate(
@@ -422,10 +443,8 @@ export class AnnotationService {
         return updatedAnnotation;
     }
 
-    async updatePermissonMember(annotationId: string, memberId: string, body: { accessType: string }, user: TokenPayloadSchema) {
+    async updatePermissonMember(annotationId: string, memberId: string, accessType: string, user: TokenPayloadSchema) {
         const userId = user.sub;
-
-        const type = body.accessType;
 
         const existingAnnotation = await this.annotationModel.findById(annotationId);
 
@@ -444,7 +463,7 @@ export class AnnotationService {
             if (member.userId.toString() === memberId) {
                 return {
                     userId: memberId,
-                    accessType: type,
+                    accessType: accessType,
                 }
             }
 
@@ -456,6 +475,20 @@ export class AnnotationService {
             { members: updatedMembers },
             { new: true }
         ).exec();
+
+        const notification: CreateNotificationDto = {
+            title: "Permissão na anotação",
+            message: `Você agora tem permissão de ${accessType} no grupo ${existingAnnotation.title}.`,
+            type: "ANNOTATION",
+            status: false,
+            itemId: existingAnnotation._id.toString(),
+            userId: [memberId]
+
+        }
+
+        this.notificationService.create(notification)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
 
         return updatedAnnotation;
     }
@@ -488,6 +521,19 @@ export class AnnotationService {
             { new: true }
         ).exec();
 
+        const notificationDTO: CreateNotificationDto = {
+            title: "Membro removido",
+            message: `Você foi removido da anotação ${existingAnnotation.title}.`,
+            type: "ANNOTATION",
+            status: false,
+            itemId: annotation._id.toString(),
+            userId: [memberId]
+        }
+
+        const notification = await this.notificationService.create(notificationDTO)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
+
         return updatedAnnotation;
 
     }
@@ -497,6 +543,9 @@ export class AnnotationService {
 
         if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
 
+        const existingGroup = await this.groupService.fetchById(newGroupId);
+
+        if (!existingGroup) throw new ConflictException("Esse grupo não existe");
 
         const currentGroups = existingAnnotation.groupId || [];
 
@@ -516,6 +565,19 @@ export class AnnotationService {
             { new: true }
         ).exec();
 
+        const notification: CreateNotificationDto = {
+            title: "Nova anotação",
+            message: `A anotação ${existingAnnotation.title} foi adicionada no grupo.`,
+            type: "ANNOTATION",
+            status: false,
+            itemId: existingAnnotation._id.toString(),
+            userId: existingGroup.members.map(member => member.userId)
+        }
+
+        this.notificationService.create(notification)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
+
         return updatedAnnotation;
     }
 
@@ -525,6 +587,10 @@ export class AnnotationService {
         if (!existingAnnotation) throw new ConflictException("Essa anotacao não existe");
 
         if (!existingAnnotation.groupId) throw new ConflictException("Essa anotacao nao esta em um grupo");
+
+        const group = await this.groupService.fetchById(newGroupId)
+
+        if (!group) throw new ConflictException("Grupo nao existe nessa anotação");
 
 
         const existingGroup = existingAnnotation.groupId.map(group => group === newGroupId)
@@ -541,6 +607,22 @@ export class AnnotationService {
             { groupId: updatedGroups },
             { new: true }
         ).exec();
+
+
+        const notification: CreateNotificationDto = {
+            title: "Anotação deletado",
+            message: `A anotação ${existingAnnotation.title}  foi excluida do ${group.name}.`,
+            type: "ANNOTATION",
+            status: false,
+            itemId: group._id.toString(),
+            userId: group.members.map(member => member.userId)
+
+        }
+
+        this.notificationService.create(notification)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
+
 
         return updatedAnnotation;
 
@@ -562,6 +644,21 @@ export class AnnotationService {
         });
 
         await this.annotationModel.findByIdAndDelete(annotationId).exec();
+
+        const notification: CreateNotificationDto = {
+            title: "Anotação deletado",
+            message: `A anotação ${annotation.title}  foi excluida.`,
+            type: "ANNOTATION",
+            status: false,
+            itemId: annotation._id.toString(),
+            userId: annotation.members.map(member => member.userId)
+
+        }
+
+        this.notificationService.create(notification)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
+
         return { message: "Anotacao excluída com sucesso" };
     }
 

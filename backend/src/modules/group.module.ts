@@ -4,13 +4,15 @@ import { GroupService } from '../services/group.service';
 import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AnnotationModule } from './annotation.module';
+import { NotificationModule } from './notifications.module';
 
 @Module({
     imports: [
         MongooseModule.forFeature([
             { name: Group.name, schema: GroupSchema },
         ]),
-        forwardRef(() => AnnotationModule)
+        forwardRef(() => AnnotationModule),
+        NotificationModule
     ],
     controllers: [GroupController],
     providers: [GroupService],

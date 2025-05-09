@@ -40,7 +40,6 @@ export class RoleGuard implements CanActivate {
             ? await this.checkGroupPermission(groupId, user.sub, requiredRoles)
             : false;
 
-        console.log(groupId)
         if (annotationId && groupId && hasAnnotationPermission && hasGroupPermission) {
             return true;
         }
@@ -70,8 +69,6 @@ export class RoleGuard implements CanActivate {
 
         const isOwner = group.createdUserId.toString() === userId;
         const member = group.members.find(m => m.userId.toString() === userId);
-
-        console.log(isOwner)
 
         return isOwner || (member && requiredRoles.includes(member.accessType));
     }

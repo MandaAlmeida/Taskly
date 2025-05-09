@@ -102,15 +102,16 @@ export function Calendars() {
                 renderItem={({ item }) => (
                     <Task
                         _id={item._id}
-                        userId={item.userId}
                         name={item.name}
+                        handleOpenTask={() => fetchTaskById(item._id)}
                         status={item.status}
                         priority={item.priority}
-                        subCategory={data.subCategory.find((subCategory) => subCategory._id === item.subCategory)?.subCategory || "Sem sub categoria"}
-                        category={item.subCategory}
                         date={formatDate(item.date)}
-                        handleOpenTask={() => fetchTaskById(item._id)}
-                        color={data.subCategory.find((subCategory) => subCategory._id === item.subCategory)?.color || theme.blue1}
+                        color={data.categories.find((category) => category._id === item.category)?.color || theme.blue1}
+                        category={data.categories.find((category) => category._id === item.category)?.category || "Categoria nao encontrada"}
+                        hours={item.hours}
+                        subTask={item.subTask}
+                        userId={item.userId}
                     />
                 )} /> : (
                 <EmptyState text="tarefas" title="O que você quer fazer hoje?" />

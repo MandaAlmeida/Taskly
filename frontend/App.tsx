@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { TaskContextProvider } from "@/context/taskContext";
 import { Routes } from "@/routes";
 
@@ -8,6 +8,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '@/styles/theme';
 import { FormProvider, useForm } from "react-hook-form";
 import { AccountProps } from "@/@types/account";
+import { useTask } from "@/hooks/useTask";
+import { connectToSocket } from "@/notification";
 
 
 export default function App() {

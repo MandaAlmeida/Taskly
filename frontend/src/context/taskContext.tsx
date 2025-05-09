@@ -11,6 +11,7 @@ import api from "@/api/axios";
 import { AnnotationProps, attachmentProps, membersProps } from "@/@types/annotation";
 import { SubCategoryProps } from "@/@types/subCategory";
 import { GroupProps } from "@/@types/group";
+import { notificationProps } from "@/@types/notification";
 
 type User = {
     _id: string;
@@ -42,7 +43,8 @@ type dataProps = {
     logado: boolean;
     createUserAnnotation: userCreate | undefined;
     member: membersProps[] | [];
-    userExists: string
+    userExists: string;
+    notification: notificationProps[];
 };
 
 type ModalProps =
@@ -70,22 +72,22 @@ type uiStateProps = {
 };
 
 interface TaskContextProps {
-    // 📌 Tarefas
+    //Tarefas
     data: dataProps;
 
     setData: React.Dispatch<React.SetStateAction<dataProps>>;
 
-    // 📅 Datas e Seções Abertas
+    //Datas e Seções Abertas
     uiState: uiStateProps;
 
     setUiState: React.Dispatch<React.SetStateAction<uiStateProps>>;
 
-    // 📦 Modais e Dropdowns
+    //Modais e Dropdowns
     modalState: { name: ModalProps, data?: any };
 
     setModalState: React.Dispatch<React.SetStateAction<{ name: ModalProps, data?: any }>>;
 
-    // 📌 Funções de Tarefa
+    //Funções de Tarefa
     handleTaskRemove: (id: string, name: string) => void;
     handleAddTask: (data: CreateTaskProps, handleBackToTask: () => void) => void;
     handleUpdateTask: (params: UpdateTaskParams) => void;
@@ -95,21 +97,22 @@ interface TaskContextProps {
     fetchTaskById: (taskId: string) => void;
     handleSubTaskRemove: (taskId: string, subTask: string, subTaskId?: string) => void;
 
-    // 🗒️ Funções de Anotação
+    //Funções de Anotação
     fetchAnnotation: () => void;
     fetchAnnotationById: (id: string) => void;
     fetchAnnotationBySearch: (item: string) => void;
     handleAddAnnotation: (data: FormData) => void;
     handleUpdateAnnotation: (id: string, data: FormData, handleBackToTask?: () => void) => void;
     handleAnnotationRemove: (id: string, name: string) => void;
+    handleAddMemberAnnotation: (id: string, members: membersProps[], handleBackToTask?: () => void) => void;
     fetchByGroup: () => void;
 
-    // 📁 Funções de Anexo
+    //Funções de Anexo
     fetchAttachment: (fileName: attachmentProps) => void;
     handleAttachmentRemove: (id: string, name: string, url: string) => void;
     handleDownloadAttachment: (url: string) => void;
 
-    // 🗂️ Funções de Categoria
+    //Funções de Categoria
     handleAddCategory: (name: string, icon: number, color: string) => void;
     handleUpdateCategory: (id: string, name: string, icon: number, color: string) => void;
     removeCategory: (category: string, id?: string) => void;
@@ -117,19 +120,22 @@ interface TaskContextProps {
     removeSubCategory: (subCategory: string, id?: string) => void;
     featchSubCategory: () => void;
 
-    // 👥 Funções de Grupo
+    //Funções de Grupo
     handleAddGroup: (name: string, description: string, icon: number, color: string, members?: membersProps[]) => void;
     handleUpdateGroup: (id: string, name: string, description: string, icon: number, color: string) => void;
     fetchGroup: () => void;
     removeGroup: (group: string, id?: string) => void;
 
-    // 👤 Funções de Autenticação
+    //Funções de Autenticação
     login: (email: string, password: string) => void;
     createUser: (formData: FormData, handleBackToLogin: () => void) => void;
     deslogar: () => void;
     deleteUser: () => void;
     getNameUser: (userId: string) => void;
     getUserMember: (name: string, accessType?: string, handleBackToNext?: () => void) => void;
+
+    //Função de notificação
+    fetchNotification: () => void;
 }
 
 
@@ -191,7 +197,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         user: null as User | null,
         logado: false as boolean,
         createUserAnnotation: undefined as userCreate | undefined,
-        userExists: ""
+        userExists: "",
+        notification: [] as notificationProps[],
     });
 
     // Agrupar estados relacionados aos modais
@@ -249,7 +256,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             addToken(response.data.token);
             setData(prevState => ({ ...prevState, token: response.data.token, }));
             getUser()
-            console.log(data.token)
 
         } catch (error: any) {
             console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
@@ -307,11 +313,9 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                     member: [...(prev.member || []), memberData],
                 }));
             }
-            console.log(response.data)
-            if (!response.data) {
-
+            if (!response.data && !accessType) {
                 handleBackToNext && handleBackToNext();
-            } else {
+            } else if (!accessType) {
                 Alert.alert("Nome de usuario:", "Já existe usuario com esse nome")
             }
 
@@ -875,12 +879,30 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     async function handleUpdateAnnotation(id: string, data: FormData, handleBackToTask?: () => void) {
         try {
-            console.log(data.get("attachments"));
             await api.put(`/annotation/update/${id}`, data, {
                 headers: {
                     "Content-Type": `multipart/form-data`,
                 },
             });
+            await fetchAnnotation();
+            if (handleBackToTask) handleBackToTask();
+        } catch (error: any) {
+            if (error.response) {
+                console.log("Erro do back-end:", error.response.data);
+                Alert.alert('Nova Anotação', error.response.data.message);
+            } else if (error instanceof AppError) {
+                Alert.alert('Nova Anotação', error.message);
+            } else {
+                console.log(error);
+                Alert.alert('Nova Anotação', 'Não foi possível adicionar');
+            }
+        }
+    }
+
+    async function handleAddMemberAnnotation(id: string, members: membersProps[], handleBackToTask?: () => void) {
+        try {
+            await api.patch(`/annotation/update/${id}/members`, members);
+
             await fetchAnnotation();
             if (handleBackToTask) handleBackToTask();
         } catch (error: any) {
@@ -1084,7 +1106,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         try {
             const response = await api.get(`/uploads/download/${url}`);
 
-            console.log(response)
             // setFinalUrl(response)
 
         } catch (error) {
@@ -1092,6 +1113,20 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+    // Notification
+    async function fetchNotification() {
+        try {
+            const response = await api.get(`/notifications/fetch?p=1`);
+
+            setData(prevState => ({
+                ...prevState,
+                notification: response.data
+            }));
+
+        } catch (error) {
+            console.log("Erro ao carregar as notificacoes:", error);
+        }
+    }
 
 
     useEffect(() => {
@@ -1108,6 +1143,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
 
         featchCategory();
+        fetchNotification();
         async function updateStatuses() {
             await api.patch("/task/update-status");
         }
@@ -1118,7 +1154,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     return (
         <TaskContext.Provider value={{
             data, modalState, uiState, setData, setModalState, setUiState,
-            fetchTaskById, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove, fetchAnnotationBySearch, handleAttachmentRemove, handleDownloadAttachment, removeSubCategory, fetchGroup, handleAddGroup, removeGroup, handleUpdateGroup, handleUpdateCategory, getUserMember, fetchByGroup
+            fetchTaskById, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove, fetchAnnotationBySearch, handleAttachmentRemove, handleDownloadAttachment, removeSubCategory, fetchGroup, handleAddGroup, removeGroup, handleUpdateGroup, handleUpdateCategory, getUserMember, fetchByGroup, handleAddMemberAnnotation, fetchNotification
         }}>
             {children}
         </TaskContext.Provider>

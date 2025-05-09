@@ -4,11 +4,17 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Group, GroupDocument } from "@/models/groups.schema";
 import { Model } from "mongoose";
 import { CreateGroupDTO, UpdateGroupDTO } from "@/contracts/group.dto";
+import { CreateNotificationDto } from "@/contracts/notification.dto";
+import { NotificationsService } from "./notifications.service";
+import { NotificationsGateway } from "@/gateway/notifications.gateway";
+import { MemberDTO } from "@/contracts/member.dto";
 
 @Injectable()
 export class GroupService {
     constructor(
-        @InjectModel(Group.name) private groupModel: Model<GroupDocument>
+        @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
+        private notificationService: NotificationsService,
+        private notificationsGateway: NotificationsGateway
     ) { }
 
     // Criação de grupo, evitando nomes duplicados e membros repetidos
@@ -105,7 +111,7 @@ export class GroupService {
 
     // Atualização de grupo com validações de nome único
     async update(groupId: string, group: UpdateGroupDTO, user: TokenPayloadSchema) {
-        const { name, description, members, icon, color } = group;
+        const { name, description, icon, color } = group;
         const userId = user.sub;
 
         const existingGroup = await this.groupModel.findById(groupId);
@@ -128,8 +134,7 @@ export class GroupService {
     }
 
     // Adiciona novos membros ao grupo, evitando duplicatas
-    async addMember(groupId: string, group: CreateGroupDTO) {
-        const { members = [] } = group;
+    async addMember(groupId: string, members: MemberDTO[]) {
 
         const existingGroup = await this.groupModel.findById(groupId);
         if (!existingGroup) throw new ConflictException("Essa anotação não existe");
@@ -151,6 +156,20 @@ export class GroupService {
             newMembers.push(member);
         }
 
+        const notification: CreateNotificationDto = {
+            title: "Nova anotação",
+            message: `Você foi adicionado à anotação ${existingGroup.name}.`,
+            type: "GROUP",
+            status: false,
+            itemId: existingGroup._id.toString(),
+            userId: members.map(member => member.userId)
+
+        }
+
+        this.notificationService.create(notification)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
+
         return await this.groupModel.findByIdAndUpdate(
             groupId,
             { members: newMembers },
@@ -159,8 +178,7 @@ export class GroupService {
     }
 
     // Atualiza permissão de um membro específico
-    async updatePermissonMember(groupId: string, memberId: string, body: { accessType: string }) {
-        const type = body.accessType;
+    async updatePermissonMember(groupId: string, memberId: string, accessType: string) {
         const existingGroup = await this.groupModel.findById(groupId);
         if (!existingGroup) throw new ConflictException("Essa anotação não existe");
 
@@ -171,10 +189,23 @@ export class GroupService {
 
         const updatedMembers = existingGroup.members.map((member) => {
             if (member.userId.toString() === memberId) {
-                return { userId: memberId, accessType: type };
+                return { ...member, accessType };
             }
             return member;
         });
+
+        const notification: CreateNotificationDto = {
+            title: "Permissão do grupo",
+            message: `Você agora tem permissão de ${accessType} no grupo ${existingGroup.name}.`,
+            type: "GROUP",
+            status: false,
+            itemId: existingGroup._id.toString(),
+            userId: [memberId]
+        }
+
+        this.notificationService.create(notification)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
 
         return await this.groupModel.findByIdAndUpdate(
             groupId,
@@ -200,6 +231,21 @@ export class GroupService {
             member => member.userId.toString() !== memberId
         );
 
+
+        const notification: CreateNotificationDto = {
+            title: "Removido do grupo",
+            message: `Você foi removido do grupo ${existingGroup.name}.`,
+            type: "GROUP",
+            status: false,
+            itemId: existingGroup._id.toString(),
+            userId: [memberId]
+
+        }
+
+        this.notificationService.create(notification)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
+
         return await this.groupModel.findByIdAndUpdate(
             groupId,
             { members: updatedMembers },
@@ -213,6 +259,20 @@ export class GroupService {
         if (!group) throw new NotFoundException("Grupo não encontrada");
 
         await this.groupModel.findByIdAndDelete(groupId).exec();
+
+        const notification: CreateNotificationDto = {
+            title: "Grupo deletado",
+            message: `O grupo ${group.name} que você estava foi excluido.`,
+            type: "GROUP",
+            status: false,
+            itemId: group._id.toString(),
+            userId: group.members.map(member => member.userId)
+
+        }
+
+        this.notificationService.create(notification)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
 
         return { message: "Grupo excluída com sucesso" };
     }
