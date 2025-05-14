@@ -1,6 +1,6 @@
 import { Annotation, AnnotationSchema } from '@/models/annotations.schema';
 import { AnnotationController } from '../controllers/annotation.controller';
-import { AnnotationService } from '../services/annotation.service';
+import { AnnotationsService } from '../services/annotation.service';
 import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GroupModule } from './group.module';
@@ -22,7 +22,7 @@ import { NotificationModule } from './notifications.module';
         NotificationModule,
     ],
     controllers: [AnnotationController],
-    providers: [AnnotationService, UploadService, EnvService],
-    exports: [MongooseModule, AnnotationService]
+    providers: [AnnotationsService, UploadService, EnvService],
+    exports: [MongooseModule, AnnotationsService]
 })
 export class AnnotationModule { }

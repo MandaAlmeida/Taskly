@@ -2,7 +2,7 @@ import { CurrentUser } from '@/auth/current-user-decorator';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { TokenPayloadSchema } from '@/auth/jwt.strategy';
 import { CreateCategoryDTO, UpdateCategoryDTO } from '@/contracts/category.dto';
-import { CategorysService } from '@/services/category.service';
+import { CategoriesService } from '@/services/category.service';
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -12,7 +12,7 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 @UseGuards(JwtAuthGuard)
 export class CategoriesController {
     constructor(
-        private readonly CategoriesService: CategorysService,
+        private readonly CategoriesService: CategoriesService,
     ) { }
 
     @Post("create")

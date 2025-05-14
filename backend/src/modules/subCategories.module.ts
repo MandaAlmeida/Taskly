@@ -1,7 +1,7 @@
 
 import { SubCategoryController } from '@/controllers/subCategory.controller';
 import { SubCategory, SubCategorySchema } from '@/models/subCategory.schema';
-import { SubCategoryService } from '@/services/subCategory.service';
+import { SubCategoriesService } from '@/services/subCategory.service';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CategoriesModule } from './categories.module';
@@ -12,7 +12,7 @@ import { CategoriesModule } from './categories.module';
         CategoriesModule
     ],
     controllers: [SubCategoryController],
-    providers: [SubCategoryService],
+    providers: [SubCategoriesService],
     exports: [MongooseModule]
 })
 

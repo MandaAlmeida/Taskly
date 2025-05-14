@@ -15,8 +15,8 @@ export class Categories {
     @Prop({ required: true })
     category: string;
 
-    @Prop({ required: true, type: String })
-    icon: string;
+    @Prop({ required: true, type: Number })
+    icon: number;
 
     @Prop({ required: true, type: String })
     color: string;

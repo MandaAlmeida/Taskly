@@ -1,154 +1,118 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    ConflictException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { TokenPayloadSchema } from "@/auth/jwt.strategy";
 import { InjectModel } from "@nestjs/mongoose";
 import { Categories, CategoriesDocument } from "@/models/category.schema";
 import { Model } from "mongoose";
-import { CreateSubCategoryDTO, UpdateSubCategoryDTO } from "@/contracts/subCategory.dto";
-import { SubCategory, SubCategoryDocument } from "@/models/subCategory.schema";
+import {
+    CreateSubCategoryDTO,
+    UpdateSubCategoryDTO,
+} from "@/contracts/subCategory.dto";
+import {
+    SubCategory,
+    SubCategoryDocument,
+} from "@/models/subCategory.schema";
 
 @Injectable()
-export class SubCategoryService {
+export class SubCategoriesService {
     constructor(
-        @InjectModel(SubCategory.name) private subCategoryModel: Model<SubCategoryDocument>, // Injeta o model de SubCategory
-        @InjectModel(Categories.name) private categoryModel: Model<CategoriesDocument>,       // Injeta o model de Categories
+        @InjectModel(SubCategory.name)
+        private subCategoryModel: Model<SubCategoryDocument>,
+        @InjectModel(Categories.name)
+        private categoryModel: Model<CategoriesDocument>
     ) { }
 
-    // Cria uma nova subcategoria
-    async create(createCategory: CreateSubCategoryDTO, user: TokenPayloadSchema) {
-        const userId = user.sub; // Extrai o ID do usuário autenticado
-        const { subCategory, categoryName, color, icon } = createCategory; // Extrai dados da DTO recebida
+    async create(dto: CreateSubCategoryDTO, user: TokenPayloadSchema) {
+        const userId = user.sub;
+        const { subCategory, categoryName, color, icon } = dto;
 
-        // Verifica se a categoria base existe para o usuário
-        const categoryId = await this.categoryModel.findOne({
-            category: categoryName,
-            userId
-        });
+        const category = await this.findCategoryByName(categoryName, userId);
+        if (!category) throw new ConflictException("Essa categoria não existe");
 
-        if (!categoryId) {
-            throw new ConflictException("Essa categoria não existe");
-        }
 
-        // Verifica se já existe uma subcategoria com o mesmo nome para essa categoria
-        const existingSubCategory = await this.subCategoryModel.findOne({
+        const duplicate = await this.subCategoryModel.findOne({ subCategory, categoryName, userId });
+        if (duplicate) throw new ConflictException("Essa subcategoria já existe para essa categoria");
+
+
+        return await this.subCategoryModel.create({
             subCategory,
             categoryName,
-            userId
-        });
-
-        if (existingSubCategory) {
-            throw new ConflictException("Essa subcategoria já existe para essa categoria");
-        }
-
-        // Monta o objeto a ser salvo
-        const newSubCategory = {
-            subCategory,
-            categoryName,
-            categoryId: categoryId._id,
+            categoryId: category._id,
             color,
             icon,
-            userId
-        };
-
-        // Salva a nova subcategoria no banco de dados
-        const createdCategories = new this.subCategoryModel(newSubCategory);
-        await createdCategories.save();
-
-        return createdCategories;
-    }
-
-    // Busca todas as subcategorias criadas pelo usuário
-    async fetch(user: TokenPayloadSchema) {
-        const userId = user.sub;
-
-        // Busca todas as subcategorias pertencentes ao usuário
-        return await this.subCategoryModel.find({ userId }).exec();
-    }
-
-    // Busca todas as subcategorias vinculadas a uma categoria específica
-    async fetchByIdCategory(categoryId: string, user: TokenPayloadSchema) {
-        const userId = user.sub;
-
-        // Busca subcategorias filtradas por categoria e usuário
-        return await this.subCategoryModel.find({
             userId,
-            categoryId
-        }).exec();
+        });
     }
 
-    // Busca uma subcategoria específica por ID
+    async fetch(user: TokenPayloadSchema) {
+        return this.subCategoryModel.find({ userId: user.sub }).lean();
+    }
+
+    async fetchByIdCategory(categoryId: string, user: TokenPayloadSchema) {
+        return this.subCategoryModel.find({ userId: user.sub, categoryId }).lean();
+    }
+
     async fetchById(subCategoryId: string) {
-        // Retorna o documento da subcategoria pelo ID
-        return await this.subCategoryModel.findById(subCategoryId).exec();
+        return this.subCategoryModel.findById(subCategoryId).lean();
     }
 
-    // Atualiza uma subcategoria existente
-    async update(subCategoryId: string, updateData: UpdateSubCategoryDTO, user: TokenPayloadSchema) {
+    async update(subCategoryId: string, dto: UpdateSubCategoryDTO, user: TokenPayloadSchema) {
         const userId = user.sub;
-        const { subCategory, categoryName, color, icon } = updateData;
+        const { subCategory, categoryName, color, icon } = dto;
 
-        // Verifica se a subcategoria existe
         const subCategoryDoc = await this.subCategoryModel.findById(subCategoryId);
         if (!subCategoryDoc) {
             throw new ConflictException("Essa subcategoria não existe");
         }
 
-        // Verifica se já existe outra subcategoria com o mesmo nome (para evitar duplicação)
-        const existingCategory = await this.categoryModel.findOne({ subCategory, userId });
-        if (existingCategory?._id.toString() !== subCategoryId) {
-            throw new ConflictException("Já existe uma subcategoria com esse nome");
+        if (subCategory && subCategory !== subCategoryDoc.subCategory) {
+            const duplicate = await this.subCategoryModel.findOne({ subCategory, userId }).lean();
+            if (duplicate && duplicate._id.toString() !== subCategoryId) {
+                throw new ConflictException("Já existe uma subcategoria com esse nome");
+            }
         }
 
-        // Prepara os campos a serem atualizados
-        const subCategoryToUpdate: any = {};
-        if (subCategory) subCategoryToUpdate.subCategory = subCategory;
-        if (color) subCategoryToUpdate.color = color;
-        if (icon) subCategoryToUpdate.icon = icon;
+        const updateData: Partial<SubCategory> = {};
+        if (subCategory) updateData.subCategory = subCategory;
+        if (color) updateData.color = color;
+        if (icon) updateData.icon = icon;
 
-        // Caso a categoria base da subcategoria seja alterada
-        if (categoryName) {
-            const categoryDoc = await this.categoryModel.findOne({
-                category: categoryName,
-                userId
-            });
+        if (categoryName && categoryName !== subCategoryDoc.categoryName) {
+            const category = await this.findCategoryByName(categoryName, userId);
 
-            // Não permite alterar para categorias inexistentes ou a categoria "Todas"
-            if (!categoryDoc || categoryName === "Todas") {
+            if (!category || categoryName === "Todas") {
                 throw new ConflictException("Essa categoria não existe ou não pode ser utilizada");
             }
 
-            // Atualiza o vínculo da subcategoria com a nova categoria
-            subCategoryToUpdate.categoryId = categoryDoc._id;
-            subCategoryToUpdate.categoryName = categoryName;
+            updateData.categoryId = category._id.toString();;
+            updateData.categoryName = categoryName;
         }
 
-        // Realiza a atualização no banco de dados
-        const updatedSubCategory = await this.subCategoryModel.findByIdAndUpdate(
-            subCategoryId,
-            subCategoryToUpdate,
-            { new: true } // Retorna o documento já atualizado
-        );
-
-        return updatedSubCategory;
+        return await this.subCategoryModel.findByIdAndUpdate(subCategoryId, updateData, { new: true });
     }
 
-    // Exclui uma subcategoria
     async delete(subCategoryId: string, user: TokenPayloadSchema) {
         const userId = user.sub;
 
-        // Verifica se a subcategoria existe
-        const subCategory = await this.subCategoryModel.findById(subCategoryId).exec();
+        const subCategory = await this.subCategoryModel.findById(subCategoryId);
         if (!subCategory) {
             throw new NotFoundException("Subcategoria não encontrada");
         }
 
-        // Verifica se a subcategoria pertence ao usuário
         if (subCategory.userId.toString() !== userId) {
             throw new ForbiddenException("Você não tem permissão para excluir esta subcategoria");
         }
 
-        // Realiza a exclusão da subcategoria
-        await this.subCategoryModel.findByIdAndDelete(subCategoryId).exec();
-
+        await this.subCategoryModel.findByIdAndDelete(subCategoryId);
         return { message: "Subcategoria excluída com sucesso" };
     }
+
+    private async findCategoryByName(categoryName: string, userId: string): Promise<CategoriesDocument | null> {
+        return this.categoryModel.findOne({ category: categoryName, userId });
+    }
+
 }

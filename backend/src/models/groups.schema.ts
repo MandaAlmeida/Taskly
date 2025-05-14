@@ -30,7 +30,7 @@ export class Group {
     members: {
         userId: string;
         name: string;
-        accessType: "ADMIN" | "EDIT" | "DELETE" | "VIEWER";
+        accessType: string;
     }[];
 
     @Prop()

@@ -11,6 +11,7 @@ export function Routes() {
 
     return (
         <NavigationContainer>
+
             {uiState.loading ? <Loading /> : data.logado ? <AppRoutes /> : <AuthRoutes />}
         </NavigationContainer>
     );

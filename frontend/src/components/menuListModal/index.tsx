@@ -16,7 +16,6 @@ import { iconsList } from "@/Array/icons";
 import { useTask } from "@/hooks/useTask";
 import { CategoryProps } from "@/@types/category";
 import { GroupProps } from "@/@types/group";
-import { ModalList } from "../modalListCategoryOrGroup";
 
 type Props = {
     visible: boolean;
@@ -24,7 +23,7 @@ type Props = {
     items: (CategoryProps | GroupProps)[];
     onClose: () => void;
     onAddNewItem: () => void;
-    onSelect?: (item: CategoryProps | GroupProps | undefined) => void;
+    onSelect: (item: any) => void;
     showDefaultItem?: boolean;
 };
 
@@ -39,8 +38,8 @@ export function MenuListModal({
 }: Props) {
     const { data, fetchGroup } = useTask();
 
-    function handleSelect(item: CategoryProps | GroupProps | undefined) {
-        // onSelect(item);
+    function handleSelect(item: any) {
+        onSelect(item);
         onClose();
     }
 

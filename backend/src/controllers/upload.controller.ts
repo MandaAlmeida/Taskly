@@ -38,8 +38,10 @@ export class UploadController {
    */
   @Get('download/:url')
   async downloadFile(@Param('url') url: string, @Res() res: Response) {
-    return await this.uploadService.download(url);
+    const result = await this.uploadService.download(url);
+    return res.json(result); // <<< aqui está o problema resolvido
   }
+
 
 
   /**

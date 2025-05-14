@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, View, Text, ListRenderItemInfo, TouchableOpacity, Image } from "react-native";
+import { FlatList, View, Text, ListRenderItemInfo, TouchableOpacity, Image, TouchableWithoutFeedback } from "react-native";
 import { styles } from "./styles";
 
 import { useTask } from "@/hooks/useTask";
@@ -11,12 +11,15 @@ import { formatLayout, LayoutBlock } from "@/utils/formatLayout";
 import { formatDatePTBR } from "@/utils/formatDate";
 import { Annotation } from "@/components/annotation";
 import { theme } from "@/styles/theme";
+import { EllipsisVertical, PencilLine, Trash2, UserRoundPlus, UsersRound, X } from "lucide-react-native";
 import { ModalCreateMember } from "@/components/modalCreateMember";
 
 export function Anotations() {
-    const { fetchAnnotation, fetchAnnotationById, data, fetchAnnotationBySearch, fetchByGroup } = useTask();
+    const { fetchAnnotation, fetchAnnotationById, data, fetchAnnotationBySearch, fetchByGroup, setData, removeGroup, setModalState } = useTask();
 
     const [search, setSearch] = useState("");
+    const [isVisible, setIsVisible] = useState(false)
+
 
     useEffect(() => {
         fetchAnnotation();
@@ -25,6 +28,11 @@ export function Anotations() {
 
     function handleAnnotation(id: string) {
         fetchAnnotationById(id)
+    }
+
+    function handleEdit() {
+        setModalState({ name: "isGroupOpen" })
+        setIsVisible(false)
     }
 
     const layout = formatLayout(data.annotationSearch.length > 0 ? data.annotationSearch : data.annotation);
@@ -95,7 +103,38 @@ export function Anotations() {
 
     return (
         <View style={styles.container}>
-            <Header text="Anotações" />
+            {data.selectedGroup ? <>
+                {isVisible && <TouchableWithoutFeedback onPress={() => setIsVisible(!isVisible)}>
+                    <View style={styles.overlay} />
+                </TouchableWithoutFeedback>}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => setIsVisible(!isVisible)}>
+                        <EllipsisVertical size={24} color={theme.gray4} />
+                    </TouchableOpacity>
+                    {isVisible && <View style={styles.menuEdit}>
+                        <TouchableOpacity style={styles.menuItem} onPress={() => setModalState({ name: "isCreateMemberOpen", data: data.selectedGroup?.members })}>
+                            <PencilLine size={20} color={theme.gray4} />
+                            <Text style={styles.menuText}>Editar membros</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.menuItem, { borderTopWidth: 1, borderColor: `${theme.blue1}40` }]} onPress={handleEdit}>
+                            <UsersRound size={20} color={theme.gray4} />
+                            <Text style={styles.menuText}>Editar grupo</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.menuItem, { borderTopWidth: 1, borderColor: `${theme.blue1}40` }]}
+                            onPress={() => removeGroup(data.selectedGroup!.name, data.selectedGroup!._id)}
+                        >
+                            <Trash2 size={20} color={theme.red} />
+                            <Text style={[styles.menuText, { color: theme.red }]}>Excluir grupo</Text>
+                        </TouchableOpacity>
+                    </View>
+                    }
+                    <Text style={styles.textHeader}>Grupo {data.selectedGroup.name}</Text>
+                    <TouchableOpacity onPress={() => setData(prevData => ({ ...prevData, selectedGroup: undefined }))}>
+                        <X size={24} color={theme.gray4} />
+                    </TouchableOpacity>
+                </View>
+            </> : <Header text="Anotações" />}
             {data.annotation && data.annotation.length > 0 ? (
                 <>
                     <Search fetchSearch={fetchAnnotationBySearch} placeholder="Pesquisar por anotação ou categoria" setName={setSearch} name={search} />
@@ -110,6 +149,7 @@ export function Anotations() {
                 <EmptyState text="Anotações" title="Sobre o que você quer escrever agora?" />
             )}
             <Annotation />
+            <ModalCreateMember />
         </View>
     );
 }

@@ -72,7 +72,7 @@ export class TaskService {
         const limit = 20;
         const skip = (page - 1) * limit;
 
-        return await this.taskModel.find({ userId }).sort({ date: 1 }).skip(skip).limit(limit).exec();
+        return await this.taskModel.find({ userId }).sort({ date: 1 }).skip(skip).limit(limit);
     }
 
     // Busca tarefas por nome, categoria, subcategoria ou data
@@ -178,7 +178,7 @@ export class TaskService {
         }
 
         // Salva alterações no banco
-        return await this.taskModel.findByIdAndUpdate(taskId, taskToUpdate, { new: true }).exec();
+        return await this.taskModel.findByIdAndUpdate(taskId, taskToUpdate, { new: true });
     }
 
     // Atualiza os status de todas as tarefas do usuário com base na data
@@ -220,12 +220,12 @@ export class TaskService {
 
     // Remove uma subtarefa de uma tarefa
     async deleteSubTask(taskId: string, subTask: string) {
-        const task = await this.taskModel.findById(taskId).exec();
+        const task = await this.taskModel.findById(taskId);
         if (!task) throw new NotFoundException("Tarefa não encontrada");
 
         if (task.subTask) {
             const newSubTask = task.subTask.filter(task => task._id.toString() !== subTask);
-            await this.taskModel.findByIdAndUpdate(taskId, { subTask: newSubTask }, { new: true }).exec();
+            await this.taskModel.findByIdAndUpdate(taskId, { subTask: newSubTask }, { new: true });
         }
 
         return { message: "Subtarefa excluída com sucesso" };
@@ -235,14 +235,14 @@ export class TaskService {
     async delete(taskId: string, user: TokenPayloadSchema) {
         const userId = user.sub;
 
-        const task = await this.taskModel.findById(taskId).exec();
+        const task = await this.taskModel.findById(taskId);
         if (!task) throw new NotFoundException("Task não encontrada");
 
         if (task.userId.toString() !== userId) {
             throw new ForbiddenException("Você não tem permissão para excluir esta task");
         }
 
-        await this.taskModel.findByIdAndDelete(taskId).exec();
+        await this.taskModel.findByIdAndDelete(taskId);
         return { message: "Task excluída com sucesso" };
     }
 }

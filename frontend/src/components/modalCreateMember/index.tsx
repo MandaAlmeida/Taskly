@@ -4,27 +4,40 @@ import { useTask } from '@/hooks/useTask';
 import { styles } from './styles';
 import { ButtonModal } from '../buttonModal';
 import { useEffect, useState } from 'react';
-import { AnnotationProps } from '@/@types/annotation';
 import { theme } from '@/styles/theme';
-import { X } from 'lucide-react-native';
+import { Trash2, X } from 'lucide-react-native';
 import { connectToSocket } from '@/notification';
-
-type Props = {
-    isVisible: boolean;
-    item: AnnotationProps | undefined;
-    handleOnVisible: () => void;
-};
+import { membersProps } from '@/@types/annotation';
 
 const permissionLevels = ['ADMIN', 'EDITOR', 'DELETE', 'VIEWER'];
 
-export function ModalCreateMember({ isVisible, handleOnVisible, item }: Props) {
-    const { getUserMember, data, setData } = useTask();
+export function ModalCreateMember() {
+    const { getUserMember, data, setData, modalState, setModalState, handleAddMemberGroup, handleRemoveMemberGroup } = useTask();
 
     const [name, setName] = useState('');
     const [accessType, setAccessType] = useState('');
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [removeMember, setRemoveMember] = useState<string[]>([]);
+    const [combinedMembers, setCombinedMembers] = useState<membersProps[]>([]);
+
 
     const isDisebled = !name || !accessType
+
+    useEffect(() => {
+        const merged = [
+            ...(modalState.data || []),
+            ...(data.member || [])
+        ].filter(
+            (item, index, self) =>
+                index === self.findIndex((m) => m.userId === item.userId)
+        );
+
+        setCombinedMembers(
+            merged.filter(item => !removeMember.includes(item.userId))
+        );
+    }, [data.member, modalState.data, removeMember]);
+
+
 
     async function handleAddMember() {
         getUserMember(name, accessType);
@@ -38,30 +51,50 @@ export function ModalCreateMember({ isVisible, handleOnVisible, item }: Props) {
         setDropdownOpen(false);
     }
 
-    async function handleRemoveMember(name: string) {
+    async function CreateMember() {
+        if (modalState.data && data.selectedGroup) {
+            handleAddMemberGroup(data.selectedGroup._id, data.member)
+            if (removeMember) handleRemoveMemberGroup(data.selectedGroup._id, removeMember)
+
+            setRemoveMember([])
+        } else {
+            setModalState({ name: null })
+        }
+    }
+
+    console.log(modalState.data)
+
+    async function handleRemoveMember(id: string) {
         setData(prevData => ({
             ...prevData,
-            member: prevData.member.filter((m: any) => m.name !== name)
+            member: prevData.member.filter((m: any) => m.userId !== id)
         }));
+        setRemoveMember(prev => {
+            if (!prev.includes(id)) {
+                return [...prev, id];
+            }
+            return prev;
+        });
+
     }
 
     return (
-        <Modal isVisible={isVisible}>
+        <Modal isVisible={modalState.name === 'isCreateMemberOpen'}>
             <View style={styles.modalContainer}>
                 <Text style={styles.title}>Adicionar membro</Text>
 
                 {/* Lista de membros adicionados */}
                 <FlatList
-                    data={data.member}
-                    keyExtractor={(_, index) => index.toString()}
+                    data={combinedMembers}
+                    keyExtractor={(item) => item.userId}
                     ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
                     renderItem={({ item }) => (
                         <View style={styles.memberItem}>
                             <Text style={styles.memberText}>
                                 {item?.name || 'Nome'} - {item.accessType}
                             </Text>
-                            <TouchableOpacity onPress={() => handleRemoveMember(item.name)}>
-                                <X size={16} color={theme.red} />
+                            <TouchableOpacity onPress={() => handleRemoveMember(item.userId)}>
+                                <Trash2 size={16} color={theme.red} />
                             </TouchableOpacity>
                         </View>
                     )}
@@ -108,9 +141,9 @@ export function ModalCreateMember({ isVisible, handleOnVisible, item }: Props) {
                 </TouchableOpacity>
 
                 <ButtonModal
-                    CreateItem={handleOnVisible}
+                    CreateItem={() => CreateMember()}
                     color={theme.blue1}
-                    handleOnVisible={handleOnVisible}
+                    handleOnVisible={() => setModalState({ name: null })}
                 />
             </View>
         </Modal>

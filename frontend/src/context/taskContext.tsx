@@ -12,6 +12,8 @@ import { AnnotationProps, attachmentProps, membersProps } from "@/@types/annotat
 import { SubCategoryProps } from "@/@types/subCategory";
 import { GroupProps } from "@/@types/group";
 import { notificationProps } from "@/@types/notification";
+import { registerForPushNotificationsAsync } from "@/utils/registerForPushNotificationsAsync";
+import * as Notifications from 'expo-notifications';
 
 type User = {
     _id: string;
@@ -37,14 +39,15 @@ type dataProps = {
     selectedCategory: CategoryProps | undefined;
     selectedSubCategory: SubCategoryProps | undefined;
     groups: GroupProps[];
-    selectedGroup: GroupProps[];
+    selectedGroup: GroupProps | undefined;
     token: string;
     user: User | null;
     logado: boolean;
-    createUserAnnotation: userCreate | undefined;
+    createUserAnnotationOurGroup: userCreate | undefined;
     member: membersProps[] | [];
     userExists: string;
     notification: notificationProps[];
+    expoPushToken: string | undefined;
 };
 
 type ModalProps =
@@ -59,6 +62,9 @@ type ModalProps =
     | "isTaskOpen"
     | "isAttachmentOpen"
     | "isCreateMemberOpen"
+    | "isSelectCategoryOpen"
+    | "isSelectSubCategoryOpen"
+    | "isSelectGroupOpen"
     | null;
 
 
@@ -123,6 +129,8 @@ interface TaskContextProps {
     //Funções de Grupo
     handleAddGroup: (name: string, description: string, icon: number, color: string, members?: membersProps[]) => void;
     handleUpdateGroup: (id: string, name: string, description: string, icon: number, color: string) => void;
+    handleAddMemberGroup: (id: string, members: membersProps[]) => void;
+    handleRemoveMemberGroup: (groupId: string, membersId: string[]) => void;
     fetchGroup: () => void;
     removeGroup: (group: string, id?: string) => void;
 
@@ -189,16 +197,17 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         selectedSubCategory: undefined as SubCategoryProps | undefined,
 
         groups: [] as GroupProps[],
-        selectedGroup: [] as GroupProps[],
+        selectedGroup: undefined as GroupProps | undefined,
 
         member: [] as membersProps[],
 
         token: "" as string,
         user: null as User | null,
         logado: false as boolean,
-        createUserAnnotation: undefined as userCreate | undefined,
+        createUserAnnotationOurGroup: undefined as userCreate | undefined,
         userExists: "",
         notification: [] as notificationProps[],
+        expoPushToken: undefined as string | undefined,
     });
 
     // Agrupar estados relacionados aos modais
@@ -290,7 +299,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function getNameUser(userId: string) {
         try {
             const response = await api.get(`/user/fetch/${userId}`);
-            setData(prevState => ({ ...prevState, createUserAnnotation: response.data }));
+            setData(prevState => ({ ...prevState, createUserAnnotationOurGroup: response.data }));
 
         } catch (error: any) {
             console.log("Erro ao conectar com o servidor:", error.response ? error.response.data : error.message);
@@ -995,6 +1004,25 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+    async function handleAddMemberGroup(id: string, members: membersProps[]) {
+        try {
+            await api.patch(`/group/update/${id}/members`, members);
+
+            await fetchGroup();
+            setModalState({ name: null })
+        } catch (error: any) {
+            if (error.response) {
+                console.log("Erro do back-end:", error.response.data);
+                Alert.alert('Novo Membro', error.response.data.message);
+            } else if (error instanceof AppError) {
+                Alert.alert('Novo Membro', error.message);
+            } else {
+                console.log(error);
+                Alert.alert('Novo Membro', 'Não foi possível adicionar novo membro nesse grupo');
+            }
+        }
+    }
+
     async function fetchGroup() {
         try {
             if (data.user) {
@@ -1012,6 +1040,28 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 console.log("Erro Axios:", error.response?.data || error.message);
             } else {
                 console.log("Erro não Axios:", error);
+            }
+        }
+    }
+
+    async function handleRemoveMemberGroup(groupId: string, membersId: string[]) {
+        try {
+            await Promise.all(
+                membersId.map(memberId =>
+                    api.delete(`/group/delete/${groupId}/members/${memberId}`)
+                )
+            );
+
+            await fetchGroup();
+        } catch (error: any) {
+            if (error.response) {
+                console.log("Erro do back-end:", error.response.data);
+                Alert.alert('Remover Membro', error.response.data.message);
+            } else if (error instanceof AppError) {
+                Alert.alert('Remover Membro', error.message);
+            } else {
+                console.log(error);
+                Alert.alert('Remover Membro', 'Não foi possível remover membro desse grupo');
             }
         }
     }
@@ -1128,6 +1178,58 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
+    async function PushNotification(token: string, user: User) {
+        try {
+            const savePushToken = {
+                userId: user._id,
+                token,
+            };
+
+
+            const response = await api.post('/notifications/save-token', savePushToken);
+
+            console.log(response.data);
+
+        } catch (error: any) {
+            console.log('Erro ao salvar token:', error);
+            const message =
+                error?.response?.data?.message || 'Erro ao se comunicar com o servidor.';
+            Alert.alert('Erro', message);
+        }
+    }
+
+
+    useEffect(() => {
+        // Solicita permissões e registra o token (como você já fez)
+        registerForPushNotificationsAsync()
+            .then((token) => {
+                if (data.user !== null && token) {
+                    setData(prevData => ({ ...prevData, expoPushToken: token }));
+                    PushNotification(token, data.user); // Passa o token para o backend
+                }
+            })
+            .catch((error) => {
+                Alert.alert('Erro ao obter o token de notificação', error.message);
+            });
+
+        // Adiciona o listener para notificações recebidas
+        const subscription = Notifications.addNotificationReceivedListener(notification => {
+            console.log('Notificação recebida:', notification);
+            // Aqui você pode processar a notificação recebida e atualizar o estado ou UI
+        });
+
+        const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+            console.log('Notificação clicada:', response);
+            // Aqui você pode redirecionar o usuário ou tomar alguma ação
+        });
+
+        // Limpeza do listener quando o componente for desmontado
+        return () => {
+            subscription.remove();
+            responseListener.remove();
+        };
+    }, []);
+
 
     useEffect(() => {
         async function saveTokenAndFetchUser() {
@@ -1154,7 +1256,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     return (
         <TaskContext.Provider value={{
             data, modalState, uiState, setData, setModalState, setUiState,
-            fetchTaskById, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove, fetchAnnotationBySearch, handleAttachmentRemove, handleDownloadAttachment, removeSubCategory, fetchGroup, handleAddGroup, removeGroup, handleUpdateGroup, handleUpdateCategory, getUserMember, fetchByGroup, handleAddMemberAnnotation, fetchNotification
+            fetchTaskById, handleTaskRemove, handleAddCategory, handleAddTask, handleUpdateTask, fetchTask, fetchTaskBySearch, fetchTaskByDate, createUser, login, removeCategory, fetchAnnotation, deslogar, fetchAttachment, fetchAnnotationById, featchSubCategory, handleSubTaskRemove, handleAddAnnotation, handleAddSubCategory, getNameUser, deleteUser, handleUpdateAnnotation, handleAnnotationRemove, fetchAnnotationBySearch, handleAttachmentRemove, handleDownloadAttachment, removeSubCategory, fetchGroup, handleAddGroup, removeGroup, handleUpdateGroup, handleUpdateCategory, getUserMember, fetchByGroup, handleAddMemberAnnotation, fetchNotification, handleAddMemberGroup, handleRemoveMemberGroup
         }}>
             {children}
         </TaskContext.Provider>

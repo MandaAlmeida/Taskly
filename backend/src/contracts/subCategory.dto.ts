@@ -27,7 +27,7 @@ export class CreateSubCategoryDTO {
     @IsString()
     @ApiProperty({
         description: "Icone da categoria",
-        example: "GraduationCap"
+        example: 1
     })
     icon: number;
 
@@ -61,9 +61,9 @@ export class UpdateSubCategoryDTO {
     @IsString()
     @ApiProperty({
         description: "Icone da categoria",
-        example: "GraduationCap"
+        example: 1
     })
-    icon: string;
+    icon: number;
 
     @IsOptional()
     @IsString()

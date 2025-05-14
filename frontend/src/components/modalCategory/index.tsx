@@ -7,13 +7,12 @@ import * as LucideIcons from 'lucide-react-native';
 import { iconsList } from "@/Array/icons";
 import { styles } from './styles';
 import { CategoryProps } from '@/@types/category';
-import { ModalProps } from '../modalSubTask';
 import { ButtonModal } from '../buttonModal';
 import { AddCategory } from '../addGroupAndCategory/addCategory';
 
 
-export function ModalCategory({ isVisible, handleOnVisible, task }: ModalProps) {
-    const { data, setData, setModalState, handleUpdateTask } = useTask();
+export function ModalCategory() {
+    const { data, setData, setModalState, handleUpdateTask, modalState } = useTask();
 
     const [active, setActive] = useState<{ [key: string]: boolean }>({});
 
@@ -25,10 +24,10 @@ export function ModalCategory({ isVisible, handleOnVisible, task }: ModalProps) 
     }
 
     function UpdateCategory() {
-        if (task) {
-            handleUpdateTask({ _id: task._id, category: data.selectedCategory?._id, task: task })
+        if (modalState.data) {
+            handleUpdateTask({ _id: modalState.data._id, category: data.selectedCategory?._id, task: modalState.data })
         }
-        handleOnVisible()
+        setModalState({ name: null })
     }
 
     function handleAddCategory() {
@@ -36,7 +35,7 @@ export function ModalCategory({ isVisible, handleOnVisible, task }: ModalProps) 
     }
 
     return (
-        <Modal isVisible={isVisible}>
+        <Modal isVisible={modalState.name === 'isSelectCategoryOpen'}>
             <View style={styles.modalContainer}>
                 <Text style={styles.title}>Categorias</Text>
                 <FlatList
@@ -81,7 +80,7 @@ export function ModalCategory({ isVisible, handleOnVisible, task }: ModalProps) 
                     }}
                     contentContainerStyle={styles.grid}
                 />
-                <ButtonModal color={task?.color || theme.blue1} CreateItem={() => UpdateCategory()} handleOnVisible={() => handleOnVisible()} />
+                <ButtonModal color={modalState.data?.color || theme.blue1} CreateItem={() => UpdateCategory()} handleOnVisible={() => setModalState({ name: null })} />
             </View>
 
             <AddCategory title="Categoria" />

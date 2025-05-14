@@ -17,7 +17,8 @@
       "bundleIdentifier": "com.venezaa.taskly",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "preview": {
       "android": {
@@ -29,6 +30,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F4F4F4"
       },
+      "googleServicesFile": "./google-services.json",
       "package": "com.venezaa.taskly"
     },
     "web": {

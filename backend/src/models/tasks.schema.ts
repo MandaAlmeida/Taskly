@@ -35,6 +35,9 @@ export class Task {
     @Prop()
     hours?: string;
 
+    @Prop({ required: true })
+    notified: boolean;
+
     @Prop({ required: true, index: true })
     status: Status;
 

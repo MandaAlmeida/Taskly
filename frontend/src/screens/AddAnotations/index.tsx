@@ -12,9 +12,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { StackParamList } from '@/routes/app.routes';
 import { ModalCategory } from '@/components/modalCategory';
 import { useTask } from '@/hooks/useTask';
-import { AnnotationProps, contentProps } from '@/@types/annotation';
+import { contentProps } from '@/@types/annotation';
 import { ModalCreateMember } from '@/components/modalCreateMember';
-import { connectToSocket, socket } from '@/notification';
 
 type NavigationProps = StackNavigationProp<StackParamList>;
 type AddAnnotationsRouteProp = RouteProp<StackParamList, 'addAnnotations'>;
@@ -24,8 +23,7 @@ export function AddAnnotations() {
     const annotation = route.params?.annotation;
     const [title, setTitle] = useState(annotation?.title ?? '');
     const navigation = useNavigation<NavigationProps>();
-    const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
-    const { data, handleAddAnnotation, fetchAttachment, handleUpdateAnnotation, setData, handleAddMemberAnnotation } = useTask();
+    const { data, handleAddAnnotation, fetchAttachment, handleUpdateAnnotation, setData, handleAddMemberAnnotation, setModalState } = useTask();
 
     const [content, setContent] = useState<contentProps[]>(annotation?.content ?? [{ type: 'text', value: '' }]);
 
@@ -94,10 +92,6 @@ export function AddAnnotations() {
         } catch (err) {
             console.log('Error picking document:', err);
         }
-    }
-
-    function toggleSection(key: string) {
-        setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
     }
 
     function updateTextBlock(index: number, newText: string) {
@@ -250,16 +244,16 @@ export function AddAnnotations() {
                     {otherFiles.length > 0 && <Text>{otherFiles.length}</Text>}
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("category")}>
+                <TouchableOpacity style={styles.buttonSelect} onPress={() => setModalState({ name: 'isSelectCategoryOpen' })}>
                     <Tag size={24} color={theme.gray4} />
                     {data.selectedCategory && <Text>{data.selectedCategory.category}</Text>}
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("member")}>
+                <TouchableOpacity style={styles.buttonSelect} onPress={() => setModalState({ name: 'isSelectGroupOpen' })}>
                     <UserPlus size={24} color={theme.gray4} />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.buttonSelect} onPress={() => toggleSection("group")}>
+                <TouchableOpacity style={styles.buttonSelect} onPress={() => setModalState({ name: 'isCreateMemberOpen' })}>
                     <Users size={24} color={theme.gray4} />
                 </TouchableOpacity>
             </View>
@@ -269,8 +263,8 @@ export function AddAnnotations() {
             </View>
 
 
-            {openSections["category"] && <ModalCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />}
-            {openSections["member"] && <ModalCreateMember item={annotation} isVisible={openSections["member"]} handleOnVisible={() => toggleSection("member")} />}
+            <ModalCategory />
+            <ModalCreateMember />
 
 
         </View>

@@ -1,4 +1,8 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    ConflictException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { TokenPayloadSchema } from "@/auth/jwt.strategy";
 import { InjectModel } from "@nestjs/mongoose";
 import { Group, GroupDocument } from "@/models/groups.schema";
@@ -17,263 +21,216 @@ export class GroupService {
         private notificationsGateway: NotificationsGateway
     ) { }
 
-    // Criação de grupo, evitando nomes duplicados e membros repetidos
+    private async sendNotification(notification: CreateNotificationDto) {
+        await this.notificationService.create(notification);
+        this.notificationsGateway.sendAddMemberNotification(notification);
+    }
+
+    private validateUniqueMembers(members: MemberDTO[]) {
+        const userIds = members.map((m) => m.userId.toString());
+        const hasDuplicates = new Set(userIds).size !== userIds.length;
+        if (hasDuplicates) {
+            throw new ConflictException("Não é permitido membros duplicados.");
+        }
+    }
+
     async create(group: CreateGroupDTO, user: TokenPayloadSchema) {
         const { name, description, members, color, icon } = group;
         const userId = user.sub;
 
-        const existingGroup = await this.groupModel.findOne({ name, createdUserId: userId });
-        if (existingGroup) throw new ConflictException("Essa grupo já existe");
+        const existing = await this.groupModel.findOne({ name, createdUserId: userId });
+        if (existing) throw new ConflictException("Esse grupo já existe.");
 
-        // Garante unicidade dos membros, se informados
-        if (members) {
-            const userIds = members.map(member => member.userId.toString());
-            const uniqueUserIds = new Set(userIds);
-            if (uniqueUserIds.size !== userIds.length) {
-                throw new ConflictException("Não é permitido membros duplicados.");
-            }
-        }
+        if (members) this.validateUniqueMembers(members);
 
-        const groupToCreate = {
+        const newGroup = await this.groupModel.create({
             name,
-            createdUserId: userId,
             description,
-            members,
+            color,
             icon,
-            color
-        };
+            members,
+            createdUserId: userId,
+        });
 
-        const createdGroup = new this.groupModel(groupToCreate);
-        await createdGroup.save();
-
-        return groupToCreate;
+        return newGroup;
     }
 
-    // Busca grupos onde o usuário é criador ou membro
     async fetch(user: TokenPayloadSchema) {
         const userId = user.sub;
-        const filter = {
-            $or: [
-                { createdUserId: userId },
-                { 'members.userId': userId }
-            ]
-        };
-
-        return await this.groupModel.find(filter).exec();
+        return this.groupModel.find({
+            $or: [{ createdUserId: userId }, { "members.userId": userId }],
+        });
     }
 
-    // Retorna grupo por ID
     async fetchById(groupId: string) {
-        return await this.groupModel.findById(groupId).exec();
+        return this.groupModel.findById(groupId);
     }
 
-    // Paginação simples com 20 itens por página, ordenado por data de criação
     async fetchByPage(user: TokenPayloadSchema, page: number) {
         const userId = user.sub;
-        const filter = {
-            $or: [
-                { createdUserId: userId },
-                { 'members.userId': userId }
-            ]
-        };
         const limit = 20;
         const skip = (page - 1) * limit;
 
-        return await this.groupModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec();
+        return this.groupModel
+            .find({
+                $or: [{ createdUserId: userId }, { "members.userId": userId }],
+            })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
     }
 
-    // Busca por nome ou data (se for uma data válida)
     async fetchBySearch(query: string, user: TokenPayloadSchema) {
         const userId = user.sub;
-        const regex = new RegExp(query, 'i');
+        const regex = new RegExp(query, "i");
         const isDate = !isNaN(Date.parse(query));
-
         const filters: any[] = [{ name: { $regex: regex } }];
 
         if (isDate) {
-            const searchDate = new Date(query);
-            const nextDay = new Date(searchDate);
-            nextDay.setDate(searchDate.getDate() + 1);
+            const date = new Date(query);
+            const nextDay = new Date(date);
+            nextDay.setDate(date.getDate() + 1);
 
-            filters.push({
-                date: {
-                    $gte: searchDate.toISOString(),
-                    $lt: nextDay.toISOString(),
-                },
-            });
+            filters.push({ date: { $gte: date.toISOString(), $lt: nextDay.toISOString() } });
         }
 
-        return await this.groupModel.find({
+        return this.groupModel.find({
             createdUserId: userId,
             $or: filters,
         });
     }
 
-    // Atualização de grupo com validações de nome único
-    async update(groupId: string, group: UpdateGroupDTO, user: TokenPayloadSchema) {
-        const { name, description, icon, color } = group;
+    async update(groupId: string, data: UpdateGroupDTO, user: TokenPayloadSchema) {
+        const { name, description, icon, color } = data;
         const userId = user.sub;
 
         const existingGroup = await this.groupModel.findById(groupId);
-        if (!existingGroup) throw new ConflictException("Essa group não existe");
+        if (!existingGroup) throw new NotFoundException("Grupo não encontrado.");
 
-        const existingGroupName = await this.groupModel.findOne({ name, createdUserId: userId });
-        if (existingGroupName) throw new ConflictException("Ja existe um grupo com esse nome");
+        if (name) {
+            const duplicate = await this.groupModel.findOne({ name, createdUserId: userId });
+            if (duplicate && duplicate._id.toString() !== groupId) {
+                throw new ConflictException("Já existe um grupo com esse nome.");
+            }
+        }
 
-        const groupToUpdate: any = {};
-        if (name) groupToUpdate.name = name;
-        if (description) groupToUpdate.description = description;
-        if (icon) groupToUpdate.icon = icon;
-        if (color) groupToUpdate.color = color;
-
-        return await this.groupModel.findByIdAndUpdate(
+        return this.groupModel.findByIdAndUpdate(
             groupId,
-            groupToUpdate,
+            { name, description, icon, color },
             { new: true }
-        ).exec();
+        );
     }
 
-    // Adiciona novos membros ao grupo, evitando duplicatas
     async addMember(groupId: string, members: MemberDTO[]) {
+        const group = await this.groupModel.findById(groupId);
+        if (!group) throw new NotFoundException("Grupo não encontrado.");
 
-        const existingGroup = await this.groupModel.findById(groupId);
-        if (!existingGroup) throw new ConflictException("Essa anotação não existe");
-
-        const userIds = members.map(m => m.userId.toString());
-        const hasDuplicates = new Set(userIds).size !== userIds.length;
-        if (hasDuplicates) throw new ConflictException("Usuário duplicado na lista de membros");
-
-        const existingMembers = existingGroup.members || [];
-        const newMembers = [...existingMembers];
+        this.validateUniqueMembers(members);
 
         for (const member of members) {
-            const alreadyExists = existingMembers.some(
-                ({ userId }) => userId.toString() === member.userId.toString()
+            const alreadyExists = group.members.some(
+                (m) => m.userId.toString() === member.userId.toString()
             );
             if (alreadyExists) {
-                throw new ConflictException("Usuário já cadastrado na lista de membros");
+                throw new ConflictException("Usuário já está na lista de membros.");
             }
-            newMembers.push(member);
         }
 
-        const notification: CreateNotificationDto = {
-            title: "Nova anotação",
-            message: `Você foi adicionado à anotação ${existingGroup.name}.`,
-            type: "GROUP",
-            status: false,
-            itemId: existingGroup._id.toString(),
-            userId: members.map(member => member.userId)
-
-        }
-
-        this.notificationService.create(notification)
-        // Envia notificação
-        this.notificationsGateway.sendAddMemberNotification(notification);
-
-        return await this.groupModel.findByIdAndUpdate(
-            groupId,
-            { members: newMembers },
-            { new: true }
-        ).exec();
-    }
-
-    // Atualiza permissão de um membro específico
-    async updatePermissonMember(groupId: string, memberId: string, accessType: string) {
-        const existingGroup = await this.groupModel.findById(groupId);
-        if (!existingGroup) throw new ConflictException("Essa anotação não existe");
-
-        const existingMember = existingGroup.members.some(
-            member => member.userId.toString() === memberId
-        );
-        if (!existingMember) throw new ConflictException("Membro nao existe nessa anotação");
-
-        const updatedMembers = existingGroup.members.map((member) => {
-            if (member.userId.toString() === memberId) {
-                return { ...member, accessType };
-            }
-            return member;
-        });
+        const updatedMembers = [...group.members, ...members];
 
         const notification: CreateNotificationDto = {
-            title: "Permissão do grupo",
-            message: `Você agora tem permissão de ${accessType} no grupo ${existingGroup.name}.`,
-            type: "GROUP",
-            status: false,
-            itemId: existingGroup._id.toString(),
-            userId: [memberId]
-        }
-
-        this.notificationService.create(notification)
-        // Envia notificação
-        this.notificationsGateway.sendAddMemberNotification(notification);
-
-        return await this.groupModel.findByIdAndUpdate(
-            groupId,
-            { members: updatedMembers },
-            { new: true }
-        ).exec();
-    }
-
-    // Remove um membro do grupo
-    async deleteMember(groupId: string, memberId: string) {
-        const group = await this.groupModel.findById(groupId).exec();
-        if (!group) throw new NotFoundException("Anotatacao não encontrada");
-
-        const existingGroup = await this.groupModel.findById(groupId);
-        if (!existingGroup) throw new ConflictException("Essa anotacao não existe");
-
-        const existingMember = existingGroup.members.some(
-            member => member.userId.toString() === memberId
-        );
-        if (!existingMember) throw new ConflictException("Membro nao existe nessa anotação");
-
-        const updatedMembers = group.members?.filter(
-            member => member.userId.toString() !== memberId
-        );
-
-
-        const notification: CreateNotificationDto = {
-            title: "Removido do grupo",
-            message: `Você foi removido do grupo ${existingGroup.name}.`,
-            type: "GROUP",
-            status: false,
-            itemId: existingGroup._id.toString(),
-            userId: [memberId]
-
-        }
-
-        this.notificationService.create(notification)
-        // Envia notificação
-        this.notificationsGateway.sendAddMemberNotification(notification);
-
-        return await this.groupModel.findByIdAndUpdate(
-            groupId,
-            { members: updatedMembers },
-            { new: true }
-        ).exec();
-    }
-
-    // Exclusão definitiva do grupo
-    async delete(groupId: string) {
-        const group = await this.groupModel.findById(groupId).exec();
-        if (!group) throw new NotFoundException("Grupo não encontrada");
-
-        await this.groupModel.findByIdAndDelete(groupId).exec();
-
-        const notification: CreateNotificationDto = {
-            title: "Grupo deletado",
-            message: `O grupo ${group.name} que você estava foi excluido.`,
+            title: "Novo grupo",
+            message: `Você foi adicionado ao grupo ${group.name}.`,
             type: "GROUP",
             status: false,
             itemId: group._id.toString(),
-            userId: group.members.map(member => member.userId)
+            userId: members.map((m) => m.userId),
+        };
 
-        }
+        await this.sendNotification(notification);
 
-        this.notificationService.create(notification)
-        // Envia notificação
-        this.notificationsGateway.sendAddMemberNotification(notification);
+        return this.groupModel.findByIdAndUpdate(
+            groupId,
+            { members: updatedMembers },
+            { new: true }
+        );
+    }
 
-        return { message: "Grupo excluída com sucesso" };
+    async updatePermissonMember(groupId: string, memberId: string, accessType: string) {
+        const group = await this.groupModel.findById(groupId);
+        if (!group) throw new NotFoundException("Grupo não encontrado.");
+
+        const exists = group.members.some((m) => m.userId.toString() === memberId);
+        if (!exists) throw new ConflictException("Membro não encontrado no grupo.");
+
+        const updatedMembers = group.members.map((m) =>
+            m.userId.toString() === memberId ? { ...m, accessType } : m
+        );
+
+        const notification: CreateNotificationDto = {
+            title: "Permissão alterada",
+            message: `Sua permissão foi atualizada para ${accessType} no grupo ${group.name}.`,
+            type: "GROUP",
+            status: false,
+            itemId: group._id.toString(),
+            userId: [memberId],
+        };
+
+        await this.sendNotification(notification);
+
+        return this.groupModel.findByIdAndUpdate(
+            groupId,
+            { members: updatedMembers },
+            { new: true }
+        );
+    }
+
+    async deleteMember(groupId: string, memberId: string) {
+        const group = await this.groupModel.findById(groupId);
+        if (!group) throw new NotFoundException("Grupo não encontrado.");
+
+        const exists = group.members.some((m) => m.userId.toString() === memberId);
+        if (!exists) throw new ConflictException("Membro não encontrado no grupo.");
+
+        const updatedMembers = group.members.filter(
+            (m) => m.userId.toString() !== memberId
+        );
+
+        const notification: CreateNotificationDto = {
+            title: "Removido do grupo",
+            message: `Você foi removido do grupo ${group.name}.`,
+            type: "GROUP",
+            status: false,
+            itemId: group._id.toString(),
+            userId: [memberId],
+        };
+
+        await this.sendNotification(notification);
+
+        return this.groupModel.findByIdAndUpdate(
+            groupId,
+            { members: updatedMembers },
+            { new: true }
+        );
+    }
+
+    async delete(groupId: string) {
+        const group = await this.groupModel.findById(groupId);
+        if (!group) throw new NotFoundException("Grupo não encontrado.");
+
+        await this.groupModel.findByIdAndDelete(groupId);
+
+        const notification: CreateNotificationDto = {
+            title: "Grupo deletado",
+            message: `O grupo ${group.name} foi excluído.`,
+            type: "GROUP",
+            status: false,
+            itemId: group._id.toString(),
+            userId: group.members.map((m) => m.userId),
+        };
+
+        await this.sendNotification(notification);
+
+        return { message: "Grupo excluído com sucesso." };
     }
 }

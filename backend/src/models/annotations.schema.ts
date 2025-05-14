@@ -48,14 +48,18 @@ export class Annotation {
     members: {
         userId: string;
         name: string;
-        accessType: "ADMIN" | "EDIT" | "DELETE" | "VIEWER";
+        accessType: string;
     }[];
 
     @Prop({ type: Array, ref: 'Group', required: false })
     groupId?: [];
 
-    @Prop({ type: Array, ref: 'Attachent', required: false })
-    attachments?: [];
+    @Prop({ type: [{ url: String, title: String, type: String }] }) // <- AQUI!
+    attachments?: {
+        url: string
+        title: string
+        type: string
+    }[]
 }
 
 export const AnnotationSchema = SchemaFactory.createForClass(Annotation);

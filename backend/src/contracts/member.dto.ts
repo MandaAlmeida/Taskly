@@ -21,5 +21,5 @@ export class MemberDTO {
         description: "Define o que o usuario tem permissao para fazer",
         example: "EDIT"
     })
-    accessType: "ADMIN" | "EDIT" | "DELETE" | "VIEWER";
+    accessType: string;
 }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { EnvService } from '../src/env/env.service';
 import { UploadModule } from '../src/modules/upload.module';
 import { ConfigService } from '@nestjs/config';
@@ -52,21 +52,16 @@ describe('UploadController (e2e)', () => {
         expect(res.body.url).toContain(uploadedFileName); // Verifica se inclui o nome do arquivo
     });
 
-
-    it('Deve fazer download do arquivo', async () => {
+    it('Deve retornar a URL de download do arquivo', async () => {
         const res = await request(app.getHttpServer()).get(`/uploads/download/${uploadedFileName}`);
 
-
         expect(res.status).toBe(200);
-
-        // Verifica se o content-type está presente e válido
-        expect(res.header['content-type']).toBeDefined();
-        expect(res.header['content-type']).toMatch(/application\/pdf|octet-stream|binary/);
-
-        // Verifica que o corpo contém dados
-        expect(res.body).toBeDefined();
-        expect(res.body.length).toBeGreaterThan(0); // assumindo que o conteúdo é um buffer
+        expect(res.body).toHaveProperty('url');
+        expect(typeof res.body.url).toBe('string');
+        expect(res.body.url).toContain(uploadedFileName);
     });
+
+
 
 
     it('Deve deletar o arquivo', async () => {

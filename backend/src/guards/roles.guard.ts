@@ -7,7 +7,7 @@ import {
     forwardRef,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AnnotationService } from '../services/annotation.service';
+import { AnnotationsService } from '../services/annotation.service';
 import { ROLES_KEY } from '@/decorator/roles.decorator';
 import { GroupService } from '@/services/group.service';
 
@@ -15,8 +15,8 @@ import { GroupService } from '@/services/group.service';
 export class RoleGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,
-        @Inject(forwardRef(() => AnnotationService))
-        private readonly annotationService: AnnotationService,
+        @Inject(forwardRef(() => AnnotationsService))
+        private readonly AnnotationsService: AnnotationsService,
         private readonly groupService: GroupService,
     ) { }
 
@@ -54,7 +54,7 @@ export class RoleGuard implements CanActivate {
     }
 
     private async checkAnnotationPermission(annotationId: string, userId: string, requiredRoles: string[]) {
-        const annotation = await this.annotationService.fetchById(annotationId);
+        const annotation = await this.AnnotationsService.fetchById(annotationId);
         if (!annotation) throw new ForbiddenException('Anotação não encontrada');
 
         const isOwner = annotation.createdUserId.toString() === userId;

@@ -20,7 +20,7 @@ export function Header({ text }: Props) {
         data,
         setModalState,
         modalState,
-        removeGroup
+        setData
     } = useTask();
 
     const { navigate } = useNavigation();
@@ -59,6 +59,7 @@ export function Header({ text }: Props) {
                 items={data.categories.filter(category => category.category !== "Todas")}
                 onClose={() => setModalState({ name: null })}
                 onAddNewItem={() => setModalState({ name: "isCategoryOpen" })}
+                onSelect={item => setData(prevData => ({ ...prevData, selectedCategory: item }))}
                 showDefaultItem={false} // Mostra o item "Todas" apenas se necessário
             />
 
@@ -79,6 +80,7 @@ export function Header({ text }: Props) {
                 items={data.groups}
                 onClose={() => setModalState({ name: null })}
                 onAddNewItem={() => setModalState({ name: "isGroupOpen" })}
+                onSelect={item => setData(prevData => ({ ...prevData, selectedGroup: item }))}
                 showDefaultItem={false} // Se quiser exibir algo específico para o grupo, passe `true`
             />
 

@@ -9,7 +9,7 @@ import { SubCategoryModule } from './subCategories.module';
 import { UploadModule } from './upload.module';
 import { GroupModule } from './group.module';
 import { AnnotationModule } from './annotation.module';
-import { AnnotationService } from '@/services/annotation.service';
+import { AnnotationsService } from '@/services/annotation.service';
 import { NotificationModule } from './notifications.module';
 
 @Module({
@@ -26,7 +26,7 @@ import { NotificationModule } from './notifications.module';
     controllers: [UserController],
     providers: [
         UserService,
-        AnnotationService
+        AnnotationsService
     ]
 })
 export class UserModule { }

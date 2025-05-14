@@ -1,7 +1,7 @@
 
 import { CategoriesController } from '@/controllers/categories.controller';
 import { Categories, CategoriesSchema } from '@/models/category.schema';
-import { CategorysService } from '@/services/category.service';
+import { CategoriesService } from '@/services/category.service';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -10,7 +10,7 @@ import { MongooseModule } from '@nestjs/mongoose';
         MongooseModule.forFeature([{ name: Categories.name, schema: CategoriesSchema }]),
     ],
     controllers: [CategoriesController],
-    providers: [CategorysService],
+    providers: [CategoriesService],
     exports: [MongooseModule]
 })
 

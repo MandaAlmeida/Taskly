@@ -12,7 +12,7 @@ import { TokenPayloadSchema } from "@/auth/jwt.strategy"; // Tipo para dados do 
 import { UploadService } from "./upload.service"; // Serviço para upload de arquivos
 import { Group, GroupDocument } from "@/models/groups.schema"; // Modelo de grupos
 import { Annotation, AnnotationDocument } from "@/models/annotations.schema"; // Modelo de anotações
-import { AnnotationService } from "./annotation.service"; // Modelo de anotações
+import { AnnotationsService } from "./annotation.service"; // Modelo de anotações
 
 
 // Decorador para tornar a classe injetável no NestJS
@@ -27,7 +27,7 @@ export class UserService {
         @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
         @InjectModel(Annotation.name) private annotationModel: Model<AnnotationDocument>,
 
-        private AnnotationService: AnnotationService,
+        private AnnotationsService: AnnotationsService,
 
         // Injeção do serviço de upload
         private UploadService: UploadService,
@@ -43,7 +43,7 @@ export class UserService {
      * Cria um novo usuário.
      * Realiza validação de senha, verificação de e-mail existente e criação de categorias padrão.
      */
-    async create(user: CreateUserDTO, file: Express.Multer.File) {
+    async create(user: CreateUserDTO, file?: Express.Multer.File) {
         const { userName, name, email, birth, password, passwordConfirmation } = user;
 
         // Validação de confirmação de senha
@@ -183,7 +183,7 @@ export class UserService {
     /**
      * Atualiza as informações do usuário.
      */
-    async update(updateData: UpdateUserDTO, user: TokenPayloadSchema, file: Express.Multer.File) {
+    async update(updateData: UpdateUserDTO, user: TokenPayloadSchema, file?: Express.Multer.File) {
         const { name, email, password, passwordConfirmation } = updateData;
         const userId = user.sub;
 
@@ -236,11 +236,11 @@ export class UserService {
         await this.categoriesModel.deleteMany({ userId }).exec();
         await this.groupModel.deleteMany({ userId }).exec();
 
-        const annotations = await this.AnnotationService.fetchByUser(user, 1)
+        const annotations = await this.AnnotationsService.fetchByUser(user, 1)
 
         if (annotations) {
             annotations.map(annotation =>
-                this.AnnotationService.deleteAnnotation(annotation._id.toString())
+                this.AnnotationsService.deleteAnnotation(annotation._id.toString())
             )
         }
 

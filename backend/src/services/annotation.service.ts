@@ -13,7 +13,7 @@ import { GroupService } from "./group.service";
 import { NotificationsService } from "./notifications.service";
 
 @Injectable()
-export class AnnotationService {
+export class AnnotationsService {
     constructor(
         @InjectModel(Annotation.name) private annotationModel: Model<AnnotationDocument>,
         private uploadService: UploadService,
@@ -24,52 +24,29 @@ export class AnnotationService {
 
     async create(annotation: CreateAnnotationDTO, user: TokenPayloadSchema, files?: Express.Multer.File[], attachments?: Express.Multer.File[]) {
         const { title, content, category, members } = annotation;
+        const userId = user.sub;
 
-        const userId = user.sub
-        const existingAnnotation = await this.annotationModel.findOne({ title, category, createdUserId: userId });
-
+        const existingAnnotation = await this.checkExistingAnnotation(title, category, userId);
         if (existingAnnotation) {
             throw new ConflictException("Essa anotacao já existe");
         }
 
         if (members) {
-            const userIds = members.map(member => member.userId.toString());
-
-            const uniqueUserIds = new Set(userIds);
-
-            if (uniqueUserIds.size !== userIds.length) {
-                throw new ConflictException("Não é permitido membros duplicados.");
-            }
+            this.validateMembers(members);
         }
 
         let uploadedFileUrls: AttachmentDTO[] = [];
         let uploadedAttachmentsUrls: AttachmentDTO[] = [];
 
-        // Upload de novos arquivos (imagens ou documentos)
         if (files && files.length > 0) {
-            for (const file of files) {
-                const result = await this.uploadService.upload(file);
-                uploadedFileUrls.push(result);
-            }
+            uploadedFileUrls = await this.uploadFiles(files);
         }
 
         if (attachments && attachments.length > 0) {
-            for (const attachment of attachments) {
-                const result = await this.uploadService.upload(attachment);
-                uploadedAttachmentsUrls.push(result);
-            }
+            uploadedAttachmentsUrls = await this.uploadFiles(attachments);
         }
 
-        if (content && uploadedFileUrls.length > 0) {
-            let imageIndex = 0;
-
-            content.forEach((block) => {
-                if (block.type === 'image' && imageIndex < uploadedFileUrls.length) {
-                    block.value = uploadedFileUrls[imageIndex];
-                    imageIndex++;
-                }
-            });
-        }
+        await this.processContent(content, uploadedFileUrls);
 
         const annotationToCreate = {
             title,
@@ -80,11 +57,7 @@ export class AnnotationService {
             attachments: uploadedAttachmentsUrls
         };
 
-        const createdAnnotation = new this.annotationModel(annotationToCreate);
-        await createdAnnotation.save();
-
-
-        return annotationToCreate;
+        return await this.annotationModel.create(annotationToCreate);
     }
 
     async createByGroup(annotation: CreateAnnotationDTO, groupId: string, user: TokenPayloadSchema, files?: Express.Multer.File[], attachments?: Express.Multer.File[]) {
@@ -231,11 +204,9 @@ export class AnnotationService {
         const userId = user.sub;
 
         const existingAnnotation = await this.annotationModel.findById(annotationId);
-
         if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
 
         const existingAnnotationName = await this.annotationModel.findOne({ title, category, createdUserId: userId });
-
 
         if (existingAnnotation._id.toString() !== existingAnnotationName?._id.toString()) throw new ConflictException("Já existe uma anotação com esse nome nessa categoria");
 
@@ -244,68 +215,31 @@ export class AnnotationService {
         if (title) annotationToUpdate.title = title;
         if (category) annotationToUpdate.category = category;
 
-        // Processar arquivos (imagens e anexos)
         if (files || attachments) {
             let uploadedFileUrls: AttachmentDTO[] = [];
             let uploadedAttachmentsUrls: AttachmentDTO[] = [];
 
-            // Upload de novos arquivos (imagens ou documentos)
             if (files && files.length > 0) {
-                for (const file of files) {
-                    const result = await this.uploadService.upload(file);
-                    uploadedFileUrls.push(result);
-                }
+                uploadedFileUrls = await this.uploadFiles(files);
             }
 
             if (attachments && attachments.length > 0) {
-                for (const attachment of attachments) {
-                    const result = await this.uploadService.upload(attachment);
-                    uploadedAttachmentsUrls.push(result);
-                }
+                uploadedAttachmentsUrls = await this.uploadFiles(attachments);
             }
 
-            // Se houver novos arquivos, atualize os arquivos anexos
             if (existingAnnotation.attachments && attachments && uploadedAttachmentsUrls.length > 0) {
                 annotationToUpdate.attachments = [...existingAnnotation.attachments, ...uploadedAttachmentsUrls];
             }
 
             if (files && content && uploadedFileUrls.length > 0) {
-                let imageIndex = 0;
-
-                // Substitui valores das imagens existentes mantendo o _id e a posição
-                for (let i = 0; i < content.length; i++) {
-                    const block = content[i];
-
-                    if (block.type === 'image') {
-                        const hasInvalidValue = !block.value || typeof block.value !== 'object' || !block.value.url;
-
-                        if (imageIndex < uploadedFileUrls.length && (hasInvalidValue)) {
-                            block.value = uploadedFileUrls[imageIndex];
-                            imageIndex++;
-                        }
-                    }
-                }
-
-                // Adiciona novas imagens ao final, se houver imagens restantes
-                while (imageIndex < uploadedFileUrls.length) {
-                    content.push({
-                        type: 'image',
-                        value: uploadedFileUrls[imageIndex],
-                    });
-                    imageIndex++;
-                }
+                await this.processContent(content, uploadedFileUrls);
             }
-
         }
 
-        // Atualizar o campo 'content' com o novo conteúdo após as imagens terem sido processadas
         if (content && content.length > 0) {
-            annotationToUpdate.content = content;  // Atualizando o campo content com o novo conteúdo
+            annotationToUpdate.content = content;
         }
 
-
-
-        // Atualizar a anotação no banco de dados
         const updatedAnnotation = await this.annotationModel.findByIdAndUpdate(
             annotationId,
             annotationToUpdate,
@@ -640,7 +574,7 @@ export class AnnotationService {
         });
 
         annotation.attachments?.filter(attachment => {
-            this.uploadService.delete(attachment)
+            this.uploadService.delete(attachment.url)
         });
 
         await this.annotationModel.findByIdAndDelete(annotationId).exec();
@@ -678,6 +612,41 @@ export class AnnotationService {
         this.uploadService.delete(attachmentName)
         await this.annotationModel.findByIdAndUpdate(annotationId, { attachments: newAttachment }, { new: true })
 
+    }
+
+    // ---------- MÉTODOS PRIVADOS ----------
+
+    private async checkExistingAnnotation(title: string, category: string, userId: string, groupId?: string) {
+        return await this.annotationModel.findOne({ title, category, createdUserId: userId, groupId });
+    }
+
+    private validateMembers(members: MemberDTO[]) {
+        const userIds = members.map(member => member.userId.toString());
+        const uniqueUserIds = new Set(userIds);
+        if (uniqueUserIds.size !== userIds.length) {
+            throw new ConflictException("Não é permitido membros duplicados.");
+        }
+    }
+
+    private async uploadFiles(files: Express.Multer.File[]) {
+        const uploadedFileUrls: AttachmentDTO[] = [];
+        for (const file of files) {
+            const result = await this.uploadService.upload(file);
+            uploadedFileUrls.push(result);
+        }
+        return uploadedFileUrls;
+    }
+
+    private async processContent(content: any[], uploadedFileUrls: AttachmentDTO[]) {
+        if (content && uploadedFileUrls.length > 0) {
+            let imageIndex = 0;
+            content.forEach((block) => {
+                if (block.type === 'image' && imageIndex < uploadedFileUrls.length) {
+                    block.value = uploadedFileUrls[imageIndex];
+                    imageIndex++;
+                }
+            });
+        }
     }
 
 }
