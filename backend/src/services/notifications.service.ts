@@ -17,11 +17,13 @@ export class NotificationsService {
         @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
     ) { }
 
+    // Cria a notificacao 
     async create(notification: CreateNotificationDto): Promise<Notification> {
         const newNotification = new this.notificationModel(notification);
         return await newNotification.save();
     }
 
+    // Busca as notificacoes no banco pelo usuario e devolve dividido por pagina
     async fetch(user: TokenPayloadSchema, page: number) {
         const userId = user.sub;
         const limit = 10;
@@ -37,12 +39,14 @@ export class NotificationsService {
         return notification;
     }
 
+    // atualiza status das notificacoes todas
     async updateStatusViewAll(user: TokenPayloadSchema) {
         const userId = user.sub;
         const notification = await this.notificationModel.updateMany({ userId }, { $set: { status: true } }).exec();
         return notification;
     }
 
+    // de apenas uma notificacao, caso o usuario queira colocar ela como nao vista
     async updateStatusView(user: TokenPayloadSchema, notificationId: string, status: boolean) {
         const userId = user.sub;
         const existNotification = await this.notificationModel.findById(notificationId);
@@ -54,6 +58,7 @@ export class NotificationsService {
         return notification;
     }
 
+    // exclui a notificacao, verifica se ela existe
     async delete(user: TokenPayloadSchema, notificationId: string) {
         const userId = user.sub;
         const existNotification = await this.notificationModel.findById(notificationId);
@@ -73,6 +78,7 @@ export class NotificationsService {
         });
     }
 
+    // notificacao push
     // Agendar a verificação das tarefas que vencerão em breve
     @Cron("0 * * * * *") // Verificar tarefas vencidas a cada minuto
     async checkTaskDueNotifications() {

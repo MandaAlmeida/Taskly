@@ -17,6 +17,7 @@ export class CategoriesService {
         private readonly categoryModel: Model<CategoriesDocument>
     ) { }
 
+    // Verifica se a categoria existe, e cria a categoria
     async create(
         createCategory: CreateCategoryDTO,
         user: TokenPayloadSchema
@@ -43,11 +44,13 @@ export class CategoriesService {
         return newCategory;
     }
 
+    // busca as categorias pelo usuario, nao devolve erro caso nao achar nenhuma
     async fetch(user: TokenPayloadSchema): Promise<Categories[]> {
         const userId = user.sub;
         return await this.categoryModel.find({ userId });
     }
 
+    // busca uma categoria pelo id, verifica se ela existe
     async fetchById(categoryId: string): Promise<Categories> {
         const category = await this.categoryModel.findById(categoryId);
 
@@ -58,6 +61,7 @@ export class CategoriesService {
         return category;
     }
 
+    // atualiza a categoria, verifica se ela existe, se o usuario tem permissao, verifica se existe outra com esse nome, devolve erro caso falhar 
     async update(
         categoryId: string,
         updateCategory: CreateCategoryDTO,
@@ -102,6 +106,7 @@ export class CategoriesService {
         return updated;
     }
 
+    // deleta a categoria, verifica se ela existe, verifica se ela e diferente de "todas", se o usuario tem permissao para excluir 
     async delete(categoryId: string, user: TokenPayloadSchema): Promise<{ message: string }> {
         const userId = user.sub;
         const category = await this.categoryModel.findById(categoryId);

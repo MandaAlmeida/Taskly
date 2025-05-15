@@ -23,23 +23,13 @@ export class TaskController {
     }
 
     @Get("fetch")
-    async fetchByPage(@CurrentUser() user: TokenPayloadSchema): Promise<CreateTaskDTO[]> {
-        return this.TaskService.fetch(user);
+    async fetch(@CurrentUser() user: TokenPayloadSchema, @Query("q") query?: string, @Query("p") page?: number): Promise<CreateTaskDTO[]> {
+        return this.TaskService.fetchTasks(user, { query, page });
     }
 
     @Get("fetchById/:taskId")
     async fetchById(@Param("taskId") taskId: string) {
         return this.TaskService.fetchById(taskId);
-    }
-
-    @Get("fetchByPage")
-    async fetch(@CurrentUser() user: TokenPayloadSchema, @Query("p") page: number): Promise<CreateTaskDTO[]> {
-        return this.TaskService.fetchByPage(user, page);
-    }
-
-    @Get("search")
-    async fetchByFilter(@Query("q") query: string, @CurrentUser() user: TokenPayloadSchema): Promise<CreateTaskDTO[]> {
-        return this.TaskService.fetchBySearch(query, user);
     }
 
     @Put("update/:id")
@@ -58,8 +48,8 @@ export class TaskController {
     }
 
     @Delete("delete/:id")
-    async delete(@Param('id') taskId: string, @CurrentUser() user: TokenPayloadSchema) {
-        return this.TaskService.delete(taskId, user);
+    async delete(@Param('id') taskId: string) {
+        return this.TaskService.delete(taskId);
     }
 
 }

@@ -46,16 +46,12 @@ export class UserService {
     async create(user: CreateUserDTO, file?: Express.Multer.File) {
         const { userName, name, email, birth, password, passwordConfirmation } = user;
 
-        // Validação de confirmação de senha
-        if (passwordConfirmation !== password) {
-            throw new BadRequestException("As senhas precisam ser iguais");
-        }
 
         // Verifica se o email já está em uso
-        const existingEmail = await this.userModel.findOne({ email });
-        if (existingEmail) {
-            throw new ConflictException('Este email já está em uso');
-        }
+        await this.checkEmailExist(email)
+
+        // Verifica se as senhas são iguais
+        await this.checkpassword(password, passwordConfirmation)
 
         const existingUserName = await this.userModel.findOne({ userName });
         if (existingUserName) {
@@ -137,7 +133,7 @@ export class UserService {
     }
 
     /**
-     * Recupera os dados do usuário a partir do token JWT.
+     * Recupera os dados do usuário a partir do token JWT, tentar criar apenas um fetch, atualmente existe 3
      */
     async fetchByToken(user: TokenPayloadSchema) {
         const userId = user.sub;
@@ -181,22 +177,20 @@ export class UserService {
     }
 
     /**
-     * Atualiza as informações do usuário.
+     * Atualiza as informações do usuário, verifica se o usuario existe, se o email existe, verifica se as senhas sao iguais e atualiza a foto de perfil
      */
     async update(updateData: UpdateUserDTO, user: TokenPayloadSchema, file?: Express.Multer.File) {
         const { name, email, password, passwordConfirmation } = updateData;
         const userId = user.sub;
 
         // Verifica se o usuário existe
-        const existingUser = await this.userModel.findById(userId);
-        if (!existingUser) throw new NotFoundException("Usuário não encontrado");
+        const existingUser = await this.checkUserExist(userId)
 
         // Verifica se o email já está em uso
-        const existingEmail = await this.userModel.findOne({ email });
-        if (existingEmail?._id.toString() !== existingUser._id.toString()) throw new ConflictException('Este usuário já existe');
+        await this.checkEmailExist(email, existingUser._id.toString())
 
         // Verifica se as senhas são iguais
-        if (password !== passwordConfirmation) throw new BadRequestException("As senhas precisam ser iguais");
+        await this.checkpassword(password, passwordConfirmation)
 
         // Prepara os dados para atualizar o usuário
         const userToUpdate: any = {};
@@ -221,7 +215,7 @@ export class UserService {
     }
 
     /**
-     * Exclui um usuário e todos os dados associados.
+     * Exclui um usuário e todos os dados associados. Verifica se o usuario existe, exclui os itens do usuario das outras tabelas(o que pode ser simplificado caso for um banco sql), verifica se o grupo existe, se a anotacao existe
      */
     async delete(user: TokenPayloadSchema) {
         const userId = user.sub;
@@ -236,7 +230,7 @@ export class UserService {
         await this.categoriesModel.deleteMany({ userId }).exec();
         await this.groupModel.deleteMany({ userId }).exec();
 
-        const annotations = await this.AnnotationsService.fetchByUser(user, 1)
+        const annotations = await this.AnnotationsService.fetchBySearchAndUser(user, 1)
 
         if (annotations) {
             annotations.map(annotation =>
@@ -264,5 +258,23 @@ export class UserService {
         await this.userModel.findByIdAndDelete(userId).exec();
 
         return { message: "Usuário removido com sucesso" };
+    }
+
+    private async checkpassword(password: string, passwordConfirmation: string) {
+        if (password !== passwordConfirmation) throw new BadRequestException("As senhas precisam ser iguais");
+    }
+
+    private async checkEmailExist(email: string, id?: string) {
+        const existingEmail = await this.userModel.findOne({ email });
+
+        if (existingEmail && (!id || existingEmail._id.toString() !== id)) {
+            throw new ConflictException('Este e-mail já está em uso por outro usuário');
+        }
+    }
+
+    private async checkUserExist(userId: string) {
+        const existingUser = await this.userModel.findById(userId);
+        if (!existingUser) throw new NotFoundException("Usuário não encontrado");
+        return existingUser
     }
 }

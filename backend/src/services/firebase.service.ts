@@ -11,6 +11,7 @@ export class FirebaseService {
         }
     }
 
+    // envia a notificacao push, precisa testar na pratica no front
     async sendPushNotification(token: string, payload: any) {
         try {
             await admin.messaging().send({

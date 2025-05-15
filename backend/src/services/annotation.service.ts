@@ -22,29 +22,26 @@ export class AnnotationsService {
         private notificationsGateway: NotificationsGateway
     ) { }
 
+    // Verifica se a anotação existe, se membro é valido e fa upload de arquivo
     async create(annotation: CreateAnnotationDTO, user: TokenPayloadSchema, files?: Express.Multer.File[], attachments?: Express.Multer.File[]) {
         const { title, content, category, members } = annotation;
         const userId = user.sub;
 
         const existingAnnotation = await this.checkExistingAnnotation(title, category, userId);
-        if (existingAnnotation) {
-            throw new ConflictException("Essa anotacao já existe");
-        }
 
-        if (members) {
-            this.validateMembers(members);
-        }
+        if (existingAnnotation) throw new ConflictException("Essa anotacao já existe");
+
+        if (members) this.validateMembers(members);
+
 
         let uploadedFileUrls: AttachmentDTO[] = [];
         let uploadedAttachmentsUrls: AttachmentDTO[] = [];
 
-        if (files && files.length > 0) {
-            uploadedFileUrls = await this.uploadFiles(files);
-        }
+        if (files && files.length > 0) uploadedFileUrls = await this.uploadFiles(files);
 
-        if (attachments && attachments.length > 0) {
-            uploadedAttachmentsUrls = await this.uploadFiles(attachments);
-        }
+
+        if (attachments && attachments.length > 0) uploadedAttachmentsUrls = await this.uploadFiles(attachments);
+
 
         await this.processContent(content, uploadedFileUrls);
 
@@ -60,56 +57,30 @@ export class AnnotationsService {
         return await this.annotationModel.create(annotationToCreate);
     }
 
+    // Verifica se a anotação existe, se membro é valido e fa upload de arquivo, adiciona grupo
     async createByGroup(annotation: CreateAnnotationDTO, groupId: string, user: TokenPayloadSchema, files?: Express.Multer.File[], attachments?: Express.Multer.File[]) {
         const { title, content, category, members } = annotation;
 
         const userId = user.sub
-        const existingAnnotation = await this.annotationModel.findOne({ title, category, createdUserId: userId, groupId });
+        const existingAnnotation = await this.checkExistingAnnotation(title, category, userId);
 
-        if (existingAnnotation) {
-            throw new ConflictException("Essa anotacao já existe");
-        }
+        if (existingAnnotation) throw new ConflictException("Essa anotacao já existe");
 
-        if (members) {
-            const userIds = members.map(member => member.userId.toString());
 
-            const uniqueUserIds = new Set(userIds);
-
-            if (uniqueUserIds.size !== userIds.length) {
-                throw new ConflictException("Não é permitido membros duplicados.");
-            }
-        }
+        if (members) this.validateMembers(members)
 
         let uploadedFileUrls: AttachmentDTO[] = [];
         let uploadedAttachmentsUrls: AttachmentDTO[] = [];
 
         // Upload de novos arquivos (imagens ou documentos)
-        if (files && files.length > 0) {
-            for (const file of files) {
-                const result = await this.uploadService.upload(file);
-                uploadedFileUrls.push(result);
-            }
-        }
+        if (files && files.length > 0) uploadedFileUrls = await this.uploadFiles(files);
 
-        if (attachments && attachments.length > 0) {
-            for (const attachment of attachments) {
-                const result = await this.uploadService.upload(attachment);
-                uploadedAttachmentsUrls.push(result);
-            }
-        }
+
+        if (attachments && attachments.length > 0) uploadedAttachmentsUrls = await this.uploadFiles(attachments);
 
 
 
-        if (content && uploadedFileUrls.length > 0) {
-            let imageIndex = 0;
-
-            content.forEach((block) => {
-                if (block.type === 'image' && imageIndex < uploadedFileUrls.length) {
-                    block.value = uploadedFileUrls[imageIndex];
-                    imageIndex++;
-                }
-            });
-        }
+        await this.processContent(content, uploadedFileUrls);
 
         const annotationToCreate = {
             title,
@@ -117,7 +88,8 @@ export class AnnotationsService {
             category,
             members,
             createdUserId: userId,
-            attachments: uploadedAttachmentsUrls
+            attachments: uploadedAttachmentsUrls,
+            groupId,
         };
 
         const createdAnnotation = new this.annotationModel(annotationToCreate);
@@ -126,89 +98,80 @@ export class AnnotationsService {
         return annotationToCreate;
     }
 
-    async fetchByUser(user: TokenPayloadSchema, page: number) {
-        const userId = user.sub
-
-        const limit = 10;
-        const skip = (page - 1) * limit;
-        const Annotations = await this.annotationModel.find({ createdUserId: userId }).sort({ date: 1 }).skip(skip).limit(limit).exec();
-
-        return Annotations
-    }
-
-    async fetchByGroup(user: TokenPayloadSchema) {
-        const userId = user.sub
-
-        const filter = {
-            $or: [
-                { createdUserId: userId },
-                { 'members.userId': userId }
-            ]
-        };
-
-        const Annotations = await this.annotationModel.find(filter).sort({ date: 1 }).exec();
-
-        return Annotations
-    }
-
+    // Busca anotacao pelo id
     async fetchById(annotationId: string) {
-        return await this.annotationModel.findById(annotationId).exec();
+        const annotation = await this.annotationModel.findById(annotationId).exec();
+        if (!annotation) throw new ConflictException("Anotação não encontrada")
+        return annotation
     }
 
-    async fetchByPage(user: TokenPayloadSchema, page: number) {
-        const userId = user.sub
+    //faz filtro por pesquisa, estudar se pode ser so uma de busca, e essa implementar na outra
+    async fetchBySearchAndUser(user: TokenPayloadSchema, page: number, query?: string) {
+        const userId = user.sub;
+        const limit = 10;
+        const skip = (page - 1) * limit;
 
-        const filter = {
+        const filters: any = {
             $or: [
                 { createdUserId: userId },
                 { 'members.userId': userId }
             ]
         };
-        const limit = 10;
-        const skip = (page - 1) * limit;
-        return await this.annotationModel.find(filter).sort({ createdAt: 1 }).skip(skip).limit(limit).exec();
-    }
 
-    async fetchBySearch(query: string, user: TokenPayloadSchema) {
-        const userId = user.sub
-        const regex = new RegExp(query, 'i');
-        const isDate = !isNaN(Date.parse(query));
-        const filters: any[] = [
-            { title: { $regex: regex } },
-            { category: { $regex: regex } },
-        ];
+        // Só adiciona filtros de busca se query existir
+        if (query && query.trim() !== "") {
+            const regex = new RegExp(query, 'i');
+            const isDate = !isNaN(Date.parse(query));
 
-        if (isDate) {
-            const searchDate = new Date(query);
-            const nextDay = new Date(searchDate);
-            nextDay.setDate(searchDate.getDate() + 1);
+            filters.$or.push({ title: { $regex: regex } });
+            filters.$or.push({ category: { $regex: regex } });
 
-            filters.push({
-                date: {
-                    $gte: searchDate.toISOString(),
-                    $lt: nextDay.toISOString(),
-                },
-            });
+            if (isDate) {
+                const searchDate = new Date(query);
+                const nextDay = new Date(searchDate);
+                nextDay.setDate(searchDate.getDate() + 1);
+
+                filters.$or.push({
+                    date: {
+                        $gte: searchDate.toISOString(),
+                        $lt: nextDay.toISOString(),
+                    }
+                });
+            }
         }
 
-        const annotations = await this.annotationModel.find({
-            createdUserId: userId,
-            $or: filters,
-        });
+        const Annotations = await this.annotationModel
+            .find(filters)
+            .sort({ createdAt: 1 })
+            .skip(skip)
+            .limit(limit)
+            .exec();
 
-        return annotations;
+        return Annotations;
     }
 
+
+    // Verifica se a anotação existe, se membro é valido e fa upload de arquivo, mesmo que faz no do update grupo
     async update(annotationId: string, annotation: UpdateAnnotationDTO, user: TokenPayloadSchema, files?: Express.Multer.File[], attachments?: Express.Multer.File[]) {
         const { title, content, category } = annotation;
         const userId = user.sub;
 
-        const existingAnnotation = await this.annotationModel.findById(annotationId);
+        const existingAnnotation = await this.checkExistingAnnotationById(annotationId);
         if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
 
-        const existingAnnotationName = await this.annotationModel.findOne({ title, category, createdUserId: userId });
+        let existingAnnotationName;
 
-        if (existingAnnotation._id.toString() !== existingAnnotationName?._id.toString()) throw new ConflictException("Já existe uma anotação com esse nome nessa categoria");
+        if (title && category) {
+            existingAnnotationName = await this.checkExistingAnnotation(title, category, userId);
+
+            if (
+                existingAnnotationName &&
+                existingAnnotation._id.toString() !== existingAnnotationName._id.toString()
+            ) {
+                throw new ConflictException("Já existe uma anotação com esse nome nessa categoria");
+            }
+        }
+
 
         const annotationToUpdate: UpdateAnnotationDTO = {};
 
@@ -249,17 +212,27 @@ export class AnnotationsService {
         return updatedAnnotation;
     }
 
+    // Verifica se a anotação existe, se membro é valido e fa upload de arquivo, mesmo que faz no do update grupo
     async updateByGroup(annotationId: string, groupId: string, annotation: UpdateAnnotationDTO, user: TokenPayloadSchema, files?: Express.Multer.File[], attachments?: Express.Multer.File[]) {
         const { title, content, category } = annotation;
         const userId = user.sub
 
-        const existingAnnotation = await this.annotationModel.findById(annotationId);
 
-        if (!existingAnnotation) throw new ConflictException("Essa anotacao não existe");
+        const existingAnnotation = await this.checkExistingAnnotationById(annotationId);
+        if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
 
-        const existingAnnotationName = await this.annotationModel.findOne({ title, category, createdUserId: userId, groupId });
+        let existingAnnotationName;
 
-        if (existingAnnotationName) throw new ConflictException("Ja existe uma anotacao com esse nome");
+        if (title && category) {
+            existingAnnotationName = await this.checkExistingAnnotation(title, category, userId);
+
+            if (
+                existingAnnotationName &&
+                existingAnnotation._id.toString() !== existingAnnotationName._id.toString()
+            ) {
+                throw new ConflictException("Já existe uma anotação com esse nome nessa categoria");
+            }
+        }
 
         const annotationToUpdate: any = {};
 
@@ -270,37 +243,20 @@ export class AnnotationsService {
             let uploadedFileUrls: AttachmentDTO[] = [];
             let uploadedAttachmentsUrls: AttachmentDTO[] = [];
 
-            // Upload de novos arquivos (imagens ou documentos)
             if (files && files.length > 0) {
-                for (const file of files) {
-                    const result = await this.uploadService.upload(file);
-                    uploadedFileUrls.push(result);
-                }
+                uploadedFileUrls = await this.uploadFiles(files);
             }
 
             if (attachments && attachments.length > 0) {
-                for (const attachment of attachments) {
-                    const result = await this.uploadService.upload(attachment);
-                    uploadedAttachmentsUrls.push(result);
-                }
+                uploadedAttachmentsUrls = await this.uploadFiles(attachments);
             }
 
-            // Se houver novos arquivos, atualize os arquivos anexos
             if (existingAnnotation.attachments && attachments && uploadedAttachmentsUrls.length > 0) {
-                const newAttachments = uploadedAttachmentsUrls.filter(file => !file.type.startsWith('image/'));
-                annotationToUpdate.attachments = [...existingAnnotation.attachments, ...newAttachments];
+                annotationToUpdate.attachments = [...existingAnnotation.attachments, ...uploadedAttachmentsUrls];
             }
 
-            // Substituir as imagens no conteúdo
             if (files && content && uploadedFileUrls.length > 0) {
-                let imageIndex = 0;
-
-                content.forEach((block) => {
-                    if (block.type === 'image' && imageIndex < uploadedFileUrls.length) {
-                        block.value = uploadedFileUrls[imageIndex];
-                        imageIndex++;
-                    }
-                });
+                await this.processContent(content, uploadedFileUrls);
             }
         }
 
@@ -319,13 +275,12 @@ export class AnnotationsService {
 
     }
 
+    // Verifica se a anotação existe, se membro é valido e faz update de usuario, cria notificacao 
     async addMember(annotationId: string, members: MemberDTO[], user: TokenPayloadSchema) {
         const userId = user.sub;
 
-        const existingAnnotation = await this.annotationModel.findById(annotationId);
-        if (!existingAnnotation) {
-            throw new ConflictException("Essa anotação não existe");
-        }
+        const existingAnnotation = await this.checkExistingAnnotationById(annotationId);
+        if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
 
         const isAddingSelf = members.some(
             (member) => member.userId.toString() === userId
@@ -334,11 +289,7 @@ export class AnnotationsService {
             throw new ConflictException("Você não pode adicionar seu próprio usuário");
         }
 
-        const userIds = members.map((m) => m.userId.toString());
-        const hasDuplicates = new Set(userIds).size !== userIds.length;
-        if (hasDuplicates) {
-            throw new ConflictException("Usuário duplicado na lista de membros");
-        }
+        if (members) this.validateMembers(members);
 
         const existingMembers = existingAnnotation.members || [];
         const newMembers = [...existingMembers];
@@ -353,19 +304,7 @@ export class AnnotationsService {
 
             newMembers.push(member);
 
-            const notification: CreateNotificationDto = {
-                title: "Nova anotação",
-                message: `Você foi adicionado à anotação ${existingAnnotation.title}.`,
-                type: "ANNOTATION",
-                status: false,
-                itemId: existingAnnotation._id.toString(),
-                userId: members.map(member => member.userId)
-
-            }
-
-            this.notificationService.create(notification)
-            // Envia notificação
-            this.notificationsGateway.sendAddMemberNotification(notification);
+            this.createNotification("Nova anotação", `Você foi adicionado à anotação ${existingAnnotation.title}`, existingAnnotation._id.toString(), "ANNOTATION", members.map(member => member.userId))
         }
 
         const updatedAnnotation = await this.annotationModel.findByIdAndUpdate(
@@ -377,21 +316,18 @@ export class AnnotationsService {
         return updatedAnnotation;
     }
 
+    // Verifica se a anotação existe, se membro é valido e faz atualizacao de permissao de usuario, cria notificacao
     async updatePermissonMember(annotationId: string, memberId: string, accessType: string, user: TokenPayloadSchema) {
         const userId = user.sub;
 
-        const existingAnnotation = await this.annotationModel.findById(annotationId);
-
+        const existingAnnotation = await this.checkExistingAnnotationById(annotationId);
         if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
 
         const editedUserId = memberId === userId
 
         if (editedUserId) throw new ConflictException("Você não pode mudar a permissão do seu proprio usuário");
 
-        const existingMember = existingAnnotation.members.some(member => member.userId.toString() === memberId)
-
-        if (!existingMember) throw new ConflictException("Membro nao existe nessa anotação");
-
+        await this.checkExistingMember(existingAnnotation.members, memberId)
 
         const updatedMembers = existingAnnotation.members.map((member) => {
             if (member.userId.toString() === memberId) {
@@ -410,42 +346,21 @@ export class AnnotationsService {
             { new: true }
         ).exec();
 
-        const notification: CreateNotificationDto = {
-            title: "Permissão na anotação",
-            message: `Você agora tem permissão de ${accessType} no grupo ${existingAnnotation.title}.`,
-            type: "ANNOTATION",
-            status: false,
-            itemId: existingAnnotation._id.toString(),
-            userId: [memberId]
-
-        }
-
-        this.notificationService.create(notification)
-        // Envia notificação
-        this.notificationsGateway.sendAddMemberNotification(notification);
+        this.createNotification("Permissão na anotação", `Você agora tem permissão de ${accessType} no grupo ${existingAnnotation.title}.`, existingAnnotation._id.toString(), "ANNOTATION", [memberId])
 
         return updatedAnnotation;
     }
 
+    // Verifica se a anotação existe, se membro é valido e se o usuario tem permissao para isso, nao e necessario essa verificacao, cria notificacao 
     async deleteMember(annotationId: string, memberId: string, user: TokenPayloadSchema) {
         const userId = user.sub
 
-        const annotation = await this.annotationModel.findById(annotationId).exec();
+        const existingAnnotation = await this.checkExistingAnnotationById(annotationId);
+        if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
 
-        if (!annotation) throw new NotFoundException("Anotatacao não encontrada");
+        await this.checkExistingMember(existingAnnotation.members, memberId)
 
-        if (annotation.createdUserId.toString() !== userId) throw new ForbiddenException("Você não tem permissão para excluir membros desta anotação");
-
-        const existingAnnotation = await this.annotationModel.findById(annotationId);
-
-        if (!existingAnnotation) throw new ConflictException("Essa anotacao não existe");
-
-        const existingMember = existingAnnotation.members.some(member => member.userId.toString() === memberId)
-
-        if (!existingMember) throw new ConflictException("Membro não existe nessa anotação");
-
-
-        const updatedMembers = annotation.members?.filter(
+        const updatedMembers = existingAnnotation.members?.filter(
             member => member.userId.toString() !== memberId
         );
 
@@ -455,31 +370,19 @@ export class AnnotationsService {
             { new: true }
         ).exec();
 
-        const notificationDTO: CreateNotificationDto = {
-            title: "Membro removido",
-            message: `Você foi removido da anotação ${existingAnnotation.title}.`,
-            type: "ANNOTATION",
-            status: false,
-            itemId: annotation._id.toString(),
-            userId: [memberId]
-        }
-
-        const notification = await this.notificationService.create(notificationDTO)
-        // Envia notificação
-        this.notificationsGateway.sendAddMemberNotification(notification);
+        this.createNotification("Membro removido", `Você foi removido da anotação ${existingAnnotation.title}.`, existingAnnotation._id.toString(), "ANNOTATION", [memberId])
 
         return updatedAnnotation;
-
     }
 
+    // Verifica se a anotação existe, se grupo é valido e cria notificacao
     async addGroup(annotationId: string, newGroupId: string) {
-        const existingAnnotation = await this.annotationModel.findById(annotationId);
-
+        const existingAnnotation = await this.checkExistingAnnotationById(annotationId);
         if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
 
-        const existingGroup = await this.groupService.fetchById(newGroupId);
+        const existingGroup = await this.checkExistingGroupById(newGroupId)
 
-        if (!existingGroup) throw new ConflictException("Esse grupo não existe");
+        if (!existingGroup) throw new ConflictException("Grupo nao existe nessa anotação");
 
         const currentGroups = existingAnnotation.groupId || [];
 
@@ -499,30 +402,19 @@ export class AnnotationsService {
             { new: true }
         ).exec();
 
-        const notification: CreateNotificationDto = {
-            title: "Nova anotação",
-            message: `A anotação ${existingAnnotation.title} foi adicionada no grupo.`,
-            type: "ANNOTATION",
-            status: false,
-            itemId: existingAnnotation._id.toString(),
-            userId: existingGroup.members.map(member => member.userId)
-        }
-
-        this.notificationService.create(notification)
-        // Envia notificação
-        this.notificationsGateway.sendAddMemberNotification(notification);
+        this.createNotification("Nova anotação", `A anotação ${existingAnnotation.title} foi adicionada no grupo.`, existingAnnotation._id.toString(), "ANNOTATION", existingGroup.members.map(member => member.userId))
 
         return updatedAnnotation;
     }
 
+    // Verifica se a anotação existe, se grupo é valido e cria notificacao
     async deleteGroup(annotationId: string, newGroupId: string) {
-        const existingAnnotation = await this.annotationModel.findById(annotationId);
-
+        const existingAnnotation = await this.checkExistingAnnotationById(annotationId);
         if (!existingAnnotation) throw new ConflictException("Essa anotacao não existe");
 
         if (!existingAnnotation.groupId) throw new ConflictException("Essa anotacao nao esta em um grupo");
 
-        const group = await this.groupService.fetchById(newGroupId)
+        const group = await this.checkExistingGroupById(newGroupId)
 
         if (!group) throw new ConflictException("Grupo nao existe nessa anotação");
 
@@ -542,30 +434,16 @@ export class AnnotationsService {
             { new: true }
         ).exec();
 
-
-        const notification: CreateNotificationDto = {
-            title: "Anotação deletado",
-            message: `A anotação ${existingAnnotation.title}  foi excluida do ${group.name}.`,
-            type: "ANNOTATION",
-            status: false,
-            itemId: group._id.toString(),
-            userId: group.members.map(member => member.userId)
-
-        }
-
-        this.notificationService.create(notification)
-        // Envia notificação
-        this.notificationsGateway.sendAddMemberNotification(notification);
-
+        this.createNotification("Anotação deletado", `A anotação ${existingAnnotation.title}  foi excluida do ${group.name}.`, group._id.toString(), "ANNOTATION", group.members.map(member => member.userId))
 
         return updatedAnnotation;
-
     }
 
+    // Verifica se a anotação existe,
     async deleteAnnotation(annotationId: string) {
-        const annotation = await this.annotationModel.findById(annotationId).exec();
+        const annotation = await this.checkExistingAnnotationById(annotationId);
 
-        if (!annotation) throw new NotFoundException("Annotation não encontrada");
+        if (!annotation) throw new ConflictException("Essa anotação não existe");
 
         annotation.content.filter(content => {
             if (content.type === "image" && typeof content.value !== "string") {
@@ -579,30 +457,18 @@ export class AnnotationsService {
 
         await this.annotationModel.findByIdAndDelete(annotationId).exec();
 
-        const notification: CreateNotificationDto = {
-            title: "Anotação deletado",
-            message: `A anotação ${annotation.title}  foi excluida.`,
-            type: "ANNOTATION",
-            status: false,
-            itemId: annotation._id.toString(),
-            userId: annotation.members.map(member => member.userId)
-
-        }
-
-        this.notificationService.create(notification)
-        // Envia notificação
-        this.notificationsGateway.sendAddMemberNotification(notification);
+        this.createNotification("Anotação deletado", `A anotação ${annotation.title}  foi excluida.`, annotation._id.toString(), "ANNOTATION", annotation.members.map(member => member.userId))
 
         return { message: "Anotacao excluída com sucesso" };
     }
 
+    // Verifica se a anotação existe e se o anexo existe
     async deleteAttachment(annotationId: string, attachmentName: string) {
-        const annotation = await this.annotationModel.findById(annotationId).exec();
+        const existingAnnotation = await this.checkExistingAnnotationById(annotationId);
+        if (!existingAnnotation) throw new ConflictException("Essa anotação não existe");
 
-        if (!annotation) throw new NotFoundException("Anotação não encontrada");
 
-
-        const attachments = annotation.attachments as AttachmentDTO[];
+        const attachments = existingAnnotation.attachments as AttachmentDTO[];
 
         const found = attachments.find(att => att.url === attachmentName);
         if (!found) throw new NotFoundException("Anexo não encontrado");
@@ -618,6 +484,20 @@ export class AnnotationsService {
 
     private async checkExistingAnnotation(title: string, category: string, userId: string, groupId?: string) {
         return await this.annotationModel.findOne({ title, category, createdUserId: userId, groupId });
+    }
+
+    private async checkExistingAnnotationById(annotationId: string) {
+        return await this.annotationModel.findById(annotationId);
+    }
+
+    private async checkExistingGroupById(groupId: string) {
+        return await this.groupService.fetchById(groupId);
+    }
+
+    private async checkExistingMember(members: MemberDTO[], memberId: string) {
+        const existingMember = members.some(member => member.userId.toString() === memberId)
+
+        if (!existingMember) throw new ConflictException("Membro nao existe nessa anotação");
     }
 
     private validateMembers(members: MemberDTO[]) {
@@ -649,4 +529,19 @@ export class AnnotationsService {
         }
     }
 
+    private async createNotification(title: string, message: string, id: string, type: "ANNOTATION" | "GROUP", members: string[]) {
+        const notification: CreateNotificationDto = {
+            title,
+            message,
+            type,
+            status: false,
+            itemId: id,
+            userId: members.map(member => member)
+
+        }
+
+        this.notificationService.create(notification)
+        // Envia notificação
+        this.notificationsGateway.sendAddMemberNotification(notification);
+    }
 }

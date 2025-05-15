@@ -26,6 +26,7 @@ export class SubCategoriesService {
         private categoryModel: Model<CategoriesDocument>
     ) { }
 
+    // Cria sub categoria, verifica se a categoria existe, se ja existe uma subcategoria com esse nome
     async create(dto: CreateSubCategoryDTO, user: TokenPayloadSchema) {
         const userId = user.sub;
         const { subCategory, categoryName, color, icon } = dto;
@@ -48,18 +49,22 @@ export class SubCategoriesService {
         });
     }
 
+    // busca as subcategorias, pode ser um so ao inves de 2, substituindo o fetchByIdCategory
     async fetch(user: TokenPayloadSchema) {
         return this.subCategoryModel.find({ userId: user.sub }).lean();
     }
 
+    // busca as subcategorias por categoria, pode ser um so ao inves de 2
     async fetchByIdCategory(categoryId: string, user: TokenPayloadSchema) {
         return this.subCategoryModel.find({ userId: user.sub, categoryId }).lean();
     }
 
+    // busca subcategoria pelo id, falta criar o erro caso ela nao existir
     async fetchById(subCategoryId: string) {
         return this.subCategoryModel.findById(subCategoryId).lean();
     }
 
+    // atualiza a subcategoria, verifica se ela existe, se ja existe uma subcategoria com esse nome, verifica se existe a categoria
     async update(subCategoryId: string, dto: UpdateSubCategoryDTO, user: TokenPayloadSchema) {
         const userId = user.sub;
         const { subCategory, categoryName, color, icon } = dto;
@@ -95,6 +100,7 @@ export class SubCategoriesService {
         return await this.subCategoryModel.findByIdAndUpdate(subCategoryId, updateData, { new: true });
     }
 
+    // exclui a subcategoria, verifica se ela existe, se o usuario tem permissao para excluir, 
     async delete(subCategoryId: string, user: TokenPayloadSchema) {
         const userId = user.sub;
 
@@ -111,6 +117,7 @@ export class SubCategoriesService {
         return { message: "Subcategoria excluída com sucesso" };
     }
 
+    // busca categoria pelo nome
     private async findCategoryByName(categoryName: string, userId: string): Promise<CategoriesDocument | null> {
         return this.categoryModel.findOne({ category: categoryName, userId });
     }

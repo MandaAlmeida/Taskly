@@ -34,6 +34,7 @@ export class GroupService {
         }
     }
 
+    // cria grupo, verifica se membros e duplicado, verifica se existe algum grupo com esse nome
     async create(group: CreateGroupDTO, user: TokenPayloadSchema) {
         const { name, description, members, color, icon } = group;
         const userId = user.sub;
@@ -55,6 +56,7 @@ export class GroupService {
         return newGroup;
     }
 
+    // busca grupo pelo id do usuario, pode juntar em um so de buscar por usuario e devolver por pagina
     async fetch(user: TokenPayloadSchema) {
         const userId = user.sub;
         return this.groupModel.find({
@@ -62,10 +64,12 @@ export class GroupService {
         });
     }
 
+    // busca por um grupo, falta criar um erro 
     async fetchById(groupId: string) {
         return this.groupModel.findById(groupId);
     }
 
+    // busca grupo por paginas, pode juntar com o anterior
     async fetchByPage(user: TokenPayloadSchema, page: number) {
         const userId = user.sub;
         const limit = 20;
@@ -80,6 +84,7 @@ export class GroupService {
             .limit(limit);
     }
 
+    // busca grupo por nome 
     async fetchBySearch(query: string, user: TokenPayloadSchema) {
         const userId = user.sub;
         const regex = new RegExp(query, "i");
@@ -100,6 +105,7 @@ export class GroupService {
         });
     }
 
+    // atualiza o grupo, verifica se ele existe, se ja existe um grupo com esse nome
     async update(groupId: string, data: UpdateGroupDTO, user: TokenPayloadSchema) {
         const { name, description, icon, color } = data;
         const userId = user.sub;
@@ -121,6 +127,7 @@ export class GroupService {
         );
     }
 
+    // adiciona membro ao grupo, verifica se o grupo existe, se o membro ja existe no grupo, cria notificacao 
     async addMember(groupId: string, members: MemberDTO[]) {
         const group = await this.groupModel.findById(groupId);
         if (!group) throw new NotFoundException("Grupo não encontrado.");
@@ -156,6 +163,7 @@ export class GroupService {
         );
     }
 
+    // muda permissao do membro, verifica se o membro existe, se o grupo existe, cria notificacao 
     async updatePermissonMember(groupId: string, memberId: string, accessType: string) {
         const group = await this.groupModel.findById(groupId);
         if (!group) throw new NotFoundException("Grupo não encontrado.");
@@ -185,6 +193,7 @@ export class GroupService {
         );
     }
 
+    // remove membro do grupo, verifica se o grupo existe, se o membro existe, e cria notificacao 
     async deleteMember(groupId: string, memberId: string) {
         const group = await this.groupModel.findById(groupId);
         if (!group) throw new NotFoundException("Grupo não encontrado.");
@@ -214,6 +223,7 @@ export class GroupService {
         );
     }
 
+    // deleta o grupo, verifica se ele existe e cria notificacao, falta salvar no banco
     async delete(groupId: string) {
         const group = await this.groupModel.findById(groupId);
         if (!group) throw new NotFoundException("Grupo não encontrado.");

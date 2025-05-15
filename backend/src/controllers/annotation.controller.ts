@@ -48,28 +48,13 @@ export class AnnotationController {
     }
 
     @Get("fetchByUser")
-    async fetchByUser(@CurrentUser() user: TokenPayloadSchema, @Query("p") page: number) {
-        return this.AnnotationsService.fetchByUser(user, page);
-    }
-
-    @Get("fetchByGroup")
-    async fetchByGroup(@CurrentUser() user: TokenPayloadSchema) {
-        return this.AnnotationsService.fetchByGroup(user);
+    async fetchBysearchAndUser(@CurrentUser() user: TokenPayloadSchema, @Query("p") page: number, @Query("q") query?: string) {
+        return this.AnnotationsService.fetchBySearchAndUser(user, page, query);
     }
 
     @Get("fetchById/:annotationId")
     async fetchById(@Param('annotationId') annotationId: string) {
         return this.AnnotationsService.fetchById(annotationId);
-    }
-
-    @Get("fetchByPage")
-    async fetchByPage(@CurrentUser() user: TokenPayloadSchema, @Query("p") page: number) {
-        return this.AnnotationsService.fetchByPage(user, page);
-    }
-
-    @Get("search")
-    async fetchByFilter(@Query("q") query: string, @CurrentUser() user: TokenPayloadSchema) {
-        return this.AnnotationsService.fetchBySearch(query, user);
     }
 
     @Roles("ADMIN", "EDIT", "DELETE")
