@@ -1,4 +1,4 @@
-import { FlatList, View } from "react-native";
+import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Calendar, CalendarUtils, DateData, LocaleConfig } from 'react-native-calendars';
 import { useEffect, useState } from "react";
 
@@ -13,15 +13,34 @@ import { useTask } from "@/hooks/useTask";
 import { Task } from "@/components/task";
 import { EmptyState } from "@/components/emptyState";
 import { formatDate } from "@/utils/formatDate";
+import { useNavigation } from "@react-navigation/native";
+import { ChevronLeft, ChevronRight } from "lucide-react-native";
 
 
 LocaleConfig.locales["pt-br"] = ptBR
 LocaleConfig.defaultLocale = "pt-br"
 
+const months = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
+
+
 export function Calendars() {
     const { fetchTaskByDate, fetchTaskById, data } = useTask();
     const today = new Date();
     const INITIAL_DATE = CalendarUtils.getCalendarDateString(today);
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [editableYear, setEditableYear] = useState(currentDate.getFullYear().toString());
+    const { navigate } = useNavigation();
+
+    function handleBackToTask() {
+        navigate("task")
+    }
+
+    function handleTask(id: string) {
+        fetchTaskById(id, handleBackToTask)
+    }
 
     const [day, setDay] = useState<DateData>({
         year: today.getFullYear(),
@@ -31,6 +50,22 @@ export function Calendars() {
         dateString: INITIAL_DATE,
     });
 
+    function handleMonthChange(direction: 'prev' | 'next') {
+        const newDate = new Date(currentDate);
+        newDate.setMonth(direction === 'prev' ? currentDate.getMonth() - 1 : currentDate.getMonth() + 1);
+        setCurrentDate(newDate);
+        setEditableYear(newDate.getFullYear().toString());
+    }
+
+    function handleYearChange(text: string) {
+        setEditableYear(text);
+        const newDate = new Date(currentDate);
+        const numericYear = parseInt(text, 10);
+        if (!isNaN(numericYear)) {
+            newDate.setFullYear(numericYear);
+            setCurrentDate(newDate);
+        }
+    }
 
     function handleDayPress(item: DateData) {
         setDay(item);
@@ -74,11 +109,49 @@ export function Calendars() {
     return (
         <View style={styles.container}>
             <Header text="Calendario" />
+
+            {/* Header customizado */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <TouchableOpacity onPress={() => handleMonthChange('prev')}>
+                    <ChevronLeft size={24} color={theme.blue1} />
+                </TouchableOpacity>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.blue2 }}>
+                        {months[currentDate.getMonth()]}
+                    </Text>
+                    <Text> </Text>
+                    <TextInput
+                        value={editableYear}
+                        onChangeText={handleYearChange}
+                        keyboardType="numeric"
+                        maxLength={4}
+                        style={{
+                            fontSize: 18,
+                            color: theme.blue2,
+                            borderBottomWidth: 1,
+                            borderBottomColor: theme.blue1,
+                            padding: 0,
+                            width: 60,
+                            textAlign: 'center',
+                        }}
+                    />
+                </View>
+
+                <TouchableOpacity onPress={() => handleMonthChange('next')}>
+                    <ChevronRight size={24} color={theme.blue1} />
+                </TouchableOpacity>
+            </View>
+
+            {/* Calendário principal */}
             <Calendar
-                current={INITIAL_DATE}
+                key={currentDate.toISOString()}
+                current={currentDate.toISOString().split('T')[0]}
                 style={styles.calendar}
-                renderArrow={(direction: "left" | "right") => (
-                    <Feather size={24} color={theme.blue1} name={`chevron-${direction}`} />)}
+                hideArrows={true}
+                hideExtraDays={false}
+                disableMonthChange={true}
+                renderHeader={() => null}
                 theme={{
                     textMonthFontSize: 18,
                     textSectionTitleColor: theme.blue1,
@@ -103,7 +176,7 @@ export function Calendars() {
                     <Task
                         _id={item._id}
                         name={item.name}
-                        handleOpenTask={() => fetchTaskById(item._id)}
+                        handleOpenTask={() => handleTask(item._id)}
                         status={item.status}
                         priority={item.priority}
                         date={formatDate(item.date)}

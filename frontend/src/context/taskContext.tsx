@@ -63,7 +63,12 @@ type ModalProps =
     | "isAttachmentOpen"
     | "isCreateMemberOpen"
     | "isSelectCategoryOpen"
+    | "isSelectHoursOpen"
+    | "isSelectPriorityOpen"
+    | "isSelectSubTaskOpen"
+    | "isSelectDateOpen"
     | "isSelectSubCategoryOpen"
+    | "isSelectTaskNameOpen"
     | "isSelectGroupOpen"
     | null;
 
@@ -94,13 +99,13 @@ interface TaskContextProps {
     setModalState: React.Dispatch<React.SetStateAction<{ name: ModalProps, data?: any }>>;
 
     //Funções de Tarefa
-    handleTaskRemove: (id: string, name: string) => void;
+    handleTaskRemove: (id: string, name: string, handleBack?: () => void) => void;
     handleAddTask: (data: CreateTaskProps, handleBackToTask: () => void) => void;
     handleUpdateTask: (params: UpdateTaskParams) => void;
     fetchTask: () => void;
     fetchTaskBySearch: (item: string) => void;
     fetchTaskByDate: (date: string) => void;
-    fetchTaskById: (taskId: string) => void;
+    fetchTaskById: (taskId: string, handleBackToTask?: () => void) => void;
     handleSubTaskRemove: (taskId: string, subTask: string, subTaskId?: string) => void;
 
     //Funções de Anotação
@@ -592,11 +597,17 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
             fetchTask();
             handleBackToTask();
-        } catch (error) {
-            if (error instanceof AppError) {
-                Alert.alert('Nova Tarefa', error.message);
+        } catch (error: any) {
+            // Axios geralmente coloca a resposta de erro em error.response
+            if (error.response && error.response.data) {
+                // Pode ser string ou objeto, dependa do backend
+                const message = typeof error.response.data === 'string'
+                    ? error.response.data
+                    : error.response.data.message || 'Erro desconhecido';
+
+                Alert.alert('Nova Tarefa', message);
             } else {
-                console.log(error);
+                console.log(error.message);
                 Alert.alert('Nova tarefa', 'Não foi possível adicionar');
             }
         }
@@ -628,7 +639,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function fetchTaskById(taskId: string) {
+    async function fetchTaskById(taskId: string, handleBackToTask?: () => void) {
         try {
             if (data.user) {
                 const response = await api.get(`/task/fetchById/${taskId}`);
@@ -640,7 +651,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                 const task = response.data;
 
                 setData(prevState => ({ ...prevState, taskById: task }));
-                setModalState({ name: "isTaskOpen" });
+                if (handleBackToTask) handleBackToTask()
             }
         } catch (error) {
             console.log("Erro desconhecido:", error);
@@ -656,9 +667,11 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function fetchTaskBySearch(item: string) {
         try {
             if (data.user) {
-                const response = await api.get(`/task/search?q=${item}`);
+                const response = await api.get(`/task/fetch?q=${item}`);
 
                 setData(prevState => ({ ...prevState, tasksSearch: response.data }));
+
+                console.log(response.data)
             }
         } catch (error) {
             console.log("Erro desconhecido:", error);
@@ -674,7 +687,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     async function fetchTaskByDate(date: string) {
         try {
             if (data.user) {
-                const response = await api.get(`/task/search?q=${date}`);
+                const response = await api.get(`/task/fetch?q=${date}`);
 
                 setData(prevState => ({ ...prevState, tasksData: response.data }));
             }
@@ -756,7 +769,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function handleTaskRemove(id: string, name: string) {
+    async function handleTaskRemove(id: string, name: string, handleBack?: () => void) {
         try {
             Alert.alert("Remover", `Remover a tarefa ${name}?`, [
                 {
@@ -770,7 +783,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
                             await api.delete(`/task/delete/${id}`);
 
                             fetchTask();
-                            setModalState({ name: null });
+                            if (handleBack) handleBack()
                             Alert.alert("Sucesso", "Tarefa removida com sucesso!");
                         } catch (error) {
                             console.log(error);
@@ -1178,56 +1191,56 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         }
     }
 
-    async function PushNotification(token: string, user: User) {
-        try {
-            const savePushToken = {
-                userId: user._id,
-                token,
-            };
+    // async function PushNotification(token: string, user: User) {
+    //     try {
+    //         const savePushToken = {
+    //             userId: user._id,
+    //             token,
+    //         };
 
 
-            const response = await api.post('/notifications/save-token', savePushToken);
+    //         const response = await api.post('/notifications/save-token', savePushToken);
 
-            console.log(response.data);
+    //         console.log(response.data);
 
-        } catch (error: any) {
-            console.log('Erro ao salvar token:', error);
-            const message =
-                error?.response?.data?.message || 'Erro ao se comunicar com o servidor.';
-            Alert.alert('Erro', message);
-        }
-    }
+    //     } catch (error: any) {
+    //         console.log('Erro ao salvar token:', error);
+    //         const message =
+    //             error?.response?.data?.message || 'Erro ao se comunicar com o servidor.';
+    //         Alert.alert('Erro', message);
+    //     }
+    // }
 
 
     useEffect(() => {
         // Solicita permissões e registra o token (como você já fez)
-        registerForPushNotificationsAsync()
-            .then((token) => {
-                if (data.user !== null && token) {
-                    setData(prevData => ({ ...prevData, expoPushToken: token }));
-                    PushNotification(token, data.user); // Passa o token para o backend
-                }
-            })
-            .catch((error) => {
-                Alert.alert('Erro ao obter o token de notificação', error.message);
-            });
+        // registerForPushNotificationsAsync()
+        //     .then((token) => {
+        //         if (data.user !== null && token) {
+        //             setData(prevData => ({ ...prevData, expoPushToken: token }));
+        //             PushNotification(token, data.user); // Passa o token para o backend
+        //         }
+        //     })
+        //     .catch((error) => {
+        //         Alert.alert('Erro ao obter o token de notificação', error.message);
+        //     });
 
-        // Adiciona o listener para notificações recebidas
-        const subscription = Notifications.addNotificationReceivedListener(notification => {
-            console.log('Notificação recebida:', notification);
-            // Aqui você pode processar a notificação recebida e atualizar o estado ou UI
-        });
+        // // Adiciona o listener para notificações recebidas
+        // const subscription = Notifications.addNotificationReceivedListener(notification => {
+        //     console.log('Notificação recebida:', notification);
+        //     // Aqui você pode processar a notificação recebida e atualizar o estado ou UI
+        // });
 
-        const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-            console.log('Notificação clicada:', response);
-            // Aqui você pode redirecionar o usuário ou tomar alguma ação
-        });
+        // const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+        //     console.log('Notificação clicada:', response);
+        //     // Aqui você pode redirecionar o usuário ou tomar alguma ação
+        // });
 
-        // Limpeza do listener quando o componente for desmontado
-        return () => {
-            subscription.remove();
-            responseListener.remove();
-        };
+        // // Limpeza do listener quando o componente for desmontado
+        // return () => {
+        //     subscription.remove();
+        //     responseListener.remove();
+        // };
     }, []);
 
 

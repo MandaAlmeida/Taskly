@@ -3,17 +3,31 @@ import Modal from 'react-native-modal';
 import { styles } from './styles';
 import { useTask } from '@/hooks/useTask';
 import { theme } from '@/styles/theme';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as LucideIcons from 'lucide-react-native';
 import { iconsList } from "@/Array/icons";
 import { SubCategoryProps } from '@/@types/subCategory';
 import { ButtonModal } from '../buttonModal';
-import { ModalProps } from '../modalSubTask';
 import { AddCategory } from "../addGroupAndCategory/addCategory";
+import { ModalList } from '../modalListCategoryOrGroup';
 
-export function ModalSubCategory({ isVisible, handleOnVisible, task }: ModalProps) {
-    const { data, setData, setModalState, handleUpdateTask } = useTask();
-    const [active, setActive] = useState<{ [key: string]: boolean }>({});
+export function ModalSubCategory() {
+    const { data, setData, modalState, setModalState, handleUpdateTask } = useTask();
+    const initialsubCategory = modalState.data?.subCategory;
+    const [active, setActive] = useState<{ [key: string]: boolean }>(
+        initialsubCategory ? { [initialsubCategory]: true } : {}
+    );
+
+    useEffect(() => {
+        const selectedSubCategoryId = modalState.data?.subCategory;
+        if (selectedSubCategoryId) {
+            setActive({ [selectedSubCategoryId]: true });
+            const foundSubCategory = data.subCategory.find(cat => cat._id === selectedSubCategoryId);
+            if (foundSubCategory) {
+                setData(prev => ({ ...prev, selectedSubCategory: foundSubCategory }));
+            }
+        }
+    }, [modalState.data]);
 
     function UpdateSetSubCategory(key: string, item: SubCategoryProps) {
         setActive((prev) => ({
@@ -23,10 +37,10 @@ export function ModalSubCategory({ isVisible, handleOnVisible, task }: ModalProp
     }
 
     function UpdateSubCategory() {
-        if (task) {
-            handleUpdateTask({ _id: task._id, subCategory: data.selectedSubCategory?._id, task: task })
+        if (modalState.data) {
+            handleUpdateTask({ _id: modalState.data._id, subCategory: data.selectedSubCategory?._id, task: modalState.data })
         }
-        handleOnVisible()
+        setModalState({ name: null })
     }
 
     function handleAddSubCategory() {
@@ -34,7 +48,7 @@ export function ModalSubCategory({ isVisible, handleOnVisible, task }: ModalProp
     }
 
     return (
-        <Modal isVisible={isVisible}>
+        <Modal isVisible={modalState.name === 'isSelectSubCategoryOpen'}>
             <View style={styles.modalContainer}>
                 <Text style={styles.title}>Sub-categorias</Text>
                 <FlatList
@@ -81,7 +95,7 @@ export function ModalSubCategory({ isVisible, handleOnVisible, task }: ModalProp
                     contentContainerStyle={styles.grid}
                 />
 
-                <ButtonModal color={task?.color || theme.blue1} CreateItem={() => UpdateSubCategory()} handleOnVisible={() => handleOnVisible()} />
+                <ButtonModal color={modalState.data?.color || theme.blue1} CreateItem={() => UpdateSubCategory()} handleOnVisible={() => setModalState({ name: null })} />
             </View>
             <AddCategory title="Sub Categoria" />
         </Modal>

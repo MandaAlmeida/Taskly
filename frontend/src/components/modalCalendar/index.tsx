@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import Modal from 'react-native-modal';
 import { Calendar as CalendarDate, DateData, LocaleConfig } from 'react-native-calendars';
@@ -8,7 +8,7 @@ import { theme } from '@/styles/theme';
 import { styles } from './styles';
 import { useTask } from '@/hooks/useTask';
 import { ButtonModal } from '../buttonModal';
-import { ModalProps } from '../modalSubTask';
+
 
 LocaleConfig.locales['pt-br'] = ptBR;
 LocaleConfig.defaultLocale = 'pt-br';
@@ -18,10 +18,27 @@ const months = [
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
-export function ModalCalendar({ isVisible, handleOnVisible, task }: ModalProps) {
-    const { fetchTask, uiState, setUiState, handleUpdateTask } = useTask();
+export function ModalCalendar() {
+    const { fetchTask, uiState, setUiState, modalState, setModalState, handleUpdateTask } = useTask();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [editableYear, setEditableYear] = useState(currentDate.getFullYear().toString());
+
+    useEffect(() => {
+        if (modalState.name === 'isSelectDateOpen' && modalState.data?.date) {
+            const parsed = new Date(modalState.data.date); // ex: 2025-05-20T00:00:00.000Z
+            const dateData = {
+                dateString: parsed.toISOString().split('T')[0],
+                day: parsed.getUTCDate(),
+                month: parsed.getUTCMonth() + 1,
+                year: parsed.getUTCFullYear(),
+                timestamp: parsed.getTime()
+            };
+
+            setUiState(prev => ({ ...prev, date: dateData }));
+            setCurrentDate(parsed);
+            setEditableYear(parsed.getFullYear().toString());
+        }
+    }, [modalState.name]);
 
     // Altera mês ao clicar nas setas
     function handleMonthChange(direction: 'prev' | 'next') {
@@ -50,14 +67,14 @@ export function ModalCalendar({ isVisible, handleOnVisible, task }: ModalProps) 
 
     // Atualiza tarefa com nova data
     function UpdateDay() {
-        if (task) {
-            handleUpdateTask({ _id: task._id, date: uiState.date.dateString, task });
+        if (modalState.data) {
+            handleUpdateTask({ _id: modalState.data._id, date: uiState.date.dateString, task: modalState.data });
         }
-        handleOnVisible();
+        setModalState({ name: null })
     }
 
     return (
-        <Modal isVisible={isVisible}>
+        <Modal isVisible={modalState.name === 'isSelectDateOpen'}>
             <View style={styles.modalContainer}>
                 {/* Header customizado */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -112,7 +129,7 @@ export function ModalCalendar({ isVisible, handleOnVisible, task }: ModalProps) 
                         textDayStyle: { color: theme.blue1 },
                         textDisabledColor: theme.gray2,
                     }}
-                    markedDates={uiState.date && {
+                    markedDates={{
                         [uiState.date.dateString]: { selected: true }
                     }}
                 />
@@ -120,9 +137,9 @@ export function ModalCalendar({ isVisible, handleOnVisible, task }: ModalProps) 
 
                 {/* Botão de ação */}
                 <ButtonModal
-                    color={task?.color || theme.blue1}
+                    color={modalState.data?.color || theme.blue1}
                     CreateItem={UpdateDay}
-                    handleOnVisible={handleOnVisible}
+                    handleOnVisible={() => setModalState({ name: null })}
                 />
             </View>
         </Modal>

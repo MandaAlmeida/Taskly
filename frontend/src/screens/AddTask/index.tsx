@@ -31,6 +31,8 @@ export function AddTask() {
 
     const hasEmptyTask = localSubTasks.some(sub => sub.task.trim() === '');
 
+    const disabled = !taskName || !data.selectedCategory || !data.priority || !uiState.date || !uiState.hours
+
     function handleSubTaskChange(text: string, index: number) {
         const updatedSubTasks = [...localSubTasks];
         updatedSubTasks[index] = {
@@ -207,9 +209,7 @@ export function AddTask() {
                     </TouchableOpacity>
                 }
 
-                <TouchableOpacity style={styles.buttonSelect} onPress={() => [toggleSection("category"),
-                setModalState({ name: null })
-                ]}>
+                <TouchableOpacity style={styles.buttonSelect} onPress={() => setModalState({ name: "isSelectCategoryOpen" })}>
                     <Tag size={24} color={theme.gray4} />
                     {data.selectedCategory !== undefined && <Text>{data.selectedCategory?.category}</Text>}
                 </TouchableOpacity>
@@ -221,9 +221,9 @@ export function AddTask() {
             {openSections["calendar"] &&
                 <ModalCalendar isVisible={openSections["calendar"]} handleOnVisible={() => toggleSection("calendar")} />
             }
-            {openSections["category"] &&
-                <ModalCategory isVisible={openSections["category"]} handleOnVisible={() => toggleSection("category")} />
-            }
+
+            <ModalCategory />
+
             {openSections["subCategory"] &&
                 <ModalSubCategory isVisible={openSections["subCategory"]} handleOnVisible={() => toggleSection("subCategory")} />
             }
@@ -236,7 +236,8 @@ export function AddTask() {
             <Button
                 text={"Adicionar tarefa"}
                 onPress={handleSaveTask}
-                style={{ width: "100%" }}
+                style={{ width: "100%", opacity: disabled ? 0.5 : 100 }}
+                disabled={disabled}
             />
         </View>
     );

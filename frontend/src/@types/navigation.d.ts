@@ -3,6 +3,7 @@ export declare global {
         interface RootParamList {
             addTask: undefined;
             addAnnotations: { annotation?: AnnotationProps };
+            task: undefined;
             tasks: undefined;
             signIn: undefined;
             category: undefined;

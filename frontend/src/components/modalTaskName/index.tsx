@@ -2,37 +2,30 @@ import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import Modal from 'react-native-modal';
 import { useTask } from '@/hooks/useTask';
 import { styles } from './styles';
-import { Task } from '../task';
-import { TaskProps } from '@/@types/task';
 
-type Props = {
-    isVisible: boolean;
-    handleOnVisible: () => void;
-    task: TaskProps
-};
 
-export function ModalTaskName({ isVisible, handleOnVisible, task }: Props) {
-    const { data, setData, handleUpdateTask } = useTask();
+export function ModalTaskName() {
+    const { data, setData, modalState, setModalState, handleUpdateTask } = useTask();
 
     function handleUpdateName() {
-        handleUpdateTask({ _id: task._id, name: data.taskName, task: task })
-        handleOnVisible()
+        handleUpdateTask({ _id: modalState.data._id, name: data.taskName, task: modalState.data })
+        setModalState({ name: null })
     }
 
     return (
-        <Modal isVisible={isVisible}>
+        <Modal isVisible={modalState.name === 'isSelectTaskNameOpen'}>
             <View style={styles.modalContainer}>
                 <Text style={styles.title}>Editar titulo da tarefa</Text>
                 <TextInput
                     style={styles.input}
                     multiline={true}
                     numberOfLines={3}
-                    placeholder={task.name}
+                    placeholder={modalState.data?.name || 'Título da tarefa'}
                     value={data.taskName}
                     onChangeText={text => setData(prevData => ({ ...prevData, taskName: text }))}
                 />
                 <View style={styles.buttonsContainer}>
-                    <TouchableOpacity onPress={() => handleOnVisible()}>
+                    <TouchableOpacity onPress={() => setModalState({ name: null })}>
                         <Text style={styles.cancelText}>Cancelar</Text>
                     </TouchableOpacity>
 

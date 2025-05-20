@@ -3,24 +3,21 @@ import Modal from 'react-native-modal';
 import { useTask } from '@/hooks/useTask';
 import { styles } from './styles';
 import { CreateSubTaskProps, TaskProps } from '@/@types/task';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react-native';
 import { theme } from '@/styles/theme';
 import { ButtonModal } from '../buttonModal';
 
-type TasksProps = TaskProps & {
-    color: string
-}
+export function ModalSubTask() {
+    const { handleUpdateTask, modalState, setModalState } = useTask();
 
-export type ModalProps = {
-    isVisible: boolean;
-    handleOnVisible: () => void;
-    task?: TasksProps
-};
+    const [localSubTasks, setLocalSubTasks] = useState<CreateSubTaskProps[]>([]);
 
-export function ModalSubTask({ isVisible, handleOnVisible, task }: ModalProps) {
-    const [localSubTasks, setLocalSubTasks] = useState<CreateSubTaskProps[]>(task?.subTask || []);
-    const { handleUpdateTask } = useTask()
+    useEffect(() => {
+        if (modalState.name === 'isSelectSubTaskOpen' && modalState.data?.subTask) {
+            setLocalSubTasks(modalState.data.subTask);
+        }
+    }, [modalState]);
 
     function handleSubTaskChange(text: string, index: number) {
         const updatedSubTasks = [...localSubTasks];
@@ -30,23 +27,27 @@ export function ModalSubTask({ isVisible, handleOnVisible, task }: ModalProps) {
             status: "PENDING",
         };
         setLocalSubTasks(updatedSubTasks);
-    };
+    }
 
     const hasEmptyTask = localSubTasks.some(sub => sub.task.trim() === '');
 
     function addNewSubTask() {
         setLocalSubTasks([...localSubTasks, { task: '', status: 'PENDING' }]);
-    };
+    }
 
     function CreateEditSubTask() {
-        if (task) {
-            handleUpdateTask({ _id: task._id, subTask: localSubTasks, task: task })
+        if (modalState.data) {
+            handleUpdateTask({
+                _id: modalState.data._id,
+                subTask: localSubTasks,
+                task: modalState.data
+            });
         }
-        handleOnVisible();
+        setModalState({ name: null });
     }
 
     return (
-        <Modal isVisible={isVisible}>
+        <Modal isVisible={modalState.name === 'isSelectSubTaskOpen'}>
             <View style={styles.modalContainer}>
                 <Text style={styles.title}>Editar e adicionar sub tarefas</Text>
 
@@ -75,7 +76,11 @@ export function ModalSubTask({ isVisible, handleOnVisible, task }: ModalProps) {
                     </TouchableOpacity>
                 )}
 
-                <ButtonModal color={task?.color || theme.blue1} CreateItem={() => CreateEditSubTask()} handleOnVisible={() => handleOnVisible()} />
+                <ButtonModal
+                    color={modalState.data?.color || theme.blue1}
+                    CreateItem={CreateEditSubTask}
+                    handleOnVisible={() => setModalState({ name: null })}
+                />
             </View>
         </Modal>
     );

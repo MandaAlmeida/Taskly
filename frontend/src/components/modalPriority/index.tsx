@@ -4,9 +4,8 @@ import { styles } from './styles';
 import { useTask } from '@/hooks/useTask';
 import { Flag } from 'lucide-react-native';
 import { theme } from '@/styles/theme';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ButtonModal } from '../buttonModal';
-import { ModalProps } from '../modalSubTask';
 
 type Priority = {
     id: string;
@@ -27,9 +26,23 @@ const priorities: Priority[] = [
 ];
 
 
-export function ModalPriority({ isVisible, handleOnVisible, task }: ModalProps) {
-    const [active, setActive] = useState<{ [key: string]: boolean }>({})
-    const { handleUpdateTask, data, setData } = useTask();
+export function ModalPriority() {
+    const { handleUpdateTask, data, setData, modalState, setModalState } = useTask();
+    const initialPriority = modalState.data?.priority;
+    const [active, setActive] = useState<{ [key: string]: boolean }>(
+        initialPriority ? { [initialPriority]: true } : {}
+    );
+
+    useEffect(() => {
+        const selectedPriorityId = modalState.data?.priority;
+        if (selectedPriorityId) {
+            setActive({ [selectedPriorityId]: true });
+            const foundPriority = data.priority;
+            if (foundPriority) {
+                setData(prev => ({ ...prev, selectedPriority: foundPriority }));
+            }
+        }
+    }, [modalState.data]);
 
     function UpdateSetPriority(key: string, priority: string) {
         setActive((prev) => ({
@@ -41,14 +54,14 @@ export function ModalPriority({ isVisible, handleOnVisible, task }: ModalProps) 
 
 
     function UpdatePriority() {
-        if (task) {
-            handleUpdateTask({ _id: task._id, priority: data.priority, task: task })
+        if (modalState.data) {
+            handleUpdateTask({ _id: modalState.data._id, priority: data.priority, task: modalState.data })
         }
-        handleOnVisible();
+        setModalState({ name: null });
     }
 
     return (
-        <Modal isVisible={isVisible}>
+        <Modal isVisible={modalState.name === 'isSelectPriorityOpen'}>
             <View style={styles.modalContainer}>
                 <Text style={styles.title}>Nivel de prioridade</Text>
                 <FlatList
@@ -66,7 +79,7 @@ export function ModalPriority({ isVisible, handleOnVisible, task }: ModalProps) 
                     )}
                     contentContainerStyle={styles.grid}
                 />
-                <ButtonModal color={task?.color || theme.blue1} CreateItem={() => UpdatePriority()} handleOnVisible={() => handleOnVisible()} />
+                <ButtonModal color={modalState.data?.color || theme.blue1} CreateItem={() => UpdatePriority()} handleOnVisible={() => setModalState({ name: null })} />
             </View>
         </Modal>
     );

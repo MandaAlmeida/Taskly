@@ -1,7 +1,7 @@
 export type CreateSubTaskProps = {
     _id?: string;
     task: string;
-    status: "COMPLETED" | "PENDING"
+    status: string
 }
 
 export type CreateTaskProps = {

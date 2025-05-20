@@ -5,8 +5,6 @@ import { theme } from "@/styles/theme";
 import { useTask } from "@/hooks/useTask";
 import { MenuListModal } from "../menuListModal";
 import { useNavigation } from "@react-navigation/native";
-import { CategoryProps } from "@/@types/category";
-import { useEffect } from "react";
 import { AddCategory } from "../addGroupAndCategory/addCategory";
 import { AddGroup } from "../addGroupAndCategory/addGrop";
 import { ModalList } from "../modalListCategoryOrGroup";
@@ -59,7 +57,7 @@ export function Header({ text }: Props) {
                 items={data.categories.filter(category => category.category !== "Todas")}
                 onClose={() => setModalState({ name: null })}
                 onAddNewItem={() => setModalState({ name: "isCategoryOpen" })}
-                onSelect={item => setData(prevData => ({ ...prevData, selectedCategory: item }))}
+                onSelect={item => setData(prevData => ({ ...prevData, selectedFilterCategory: item }))}
                 showDefaultItem={false} // Mostra o item "Todas" apenas se necessário
             />
 

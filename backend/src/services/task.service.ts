@@ -5,6 +5,8 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Task, TaskDocument } from "@/models/tasks.schema";
 import { Model } from "mongoose";
 import { Status } from "@/enum/status.enum";
+import e from "express";
+import { boolean } from "zod";
 
 @Injectable()
 export class TaskService {
@@ -18,7 +20,7 @@ export class TaskService {
         const userId = user.sub;
 
         // Verifica se já existe uma tarefa com o mesmo nome, categoria e data para o usuário
-        await this.checkExistTaskByItens(name, category, date, userId)
+        await this.checkExistTaskByItens(name, category, date, userId, false)
 
         // Calcula o status com base na data da tarefa
         const status = await this.createStatus(date)
@@ -33,7 +35,8 @@ export class TaskService {
             userId,
             status,
             subTask,
-            hours
+            hours,
+            notified: false
         };
 
         // Cria e salva a tarefa no banco
@@ -84,7 +87,7 @@ export class TaskService {
             filters = { userId, $or: orFilters };
         }
 
-        const queryBuilder = this.taskModel.find(filters).sort({ date: 1 });
+        const queryBuilder = this.taskModel.find(filters).populate('category').sort({ date: 1 });
 
         if (options?.page && options.page > 0) {
             queryBuilder.skip(skip).limit(limit);
@@ -104,11 +107,20 @@ export class TaskService {
     async update(taskId: string, task: UpdateTaskDTO) {
         const { name, category, priority, date, status, subCategory, subTask } = task;
 
-        const existingTask = await this.taskModel.findById(taskId);
-        if (!existingTask) throw new ConflictException("Essa task não existe");
+        const existingTask = await this.checkExistTask(taskId);
+        if (!existingTask) throw new ConflictException("Essa tarefa não existe");
 
         // Verifica duplicidade: outra tarefa do mesmo dia, nome e categoria
-        if (name && category && date) await this.checkExistTaskByItens(name, category, date, existingTask.userId)
+        let existingTaskByItem: any = null;
+        if (name && category && date) {
+            existingTaskByItem = await this.checkExistTaskByItens(
+                name, category, date, existingTask.userId, true
+            );
+        }
+
+        if (existingTaskByItem && existingTaskByItem._id.toString() !== taskId) {
+            throw new ConflictException("Já existe uma tarefa com o mesmo nome, data e categoria");
+        }
 
         // Monta campos para atualização
         const taskToUpdate: any = {};
@@ -123,31 +135,39 @@ export class TaskService {
             const updatedSubTasks = existingTask.subTask ?? [];
 
             const finalSubTasks = subTask.map(newSub => {
-                if (!newSub._id) {
-                    const alreadyExists = updatedSubTasks.find(st => st.task === newSub.task);
-                    if (alreadyExists) throw new ConflictException("Essa sub Tarefa já existe");
+                if (newSub._id) {
+                    const existing = updatedSubTasks.find(st => st._id?.toString() === newSub._id);
+                    if (!existing) throw new ConflictException("Subtarefa não encontrada");
 
                     return {
-                        task: newSub.task,
-                        status: newSub.status
-                    };
-                } else {
-                    const existingSub = updatedSubTasks.find(st => st._id?.toString() === newSub._id);
-                    if (!existingSub) throw new ConflictException("Subtarefa não encontrada");
-
-                    return {
-                        _id: existingSub._id,
+                        _id: existing._id,
                         task: newSub.task,
                         status: newSub.status
                     };
                 }
+
+                // Se for uma nova, verifica se já existe pelo nome
+                const alreadyExistsByName = updatedSubTasks.find(
+                    st => st.task.trim().toLowerCase() === newSub.task.trim().toLowerCase()
+                );
+
+                if (alreadyExistsByName) {
+                    throw new ConflictException("Essa sub Tarefa já existe");
+                }
+
+                // Subtarefa nova
+                return {
+                    task: newSub.task,
+                    status: newSub.status
+                };
             });
 
             taskToUpdate.subTask = finalSubTasks;
         }
 
+
         // Atualiza status automaticamente baseado na data
-        if (date && status) taskToUpdate.status = await this.updateStatusPrivate(date, status)
+        if (date && status) taskToUpdate.status = await this.updateStatusPrivate(date, status, true);
 
         // Salva alterações no banco
         return await this.taskModel.findByIdAndUpdate(taskId, taskToUpdate, { new: true });
@@ -158,23 +178,32 @@ export class TaskService {
         const userId = user.sub;
         const allTasks = await this.taskModel.find({ userId });
 
-        const tasksToUpdate = allTasks.map(task => {
-            const status = this.updateStatusPrivate(task.date, task.status)
-            return {
-                updateOne: {
-                    filter: { _id: task._id },
-                    update: { status }
+        const tasksToUpdate = await Promise.all(
+            allTasks.map(async (task) => {
+                if (task.status !== "COMPLETED") {
+                    const status = await this.updateStatusPrivate(task.date, task.status);
+                    return {
+                        updateOne: {
+                            filter: { _id: task._id },
+                            update: { status }
+                        }
+                    };
                 }
-            };
-        });
+                return null; // Retorna null para tarefas que não precisam atualizar
+            })
+        );
 
-        // Executa atualização em lote
-        if (tasksToUpdate.length > 0) {
-            await this.taskModel.bulkWrite(tasksToUpdate);
+        // Filtra tarefas válidas
+        const filteredTasks = tasksToUpdate.filter(task => task !== null);
+
+        if (filteredTasks.length > 0) {
+            await this.taskModel.bulkWrite(filteredTasks);
         }
 
-        return { message: 'Statuses atualizados com sucesso' };
+        return { message: 'Status atualizados com sucesso' };
     }
+
+
 
     // Remove uma subtarefa de uma tarefa, verifica se a tarefa existe, se a sub tarefa existe antes de remover
     async deleteSubTask(taskId: string, subTask: string) {
@@ -196,10 +225,10 @@ export class TaskService {
         return { message: "Task excluída com sucesso" };
     }
 
-    private async checkExistTaskByItens(name: string, category: string, date: Date, userId: string) {
+    private async checkExistTaskByItens(name: string, category: string, date: Date, userId: string, update: boolean) {
         const existingTask = await this.taskModel.findOne({ name, category, date, userId });
-        if (existingTask) throw new ConflictException("Essa task já existe");
-
+        if (existingTask && !update) throw new ConflictException("Essa tarefa já existe");
+        return existingTask
     }
 
     private async checkExistTask(taskId: string) {
@@ -224,11 +253,11 @@ export class TaskService {
         return status
     }
 
-    private async updateStatusPrivate(date: Date, status: string) {
+    private async updateStatusPrivate(date: Date, status: string, update?: boolean) {
         const today = new Date().toISOString().split('T')[0];
         const taskDateStr = new Date(date).toISOString().split('T')[0];
 
-        if (status !== undefined && status !== 'COMPLETED') {
+        if (status !== undefined && status !== 'COMPLETED' && update) {
             status = 'COMPLETED';
         } else {
             if (taskDateStr === today) {
@@ -242,4 +271,5 @@ export class TaskService {
 
         return status
     }
+
 }

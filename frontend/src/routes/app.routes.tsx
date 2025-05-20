@@ -15,10 +15,17 @@ import { FloatingActionButton } from "@/components/FloatingActionButton"; // aju
 import { CalendarDays, House, ListChecks, NotepadText } from "lucide-react-native";
 import { styles } from "./styles";
 import { AnnotationProps } from "@/@types/annotation";
+import { Task } from "@/screens/Task";
+import { TaskProps } from "@/@types/task";
+
+type taskType = TaskProps & {
+    color: string,
+}
 
 export type StackParamList = {
     tabs: NavigatorScreenParams<TabParamList>;
     addTask: undefined;
+    task: undefined;
     addAnnotations: { annotation?: AnnotationProps };
     profile: undefined;
 };
@@ -111,6 +118,7 @@ export function AppRoutes() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="tabs" component={BottomTabs} />
             <Stack.Screen name="addTask" component={AddTask} />
+            <Stack.Screen name="task" component={Task} />
             <Stack.Screen name="addAnnotations" component={AddAnnotations} />
             <Stack.Screen name="profile" component={Profile} />
         </Stack.Navigator>

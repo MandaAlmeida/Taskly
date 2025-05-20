@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import Modal from 'react-native-modal';
 import { useTask } from '@/hooks/useTask';
 import { theme } from '@/styles/theme';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as LucideIcons from 'lucide-react-native';
 import { iconsList } from "@/Array/icons";
 import { styles } from './styles';
@@ -14,7 +14,21 @@ import { AddCategory } from '../addGroupAndCategory/addCategory';
 export function ModalCategory() {
     const { data, setData, setModalState, handleUpdateTask, modalState } = useTask();
 
-    const [active, setActive] = useState<{ [key: string]: boolean }>({});
+    const initialCategory = modalState.data?.category;
+    const [active, setActive] = useState<{ [key: string]: boolean }>(
+        initialCategory ? { [initialCategory]: true } : {}
+    );
+
+    useEffect(() => {
+        const selectedCategoryId = modalState.data?.category;
+        if (selectedCategoryId) {
+            setActive({ [selectedCategoryId]: true });
+            const foundCategory = data.categories.find(cat => cat._id === selectedCategoryId);
+            if (foundCategory) {
+                setData(prev => ({ ...prev, selectedCategory: foundCategory }));
+            }
+        }
+    }, [modalState.data]);
 
     function UpdateSelectedCategory(key: string, item: CategoryProps) {
         setActive((prev) => ({

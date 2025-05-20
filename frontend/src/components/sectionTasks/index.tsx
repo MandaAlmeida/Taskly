@@ -5,11 +5,12 @@ import { TextFilter } from "../textFilter";
 import { TaskProps } from "@/@types/task";
 import { theme } from "@/styles/theme";
 import { formatDate } from "@/utils/formatDate";
+import { useNavigation } from "@react-navigation/native";
 
 type Section = {
     title: string;
     content: string;
-    lenght: string;
+    length: string;
     data: TaskProps[];
 }
 
@@ -20,6 +21,15 @@ type SectionProps = {
 export function SectionTask({ sections }: SectionProps) {
     const { data, setUiState, uiState, fetchTaskById } = useTask();
 
+    const { navigate } = useNavigation();
+
+    function handleBackToTask() {
+        navigate("task")
+    }
+
+    function handleTask(id: string) {
+        fetchTaskById(id, handleBackToTask)
+    }
 
     function toggleSection(key: string) {
         setUiState(prev => ({
@@ -41,7 +51,7 @@ export function SectionTask({ sections }: SectionProps) {
                 <Task
                     _id={item._id}
                     name={item.name}
-                    handleOpenTask={() => fetchTaskById(item._id)}
+                    handleOpenTask={() => handleTask(item._id)}
                     status={item.status}
                     priority={item.priority}
                     date={formatDate(item.date)}
@@ -53,8 +63,8 @@ export function SectionTask({ sections }: SectionProps) {
                 />
             )
             }
-            renderSectionHeader={({ section: { title, content, lenght } }) => (
-                <TextFilter text={title} number={lenght ? lenght : "0"} Open={() => toggleSection(content)} isOpen={uiState.openSections[content]} />
+            renderSectionHeader={({ section: { title, content, length } }) => (
+                <TextFilter text={title} number={length ? length : "0"} Open={() => toggleSection(content)} isOpen={uiState.openSections[content]} />
             )}
         />
     )

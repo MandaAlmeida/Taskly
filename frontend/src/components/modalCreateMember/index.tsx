@@ -62,7 +62,7 @@ export function ModalCreateMember() {
         }
     }
 
-    console.log(modalState.data)
+
 
     async function handleRemoveMember(id: string) {
         setData(prevData => ({
