@@ -126,8 +126,17 @@ export function Annotation() {
                         })}
                     </ScrollView>
                     <View style={styles.footer}>
-                        {data.annotationById.groupId && <Text style={styles.textFooter}>Grupo: {data.annotationById.groupId}</Text>}
-                        <Text style={styles.textFooter}>Criado por: {data.createUserAnnotation?.userName}</Text>
+                        {data.annotationById.groupId && (
+                            <Text style={styles.textFooter}>
+                                Grupo: {
+                                    data.groups
+                                        ?.filter(group => data.annotationById?.groupId?.includes(group._id))
+                                        .map(group => group.name)
+                                        .join(", ") || "Sem grupo"
+                                }
+                            </Text>
+                        )}
+                        <Text style={styles.textFooter}>Criado por: {data.createUserAnnotationOurGroup?.userName}</Text>
                         <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                             <Text style={styles.textFooter}>Categoria: {data.categories.find((categories) => categories._id === data.annotationById?.category)?.category || "Sem categoria"}</Text>
                             <Text style={styles.textFooter}>Data de criação: {formatDatePTBR(data.annotationById.createdAt)}</Text>

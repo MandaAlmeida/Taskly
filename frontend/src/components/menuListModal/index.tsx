@@ -56,7 +56,7 @@ export function MenuListModal({
 
 
     const renderItem = ({ item }: { item: CategoryProps | GroupProps }) => {
-        const isSelected = data.selectedCategory?._id === item._id;
+        const isSelected = data.selectedFilterCategory?._id === item._id;
         const label = isCategory(item) ? item.category : item.name;
         const IconName = iconsList[item.icon];
         const Icon = LucideIcons[IconName];

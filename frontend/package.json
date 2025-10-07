@@ -23,7 +23,6 @@
     "chroma-js": "^3.1.2",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
-    "date-fns": "^4.1.0",
     "expo": "^53.0.0",
     "expo-constants": "~17.1.6",
     "expo-dev-client": "^5.1.8",

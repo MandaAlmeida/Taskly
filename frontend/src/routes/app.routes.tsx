@@ -2,8 +2,11 @@ import React from "react";
 import { TouchableOpacity, View, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { getFocusedRouteNameFromRoute, NavigatorScreenParams } from "@react-navigation/native";
-import { theme } from '@/styles/theme';
+import {
+  getFocusedRouteNameFromRoute,
+  NavigatorScreenParams,
+} from "@react-navigation/native";
+import { theme } from "@/styles/theme";
 import { Home } from "@/screens/Home";
 import { PageTasks } from "@/screens/PageTasks";
 import { AddTask } from "@/screens/AddTask";
@@ -12,115 +15,172 @@ import { Profile } from "@/screens/Profile";
 import { Anotations } from "@/screens/Anotations";
 import { AddAnnotations } from "@/screens/AddAnotations";
 import { FloatingActionButton } from "@/components/FloatingActionButton"; // ajuste o caminho se necessário
-import { CalendarDays, House, ListChecks, NotepadText } from "lucide-react-native";
+import {
+  CalendarDays,
+  House,
+  ListChecks,
+  NotepadText,
+} from "lucide-react-native";
 import { styles } from "./styles";
 import { AnnotationProps } from "@/@types/annotation";
 import { Task } from "@/screens/Task";
-import { TaskProps } from "@/@types/task";
-
-type taskType = TaskProps & {
-    color: string,
-}
+import { EditProfile } from "@/screens/EditProfile";
+import { Settings } from "@/screens/Settings";
+import { Help } from "@/screens/Help";
+import { About } from "@/screens/About";
+import { PrivacyPolicy } from "@/screens/PrivacyPolicy";
+import { TermsOfService } from "@/screens/TermsOfService";
+import { UserManual } from "@/screens/UserManual";
 
 export type StackParamList = {
-    tabs: NavigatorScreenParams<TabParamList>;
-    addTask: undefined;
-    task: undefined;
-    addAnnotations: { annotation?: AnnotationProps };
-    profile: undefined;
+  tabs: NavigatorScreenParams<TabParamList>;
+  addTask: undefined;
+  task: undefined;
+  addAnnotations: { annotation?: AnnotationProps };
+  profile: undefined;
+  editProfile: undefined;
+  settings: undefined;
+  help: undefined;
+  about: undefined;
+  privacyPolicy: undefined;
+  termsOfService: undefined;
+  userManual: undefined;
 };
 
 export type TabParamList = {
-    home: undefined;
-    tasks: undefined;
-    calendar: undefined;
-    anotation: undefined;
-    addTask: undefined;
-    addAnnotations: { annotation?: AnnotationProps };
+  home: undefined;
+  tasks: undefined;
+  calendar: undefined;
+  anotation: undefined;
+  addTask: undefined;
+  addAnnotations: { annotation?: AnnotationProps };
 };
 
 const Stack = createNativeStackNavigator<StackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
 function BottomTabs({ route }: { route: any }) {
-    const routeName = getFocusedRouteNameFromRoute(route) ?? 'home';
+  const routeName = getFocusedRouteNameFromRoute(route) ?? "home";
 
-    return (
-        <Tab.Navigator
-            screenOptions={{
-                headerShown: false,
-                tabBarHideOnKeyboard: true,
-                tabBarStyle: [styles.tabBar],
-                tabBarShowLabel: false,
-            }}
-        >
-            <Tab.Screen
-                name="home"
-                component={Home}
-                options={{
-                    tabBarIcon: ({ focused }) => (
-                        <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}>
-                            <House size={22} color={theme.white} />
-                            <Text style={styles.text}>Início</Text>
-                        </View>
-                    ),
-                }}
-            />
-            <Tab.Screen
-                name="tasks"
-                component={PageTasks}
-                options={{
-                    tabBarIcon: ({ focused }) => (
-                        <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}>
-                            <ListChecks size={24} color={theme.white} />
-                            <Text style={styles.text}>Tarefa</Text>
-                        </View>
-                    ),
-                }}
-            />
-            <Tab.Screen
-                name={routeName === "anotation" ? "addTask" : "addAnnotations"}
-                component={routeName === "anotation" ? AddTask : AddAnnotations}
-                options={{
-                    tabBarButton: () => <FloatingActionButton />,
-                }}
-            />
-            <Tab.Screen
-                name="calendar"
-                component={Calendars}
-                options={{
-                    tabBarIcon: ({ focused }) => (
-                        <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}>
-                            <CalendarDays size={24} color={theme.white} />
-                            <Text style={styles.text}>Calendário</Text>
-                        </View>
-                    ),
-                }}
-            />
-            <Tab.Screen
-                name="anotation"
-                component={Anotations}
-                options={{
-                    tabBarIcon: ({ focused }) => (
-                        <View style={[styles.button, { backgroundColor: focused ? "rgba(244, 244, 244, 0.2)" : "transparent" }]}>
-                            <NotepadText size={24} color={theme.white} />
-                            <Text style={styles.text}>Anotações</Text>
-                        </View>
-                    ),
-                }}
-            />
-        </Tab.Navigator>
-    );
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarHideOnKeyboard: true,
+        tabBarStyle: [styles.tabBar],
+        tabBarShowLabel: false,
+      }}
+    >
+      <Tab.Screen
+        name="home"
+        component={Home}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={[
+                styles.button,
+                {
+                  backgroundColor: focused
+                    ? "rgba(244, 244, 244, 0.2)"
+                    : "transparent",
+                },
+              ]}
+            >
+              <House size={22} color={theme.white} />
+              <Text style={styles.text}>Início</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="tasks"
+        component={PageTasks}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={[
+                styles.button,
+                {
+                  backgroundColor: focused
+                    ? "rgba(244, 244, 244, 0.2)"
+                    : "transparent",
+                },
+              ]}
+            >
+              <ListChecks size={24} color={theme.white} />
+              <Text style={styles.text}>Tarefa</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name={routeName === "anotation" ? "addTask" : "addAnnotations"}
+        component={routeName === "anotation" ? AddTask : AddAnnotations}
+        options={{
+          tabBarButton: () => <FloatingActionButton />,
+        }}
+      />
+      <Tab.Screen
+        name="calendar"
+        component={Calendars}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={[
+                styles.button,
+                {
+                  backgroundColor: focused
+                    ? "rgba(244, 244, 244, 0.2)"
+                    : "transparent",
+                },
+              ]}
+            >
+              <CalendarDays size={24} color={theme.white} />
+              <Text style={styles.text}>Calendário</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="anotation"
+        component={Anotations}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={[
+                styles.button,
+                {
+                  backgroundColor: focused
+                    ? "rgba(244, 244, 244, 0.2)"
+                    : "transparent",
+                },
+              ]}
+            >
+              <NotepadText size={24} color={theme.white} />
+              <Text style={styles.text}>Anotações</Text>
+            </View>
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
 }
 
 export function AppRoutes() {
-    return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="tabs" component={BottomTabs} />
-            <Stack.Screen name="addTask" component={AddTask} />
-            <Stack.Screen name="task" component={Task} />
-            <Stack.Screen name="addAnnotations" component={AddAnnotations} />
-            <Stack.Screen name="profile" component={Profile} />
-        </Stack.Navigator>
-    );
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="tabs" component={BottomTabs} />
+      <Stack.Screen name="addTask" component={AddTask} />
+      <Stack.Screen name="task" component={Task} />
+      <Stack.Screen name="addAnnotations" component={AddAnnotations} />
+      <Stack.Screen name="profile" component={Profile} />
+      <Stack.Screen name="editProfile" component={EditProfile} />
+      <Stack.Screen name="settings" component={Settings} />
+      <Stack.Screen name="help" component={Help} />
+      <Stack.Screen name="about" component={About} />
+      <Stack.Screen name="privacyPolicy" component={PrivacyPolicy} />
+      <Stack.Screen name="termsOfService" component={TermsOfService} />
+      <Stack.Screen name="userManual" component={UserManual} />
+    </Stack.Navigator>
+  );
 }

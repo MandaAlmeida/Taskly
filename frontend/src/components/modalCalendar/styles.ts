@@ -12,9 +12,6 @@ export const styles = StyleSheet.create({
         backgroundColor: '#4285F4',
         borderRadius: 8,
     },
-    buttonText: {
-        color: 'white', fontWeight: 'bold',
-    },
     modalContainer: {
         backgroundColor: 'white',
         borderRadius: 12,
@@ -22,5 +19,15 @@ export const styles = StyleSheet.create({
     },
     calendar: {
         backgroundColor: "transparent"
+    },
+    button: {
+        padding: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 16,
+    },
+    buttonText: {
+        fontWeight: 'bold',
+        fontSize: 16,
     }
 });

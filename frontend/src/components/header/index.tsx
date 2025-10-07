@@ -18,7 +18,8 @@ export function Header({ text }: Props) {
         data,
         setModalState,
         modalState,
-        setData
+        setData,
+        fetchTaskBySearch
     } = useTask();
 
     const { navigate } = useNavigation();
@@ -54,11 +55,11 @@ export function Header({ text }: Props) {
             <MenuListModal
                 visible={modalState.name === "isMenuCategoryOpen"}
                 title="Categorias"
-                items={data.categories.filter(category => category.category !== "Todas")}
+                items={data.categories.filter(category => category.category)}
                 onClose={() => setModalState({ name: null })}
                 onAddNewItem={() => setModalState({ name: "isCategoryOpen" })}
-                onSelect={item => setData(prevData => ({ ...prevData, selectedFilterCategory: item }))}
-                showDefaultItem={false} // Mostra o item "Todas" apenas se necessário
+                onSelect={item => { setData(prevData => ({ ...prevData, selectedFilterCategory: item })); fetchTaskBySearch(undefined, item.category !== "Todas" && item._id) }}
+                showDefaultItem={false}
             />
 
             <ModalList

@@ -16,7 +16,7 @@ import { Progress } from "@/components/progress";
 import { formatDate } from "@/utils/formatDate";
 import { ptBR } from "@/utils/localeCalendarConfig";
 import { useTask } from "@/hooks/useTask";
-import { ModalCalendar } from "@/components/modalCalendar";
+import { SignUpModalCalendar } from "@/components/modalCalendar/SignUpModalCalendar";
 
 LocaleConfig.locales["pt-br"] = ptBR;
 LocaleConfig.defaultLocale = "pt-br";
@@ -97,7 +97,7 @@ export function SignUp1() {
                     {errors.birth && <Text style={{ color: "red" }}>{errors.birth.message}</Text>}
                 </View>
 
-                <ModalCalendar isVisible={showCalendar} handleOnVisible={() => setShowCalendar(false)} />
+                <SignUpModalCalendar isVisible={showCalendar} handleOnVisible={() => setShowCalendar(false)} />
 
                 <Button
                     text="CONTINUAR"

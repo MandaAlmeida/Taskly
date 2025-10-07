@@ -25,21 +25,13 @@ export function PageTasks() {
         fetchTask();
     }, []);
 
-    // Sempre que o search mudar, buscar novamente
     useEffect(() => {
         if (search.trim().length > 0) {
-            fetchTaskBySearch(search);
+            fetchTaskBySearch(search, data.selectedFilterCategory?._id);
         }
     }, [search]);
 
-    // Quando limpar a busca, limpar os resultados também
-    useEffect(() => {
-        if (search.trim().length === 0 && data.tasksSearch.length > 0) {
-            fetchTask(); // recarrega todas as tarefas
-        }
-    }, [search]);
-
-    const currentTasks = search.trim().length > 0 ? data.tasksSearch : data.tasks;
+    const currentTasks = search.trim().length > 0 || (data.selectedFilterCategory !== undefined && data.selectedFilterCategory?.category !== "Todas") ? data.tasksSearch : data.tasks;
 
     const sections = SECTION_DEFINITIONS.map(({ title, status }) => {
         const filteredTasks = currentTasks.filter((task) => task.status === status);
@@ -52,14 +44,13 @@ export function PageTasks() {
             data: isOpen ? filteredTasks : [],
             shouldShow: filteredTasks.length > 0,
         };
-    })
-        .filter(section => section.shouldShow); // 👈 aqui ele remove se estiver vazio
+    }).filter(section => section.shouldShow);
 
 
     return (
         <View style={styles.container}>
             <View style={styles.containerHeader}>
-                <Header text="Tarefas" />
+                <Header text={`Tarefas ${data.selectedFilterCategory && "- " + data.selectedFilterCategory?.category}`} />
             </View>
 
             {data.tasks ? (

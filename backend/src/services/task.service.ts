@@ -51,7 +51,8 @@ export class TaskService {
         user: TokenPayloadSchema,
         options?: {
             page?: number;
-            query?: string;
+            item?: string;
+            category?: string
         }
     ): Promise<CreateTaskDTO[]> {
         const userId = user.sub;
@@ -60,14 +61,14 @@ export class TaskService {
 
         let filters: any = { userId };
 
-        if (options?.query) {
-            const query = options.query;
+        if (options?.item) {
+            const query = options?.item;
             const regex = new RegExp(query, 'i');
             const isDate = !isNaN(Date.parse(query));
 
             const orFilters: any[] = [
                 { name: { $regex: regex } },
-                { category: { $regex: regex } },
+                { category: options?.category },
                 { subCategory: { $regex: regex } },
             ];
 

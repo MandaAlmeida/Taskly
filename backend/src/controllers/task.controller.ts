@@ -23,8 +23,8 @@ export class TaskController {
     }
 
     @Get("fetch")
-    async fetch(@CurrentUser() user: TokenPayloadSchema, @Query("q") query?: string, @Query("p") page?: number): Promise<CreateTaskDTO[]> {
-        return this.TaskService.fetchTasks(user, { query, page });
+    async fetch(@CurrentUser() user: TokenPayloadSchema, @Query("i") item?: string, @Query("c") category?: string, @Query("p") page?: number): Promise<CreateTaskDTO[]> {
+        return this.TaskService.fetchTasks(user, { item, category, page });
     }
 
     @Get("fetchById/:taskId")

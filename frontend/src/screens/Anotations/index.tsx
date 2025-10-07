@@ -11,11 +11,11 @@ import { formatLayout, LayoutBlock } from "@/utils/formatLayout";
 import { formatDatePTBR } from "@/utils/formatDate";
 import { Annotation } from "@/components/annotation";
 import { theme } from "@/styles/theme";
-import { EllipsisVertical, PencilLine, Trash2, UserRoundPlus, UsersRound, X } from "lucide-react-native";
+import { EllipsisVertical, PencilLine, Trash2, UsersRound, X } from "lucide-react-native";
 import { ModalCreateMember } from "@/components/modalCreateMember";
 
 export function Anotations() {
-    const { fetchAnnotation, fetchAnnotationById, data, fetchAnnotationBySearch, fetchByGroup, setData, removeGroup, setModalState } = useTask();
+    const { fetchAnnotation, fetchAnnotationById, data, fetchAnnotationBySearch, setData, removeGroup, setModalState } = useTask();
 
     const [search, setSearch] = useState("");
     const [isVisible, setIsVisible] = useState(false)
@@ -23,7 +23,6 @@ export function Anotations() {
 
     useEffect(() => {
         fetchAnnotation();
-        fetchByGroup();
     }, []);
 
     function handleAnnotation(id: string) {

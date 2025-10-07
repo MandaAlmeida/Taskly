@@ -140,9 +140,7 @@ export class UserService {
 
         // Busca o usuário no banco, excluindo a senha
         const userFound = await this.userModel.findById(userId).select('-password').exec();
-        if (!userFound) {
-            throw new NotFoundException("Usuário não encontrado");
-        }
+        if (!userFound) throw new NotFoundException("Usuário não encontrado");
 
         return userFound;
     }
@@ -152,9 +150,7 @@ export class UserService {
      */
     async fetchById(userId: string) {
         const userFound = await this.userModel.findById(userId).select(['userName']).exec();
-        if (!userFound) {
-            throw new NotFoundException("Usuário não encontrado");
-        }
+        if (!userFound) throw new NotFoundException("Usuário não encontrado");
 
         return userFound;
     }
