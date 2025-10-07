@@ -1,0 +1,28 @@
+import { Annotation, AnnotationSchema } from '@/models/annotations.schema';
+import { AnnotationController } from '../controllers/annotation.controller';
+import { AnnotationsService } from '../services/annotation.service';
+import { forwardRef, Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { GroupModule } from './group.module';
+import { UploadModule } from './upload.module';
+import { UploadService } from '@/services/upload.service';
+import { EnvModule } from '@/env/env.module';
+import { EnvService } from '@/env/env.service';
+import { NotificationModule } from './notifications.module';
+
+
+@Module({
+    imports: [
+        MongooseModule.forFeature([
+            { name: Annotation.name, schema: AnnotationSchema },
+        ]),
+        forwardRef(() => GroupModule),
+        UploadModule,
+        EnvModule,
+        NotificationModule,
+    ],
+    controllers: [AnnotationController],
+    providers: [AnnotationsService, UploadService, EnvService],
+    exports: [MongooseModule, AnnotationsService]
+})
+export class AnnotationModule { }
